@@ -1,6 +1,6 @@
 # PoliLink
 
-Proyecto académico de la asignatura Lenguajes de Programación.
+Proyecto académico de la asignatura Lenguajes de Programación 2P.
 
 PoliLink será una plataforma web para centralizar la publicación, consulta e inscripción a eventos organizados por comunidades estudiantiles de ESPOL.
 
@@ -94,3 +94,4 @@ El frontend quedará disponible en la URL que muestre Vite, normalmente http://l
 ## Alcance académico
 
 El proyecto se desarrollará progresivamente. La autenticación institucional, los pagos, el correo, el calendario institucional, los códigos QR y la validación de asistencia están fuera del alcance inicial.
+

@@ -2,6 +2,7 @@
 .env
 .env.local
 .env.*.local
+!.env.example
 
 # Dependencias
 node_modules/
@@ -11,13 +12,22 @@ vendor/
 dist/
 build/
 .cache/
-storage/logs/
-storage/framework/cache/
-storage/framework/sessions/
-storage/framework/views/
+*.tsbuildinfo
+coverage/
+
+# Bases de datos y archivos locales
+*.sqlite
+*.sqlite3
+*.db
+
+# Logs y diagnósticos
+*.log
+*.pid
+.phpunit.result.cache
 
 # Archivos del sistema y editores
 .DS_Store
 .idea/
 .vscode/
+.zed/
 
