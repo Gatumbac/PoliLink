@@ -1,0 +1,23 @@
+# Variables de entorno
+.env
+.env.local
+.env.*.local
+
+# Dependencias
+node_modules/
+vendor/
+
+# Compilación y cachés
+dist/
+build/
+.cache/
+storage/logs/
+storage/framework/cache/
+storage/framework/sessions/
+storage/framework/views/
+
+# Archivos del sistema y editores
+.DS_Store
+.idea/
+.vscode/
+
