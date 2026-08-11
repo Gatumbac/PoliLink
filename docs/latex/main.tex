@@ -211,6 +211,7 @@ Las pantallas principales son: catálogo de eventos, detalle de evento, panel de
 \caption{Formulario de creación de evento. Permite registrar la información básica del evento: título, descripción, categoría y comunidad organizadora, entre otros campos.}
 \end{figure}
 
+\clearpage
 \section{Implementación}
 
 \subsection{Backend}
@@ -221,10 +222,11 @@ catálogo público de eventos, filtros, gestión de comunidades y operaciones pa
 crear, editar y cancelar eventos desde la sesión del organizador. El repositorio
 del grupo se encuentra en \url{https://github.com/Gatumbac/PoliLink}.
 
-\begin{table}[h!]
+\begin{table}[htbp]
 \centering
-\small
-\begin{tabularx}{\textwidth}{|p{7.1cm}|p{3.1cm}|p{2cm}|}
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|Y|>{\centering\arraybackslash}p{2.8cm}|>{\centering\arraybackslash}p{1.8cm}|}
 \hline
 \textbf{Implementación} & \textbf{Responsable} & \textbf{Estado} \\
 \hline
@@ -252,20 +254,44 @@ Díaz complete su componente asignado.
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.95\textwidth]{images/backend-1-login-organizador.png}
-\caption{Inicio de sesión del organizador mediante la API de Laravel Sanctum.}
+\includegraphics[width=0.95\textwidth]{images/backend1.png}
+\caption{Registro de un usuario local mediante la API de Laravel Sanctum.}
 \end{figure}
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.95\textwidth]{images/backend-2-crear-evento.png}
+\includegraphics[width=0.95\textwidth]{images/backend2.png}
+\caption{Inicio de sesión de Gabriel Tumbaco mediante la API de Laravel Sanctum.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend3.png}
+\caption{Creación de una comunidad y asignación del rol de organizador al usuario autenticado.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend4.png}
 \caption{Creación de un evento por parte de un organizador autenticado.}
 \end{figure}
 
 \begin{figure}[h!]
 \centering
-\includegraphics[width=0.95\textwidth]{images/backend-3-consultar-eventos.png}
-\caption{Consulta del catálogo de eventos mediante la API REST.}
+\includegraphics[width=0.95\textwidth]{images/backend5.png}
+\caption{Edición de un evento propio mediante la API REST.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend6.png}
+\caption{Cancelación de un evento propio mediante la API REST.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend7.png}
+\caption{Consulta y filtrado del catálogo de eventos mediante la API REST.}
 \end{figure}
 
 \clearpage

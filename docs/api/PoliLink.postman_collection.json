@@ -8,33 +8,27 @@
   "variable": [
     { "key": "baseUrl", "value": "http://localhost:8000" },
     { "key": "xsrfToken", "value": "" },
+    { "key": "email", "value": "gatumbac@espol.edu.ec" },
+    { "key": "firstName", "value": "Gabriel" },
+    { "key": "lastName", "value": "Tumbaco" },
     { "key": "newStudentEmail", "value": "cambia-este-correo@example.test" },
-    { "key": "password", "value": "password123" },
+    { "key": "newCommunityName", "value": "Comunidad Gabriel Agosto" },
+    { "key": "password", "value": "password" },
     { "key": "communityId", "value": "1" },
     { "key": "eventCategoryId", "value": "3" },
     { "key": "eventModalityId", "value": "1" },
     { "key": "locationId", "value": "1" },
     { "key": "eventId", "value": "1" }
   ],
-  "event": [
-    {
-      "listen": "prerequest",
-      "script": {
-        "type": "text/javascript",
-        "exec": [
-          "pm.cookies.get('XSRF-TOKEN', (error, cookie) => {",
-          "  if (!error && cookie) pm.collectionVariables.set('xsrfToken', decodeURIComponent(cookie));",
-          "});"
-        ]
-      }
-    }
-  ],
+  "event": [],
   "item": [
     {
       "name": "00. Público",
       "item": [
         { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/api/health" } },
         { "name": "Catálogo de eventos", "request": { "method": "GET", "url": "{{baseUrl}}/api/events?per_page=12" } },
+        { "name": "Filtrar eventos para captura", "request": { "method": "GET", "url": "{{baseUrl}}/api/events?category=hackathon&per_page=12" } },
+        { "name": "Detalle del evento creado", "request": { "method": "GET", "url": "{{baseUrl}}/api/events/{{eventId}}" } },
         { "name": "Categorías", "request": { "method": "GET", "url": "{{baseUrl}}/api/event-categories" } },
         { "name": "Modalidades", "request": { "method": "GET", "url": "{{baseUrl}}/api/event-modalities" } },
         { "name": "Ubicaciones", "request": { "method": "GET", "url": "{{baseUrl}}/api/locations" } },
@@ -53,7 +47,24 @@
               { "key": "Referer", "value": "http://localhost:5173/" }
             ],
             "url": "{{baseUrl}}/sanctum/csrf-cookie"
-          }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const token = pm.cookies.get('XSRF-TOKEN');",
+                  "pm.test('Laravel devolvió la cookie XSRF-TOKEN', () => {",
+                  "  pm.expect(token, 'Revisa Cookies para localhost en Postman').to.exist;",
+                  "});",
+                  "if (token) {",
+                  "  pm.collectionVariables.set('xsrfToken', decodeURIComponent(token));",
+                  "}"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Registrar estudiante nuevo",
@@ -66,12 +77,12 @@
               { "key": "Referer", "value": "http://localhost:5173/" },
               { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"Postman\",\n  \"last_name\": \"PoliLink\",\n  \"email\": \"{{newStudentEmail}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"{{firstName}}\",\n  \"last_name\": \"{{lastName}}\",\n  \"email\": \"{{newStudentEmail}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\"\n}" },
             "url": "{{baseUrl}}/api/auth/register"
           }
         },
         {
-          "name": "Login estudiante semilla",
+          "name": "Login Gabriel",
           "request": {
             "method": "POST",
             "header": [
@@ -81,7 +92,7 @@
               { "key": "Referer", "value": "http://localhost:5173/" },
               { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@polilink.test\",\n  \"password\": \"password\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
             "url": "{{baseUrl}}/api/auth/login"
           }
         },
@@ -116,7 +127,7 @@
       "name": "02. Comunidad y eventos autenticados",
       "item": [
         {
-          "name": "Login organizador semilla",
+          "name": "Crear mi comunidad y obtener rol organizador",
           "request": {
             "method": "POST",
             "header": [
@@ -126,9 +137,21 @@
               { "key": "Referer", "value": "http://localhost:5173/" },
               { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"organizer@polilink.test\",\n  \"password\": \"password\"\n}" },
-            "url": "{{baseUrl}}/api/auth/login"
-          }
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"{{newCommunityName}}\",\n  \"description\": \"Comunidad creada desde Postman para probar PoliLink.\"\n}" },
+            "url": "{{baseUrl}}/api/communities"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const community = pm.response.json().data;",
+                  "if (community?.id) pm.collectionVariables.set('communityId', String(community.id));"
+                ]
+              }
+            }
+          ]
         },
         {
           "name": "Mis comunidades",

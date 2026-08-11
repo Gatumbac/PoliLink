@@ -8,12 +8,16 @@ Todas las imágenes se almacenan en `images/` y se referencian desde `main.tex`.
 Las cuatro capturas existentes corresponden al prototipo de interfaz. Para el
 avance de backend se deben añadir estas capturas reales de Postman:
 
-- `backend-1-login-organizador.png`
-- `backend-2-crear-evento.png`
-- `backend-3-consultar-eventos.png`
-- `backend-4-inscripcion-evento.png`
-- `backend-5-consultar-inscritos.png`
+- `backend1.png` — registro de usuario.
+- `backend2.png` — inicio de sesión.
+- `backend3.png` — creación de comunidad.
+- `backend4.png` — creación de evento.
+- `backend5.png` — edición de evento.
+- `backend6.png` — cancelación de evento.
+- `backend7.png` — consulta y filtrado de eventos.
+- `darwin-1-inscripcion-evento.png`
+- `darwin-2-consultar-inscritos.png`
 
-Las tres primeras evidencian el componente de Gabriel. Las dos últimas se
+Las siete primeras evidencian el componente de Gabriel. Las dos últimas se
 agregan cuando Darwin termine su componente. Cada captura debe mostrar la
 solicitud y una respuesta exitosa; no usar imágenes de relleno.
