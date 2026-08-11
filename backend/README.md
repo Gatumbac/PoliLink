@@ -30,6 +30,15 @@ DB_USERNAME=polilink
 DB_PASSWORD=polilink
 ```
 
+Para que React en `http://localhost:5173` use autenticación local mediante
+cookies, conservar también:
+
+```env
+APP_URL=http://localhost:8000
+FRONTEND_URL=http://localhost:5173
+SANCTUM_STATEFUL_DOMAINS=localhost:5173
+```
+
 Finalmente:
 
 ```bash
@@ -69,4 +78,8 @@ El seeder crea los usuarios organizer@polilink.test y student@polilink.test, una
 
 ## Estado
 
-El framework está instalado y cuenta únicamente con el endpoint de comprobación `GET /api/health`. Los modelos, migraciones y operaciones de eventos e inscripciones quedan pendientes para su implementación por parte de los integrantes responsables.
+Están implementados los modelos, migraciones, catálogos, gestión de eventos,
+panel temporal y autenticado de organizador, onboarding de comunidades y
+autenticación local con Laravel Sanctum. El módulo de inscripciones permanece
+asignado a Darwin Díaz. Consultar `../docs/API.md` para el contrato completo y
+la prueba manual de autenticación.
