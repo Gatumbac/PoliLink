@@ -1,0 +1,235 @@
+\documentclass[12pt]{article}
+
+\usepackage[spanish,es-nodecimaldot]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{setspace}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{array}
+\usepackage{enumitem}
+\usepackage[hidelinks]{hyperref}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+
+\setstretch{1.15}
+\setlist[itemize]{noitemsep,topsep=3pt}
+\setlist[enumerate]{noitemsep,topsep=3pt}
+\renewcommand{\arraystretch}{1.25}
+\newcolumntype{Y}{>{\raggedright\arraybackslash}X}
+
+\title{PoliLink: Plataforma web para la gestión y difusión centralizada de eventos de comunidades ESPOL}
+\author{Darwin Leonardo Díaz González \and Gabriel Alejandro Tumbaco Santana}
+\date{2026--2027}
+
+\begin{document}
+
+\begin{titlepage}
+    \centering
+    \vspace*{1.2cm}
+    {\Large\bfseries Escuela Superior Politécnica del Litoral\par}
+    \vspace{0.25cm}
+    {\large Facultad de Ingeniería en Electricidad y Computación\par}
+    \vspace{0.15cm}
+    {\large Lenguajes de Programación\par}
+    \vspace{1.4cm}
+    \rule{0.72\textwidth}{0.8pt}\par
+    \vspace{0.55cm}
+    {\Large\bfseries Propuesta de Proyecto Final\par}
+    \vspace{0.55cm}
+    {\LARGE\bfseries PoliLink\par}
+    \vspace{0.45cm}
+    \begin{minipage}{0.76\textwidth}
+        \centering
+        \large Plataforma web para la gestión y difusión centralizada de eventos de comunidades ESPOL
+    \end{minipage}\par
+    \vspace{0.55cm}
+    \rule{0.72\textwidth}{0.8pt}\par
+    \vfill
+    \begin{tabular}{c}
+        \textbf{Integrantes} \\[0.25cm]
+        Darwin Leonardo Díaz González \\
+        \texttt{dldiaz@espol.edu.ec} \\[0.35cm]
+        Gabriel Alejandro Tumbaco Santana \\
+        \texttt{gatumbac@espol.edu.ec}
+    \end{tabular}\par
+    \vspace{1.1cm}
+    \begin{tabular}{c}
+        \textbf{Profesor} \\[0.2cm]
+        MSc. Rodrigo Saraguro
+    \end{tabular}\par
+    \vfill
+    {\large Guayaquil -- Ecuador\par}
+    \vspace{0.12cm}
+    {\large 2026 -- 2027\par}
+    \vspace*{0.7cm}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Problemática a resolver}
+
+Los clubes y organizaciones estudiantiles de ESPOL desarrollan actividades académicas, culturales, profesionales y recreativas que aportan a la formación integral de los estudiantes. La institución reconoce estos grupos como espacios de desarrollo multidisciplinario y les brinda apoyo para la realización de actividades \cite{espolclubes,programaclubes}. Sin embargo, la difusión de los eventos suele realizarse de forma independiente mediante publicaciones en redes sociales, principalmente Instagram. Como resultado, la información se encuentra dispersa entre perfiles, historias y enlaces externos, por lo que un estudiante puede no enterarse a tiempo de un taller, charla, hackatón o feria de interés.
+
+Esta situación dificulta que la comunidad politécnica conozca oportunamente las actividades disponibles y también limita a los organizadores al momento de concentrar inscripciones y consultar la asistencia esperada. Por ejemplo, cuando un club como TAWS organiza un hackatón, el evento debería poder llegar a estudiantes de distintas carreras que tengan interés en participar. Por esta razón, se propone una plataforma web centralizada que conecte a los clubes y organizaciones con los estudiantes mediante la publicación, consulta e inscripción de eventos.
+
+\section{Objetivos propuestos}
+
+\subsection{Objetivo general}
+
+Desarrollar una aplicación web que centralice la publicación, consulta e inscripción de eventos organizados por las comunidades estudiantiles de ESPOL.
+
+\subsection{Objetivos específicos}
+
+\begin{enumerate}
+    \item Implementar un módulo para que los organizadores publiquen directamente, modifiquen y cancelen eventos con información de fecha, ubicación, categoría y cupos disponibles.
+    \item Desarrollar un catálogo que permita a los estudiantes consultar y filtrar eventos por fecha, categoría, comunidad organizadora y modalidad.
+    \item Implementar el proceso de inscripción y cancelación de inscripción, junto con la consulta de inscritos para cada organizador.
+\end{enumerate}
+
+\section{Alcance del proyecto}
+
+El proyecto consistirá en un prototipo funcional de aplicación web dirigido a los estudiantes y comunidades estudiantiles de ESPOL. La solución permitirá trabajar con cuentas locales de estudiante y organizador, además de registrar clubes, organizaciones y eventos de prueba. La información de cada evento incluirá título, descripción, categoría, fecha, hora, ubicación, modalidad, cupo y comunidad responsable.
+
+La primera versión se limitará a eventos de clubes y organizaciones estudiantiles de ESPOL. Los organizadores podrán publicar los eventos directamente, sin un flujo de aprobación administrativa. No se integrará con los sistemas institucionales de autenticación, correo, calendario ni gestión académica; tampoco se procesarán pagos ni se validará la asistencia mediante códigos QR. Estas funcionalidades podrán considerarse como trabajo futuro. El mapa público del Campus Gustavo Galindo podrá utilizarse únicamente como referencia para mostrar la ubicación textual de los eventos \cite{mapacampus}.
+
+\section{Características de la solución}
+
+La plataforma contará con las siguientes características principales:
+
+\begin{itemize}
+    \item Catálogo centralizado de eventos publicados por clubes y organizaciones estudiantiles de ESPOL.
+    \item Búsqueda y filtros por fecha, categoría, modalidad y comunidad organizadora.
+    \item Vista de detalle con descripción, ubicación, cupos y enlace de inscripción.
+    \item Publicación directa, edición y cancelación de eventos por parte del organizador.
+    \item Inscripción y cancelación de inscripción por parte del estudiante.
+    \item Consulta de la lista de inscritos y de los cupos disponibles para cada evento.
+\end{itemize}
+
+\section{Requerimientos funcionales asignados}
+
+Los requerimientos se distribuyen de modo que cada integrante implemente funcionalidades de lectura y escritura tanto en el frontend como en el backend. El inicio de sesión, el diseño visual y la gestión de la base de datos se consideran componentes de apoyo y no constituyen requerimientos asignados.
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabularx}{\textwidth}{p{3.3cm}Yp{2.8cm}}
+\toprule
+\textbf{Requerimiento} & \textbf{Descripción} & \textbf{Responsable} \\
+\midrule
+Crear, editar y cancelar eventos & Permite al organizador publicar directamente un evento, modificar su información o cancelar una publicación. & Gabriel Tumbaco \\
+Consultar y filtrar eventos & Permite al estudiante visualizar el catálogo y aplicar filtros por fecha, categoría, modalidad y comunidad organizadora. & Gabriel Tumbaco \\
+Inscribirse y cancelar inscripción & Permite al estudiante reservar un cupo disponible o retirar su inscripción de un evento. & Darwin Díaz \\
+Consultar inscritos y cupos disponibles & Permite al organizador revisar los estudiantes registrados y la disponibilidad de su evento. & Darwin Díaz \\
+\bottomrule
+\end{tabularx}
+\caption{Requerimientos funcionales propuestos.}
+\end{table}
+
+\section{Arquitectura de la aplicación}
+
+\subsection{Tipo de aplicación}
+
+PoliLink será una aplicación web responsive. Este tipo de aplicación permite que estudiantes y organizadores accedan desde un navegador en computadora o teléfono sin requerir la instalación de una aplicación móvil. Además, facilita la publicación rápida de información y la consulta de eventos antes de que se realicen.
+
+\subsection{Patrón de arquitectura}
+
+La aplicación utilizará una arquitectura cliente-servidor con el patrón Modelo--Vista--Controlador (MVC). El frontend implementado en TypeScript consumirá una API REST desarrollada en PHP. El backend concentrará las reglas de negocio y el acceso a la base de datos, mientras que la interfaz presentará la información y enviará las solicitudes de los usuarios.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[
+    node distance=0.65cm,
+    box/.style={rectangle, rounded corners, draw=black, align=center, minimum width=2.55cm, minimum height=1.05cm, fill=gray!12},
+    arrow/.style={-{Latex[length=3mm]}, thick}
+]
+\node[box] (user) {Estudiante /\\ Organizador};
+\node[box, right=of user] (front) {Frontend\\ TypeScript + React};
+\node[box, right=of front] (api) {API REST\\ PHP + Laravel};
+\node[box, right=of api] (db) {Base de datos\\ MySQL};
+\draw[arrow] (user) -- (front);
+\draw[arrow] (front) -- (api);
+\draw[arrow] (api) -- (db);
+\end{tikzpicture}
+\caption{Arquitectura propuesta para PoliLink.}
+\end{figure}
+
+\subsection{Herramientas y frameworks}
+
+\begin{itemize}
+    \item \textbf{Framework frontend:} React con TypeScript para construir una interfaz reutilizable y con validación estática de tipos.
+    \item \textbf{Framework backend:} Laravel, framework de PHP que organiza el backend mediante MVC y facilita la construcción de una API REST.
+    \item \textbf{API:} API REST propia para administrar eventos, inscripciones, clubes y usuarios.
+    \item \textbf{Servicios:} MySQL para persistencia de datos y GitHub para control de versiones y trabajo colaborativo.
+\end{itemize}
+
+\section{Lenguajes de programación}
+
+\subsection{Back-end: PHP}
+
+PHP será utilizado en el backend mediante Laravel. El lenguaje se adapta al desarrollo de aplicaciones web dinámicas, cuenta con una sintaxis accesible y dispone de un ecosistema amplio para trabajar con rutas, controladores, validaciones y bases de datos \cite{php}. Su tipado dinámico favorece el desarrollo rápido de prototipos y su integración con HTML continúa siendo una característica útil en aplicaciones web.
+
+Como desventaja, el tipado dinámico puede permitir errores de tipos durante la ejecución si no se aplican validaciones y pruebas adecuadas. Además, PHP admite diferentes estilos de programación, por lo que será necesario mantener convenciones claras para conservar la legibilidad del código.
+
+\subsection{Front-end: TypeScript}
+
+TypeScript será utilizado en el frontend junto con React. TypeScript amplía JavaScript mediante tipos estáticos, lo cual permite detectar inconsistencias antes de ejecutar el programa y facilita el mantenimiento de componentes, formularios y respuestas de la API \cite{typescript}. Su compatibilidad con JavaScript permite utilizar las bibliotecas del ecosistema web sin abandonar las ventajas de la verificación de tipos.
+
+Como desventaja, TypeScript requiere una etapa de compilación a JavaScript y demanda definir interfaces y tipos adicionales. Esto puede aumentar el tiempo inicial de desarrollo, aunque reduce errores cuando el proyecto crece.
+
+\section{Prototipo de baja fidelidad}
+
+\textbf{Herramienta de diseño utilizada:} Figma (prototipo a elaborar antes de la entrega final de la propuesta).
+
+Las pantallas principales serán: catálogo de eventos, detalle de evento, formulario de creación de evento, mis inscripciones y panel de inscritos. A continuación se presentan bocetos de baja fidelidad que servirán como guía inicial para el prototipo en Figma.
+
+\begin{figure}[h!]
+\centering
+\begin{tikzpicture}[font=\small]
+\draw[thick] (0,0) rectangle (5.4,7.6);
+\node at (2.7,7.2) {\textbf{PoliLink}};
+\draw (0.45,6.45) rectangle (4.95,6.85);
+\node at (2.7,6.65) {Buscar eventos};
+\draw (0.45,5.75) rectangle (2.45,6.15);
+\node at (1.45,5.95) {Fecha};
+\draw (2.95,5.75) rectangle (4.95,6.15);
+\node at (3.95,5.95) {Categoría};
+\draw (0.45,4.2) rectangle (4.95,5.3);
+\node[align=center] at (2.7,4.75) {Hackatón TAWS\\ Fecha -- Lugar -- Cupos};
+\draw (0.45,2.65) rectangle (4.95,3.75);
+\node[align=center] at (2.7,3.2) {Taller de programación\\ Fecha -- Lugar -- Cupos};
+\draw (0.45,1.1) rectangle (4.95,2.2);
+\node[align=center] at (2.7,1.65) {Charla profesional\\ Fecha -- Lugar -- Cupos};
+\node at (2.7,0.45) {Catálogo de eventos};
+
+\draw[thick] (7,0) rectangle (12.4,7.6);
+\node at (9.7,7.2) {\textbf{Detalle de evento}};
+\draw (7.45,5.85) rectangle (11.95,6.75);
+\node at (9.7,6.3) {Título del evento};
+\draw (7.45,3.65) rectangle (11.95,5.4);
+\node[align=center] at (9.7,4.55) {Descripción\\ Fecha, hora y ubicación\\ Cupos disponibles};
+\draw[fill=gray!20] (7.8,2.45) rectangle (11.6,3.05);
+\node at (9.7,2.75) {Inscribirme};
+\node at (9.7,0.45) {Información e inscripción};
+\end{tikzpicture}
+\caption{Bocetos de baja fidelidad para las pantallas principales.}
+\end{figure}
+
+\clearpage
+\section{Referencias}
+\begin{thebibliography}{9}
+\bibitem{espolclubes} Escuela Superior Politécnica del Litoral, ``Clubes y agrupaciones estudiantiles.'' [En línea]. Disponible en: \url{https://www.espol.edu.ec/es/clubes-y-agrupaciones-estudiantiles}. [Accedido: 28-jul-2026].
+
+\bibitem{programaclubes} Unidad de Bienestar Politécnico, ``Programa de Apoyo de Clubes Estudiantiles y Organizaciones Estudiantiles Profesionales.'' [En línea]. Disponible en: \url{https://oe.espol.edu.ec/programa-de-apoyo/}. [Accedido: 28-jul-2026].
+
+\bibitem{mapacampus} Escuela Superior Politécnica del Litoral, ``Mapa del campus.'' [En línea]. Disponible en: \url{https://www.espol.edu.ec/es/mapa-del-campus}. [Accedido: 28-jul-2026].
+
+\bibitem{php} PHP Documentation Group, ``PHP: Hypertext Preprocessor.'' [En línea]. Disponible en: \url{https://www.php.net/manual/es/intro-whatis.php}. [Accedido: 28-jul-2026].
+
+\bibitem{typescript} Microsoft, ``TypeScript: JavaScript with syntax for types.'' [En línea]. Disponible en: \url{https://www.typescriptlang.org/}. [Accedido: 28-jul-2026].
+\end{thebibliography}
+
+\end{document}

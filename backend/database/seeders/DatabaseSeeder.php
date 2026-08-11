@@ -2,7 +2,6 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 
@@ -15,9 +14,10 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::factory()->create([
-            'name' => 'Usuario de prueba',
-            'email' => 'test@polilink.test',
+        $this->call([
+            RoleSeeder::class,
+            EventReferenceSeeder::class,
+            PoliLinkDemoSeeder::class,
         ]);
     }
 }

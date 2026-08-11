@@ -2,12 +2,37 @@
 
 API REST de PoliLink, desarrollada con Laravel 13, PHP y MySQL.
 
-## Comandos
+## Inicio recomendado: PHP en el host y MySQL en Docker
+
+Desde la raíz del repositorio, iniciar solo la base de datos:
+
+```bash
+docker compose up -d mysql
+```
+
+Luego, desde `backend/`, instalar las dependencias y crear la configuración
+local si todavía no existe:
 
 ```bash
 composer install
 cp .env.example .env
 php artisan key:generate
+```
+
+En `.env`, usar la conexión hacia el puerto publicado por Docker:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=polilink
+DB_USERNAME=polilink
+DB_PASSWORD=polilink
+```
+
+Finalmente:
+
+```bash
 php artisan migrate
 php artisan serve
 ```
