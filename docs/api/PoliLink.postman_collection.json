@@ -2,7 +2,7 @@
   "info": {
     "_postman_id": "a8911c84-1958-45a2-a563-70bcbf57cd98",
     "name": "PoliLink - Backend actual",
-    "description": "Colección para los endpoints implementados. Ejecuta primero Obtener cookie CSRF antes de POST, PATCH o DELETE. Inscripciones no están incluidas porque Darwin aún no las implementa.",
+    "description": "Colección para los endpoints implementados. Ejecuta primero Obtener cookie CSRF antes de POST, PATCH o DELETE.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -18,7 +18,9 @@
     { "key": "eventCategoryId", "value": "3" },
     { "key": "eventModalityId", "value": "1" },
     { "key": "locationId", "value": "1" },
-    { "key": "eventId", "value": "1" }
+    { "key": "eventId", "value": "1" },
+    { "key": "organizerEmail", "value": "organizer@polilink.test" },
+    { "key": "registrationEventId", "value": "" }
   ],
   "event": [],
   "item": [
@@ -229,6 +231,116 @@
               { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
             ],
             "url": "{{baseUrl}}/api/events/{{eventId}}/cancel"
+          }
+        }
+      ]
+    },
+    {
+      "name": "03. Inscripciones",
+      "item": [
+        {
+          "name": "Buscar evento Hackathon TAWS",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/events?search=Hackathon%20TAWS&per_page=1"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const event = pm.response.json().data?.[0];",
+                  "pm.test('Se encontró el evento semilla Hackathon TAWS', () => {",
+                  "  pm.expect(event, 'Corre migrate:fresh --seed antes de esta prueba').to.exist;",
+                  "});",
+                  "if (event?.id) pm.collectionVariables.set('registrationEventId', String(event.id));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login estudiante nuevo (inscripciones)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{newStudentEmail}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Inscribirme al evento",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/events/{{registrationEventId}}/registrations"
+          }
+        },
+        {
+          "name": "Cancelar mi inscripción",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/events/{{registrationEventId}}/registrations"
+          }
+        },
+        {
+          "name": "Mis inscripciones",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/me/registrations?per_page=12"
+          }
+        },
+        {
+          "name": "Login organizador semilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{organizerEmail}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Lista de inscritos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/events/{{registrationEventId}}/registrations"
           }
         }
       ]

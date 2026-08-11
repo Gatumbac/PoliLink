@@ -1,7 +1,7 @@
 # Contrato de la API
 
-La API usa el prefijo `/api` y responde JSON. El módulo de eventos está
-implementado; el módulo de inscripciones queda reservado para Darwin Díaz.
+La API usa el prefijo `/api` y responde JSON. Los módulos de eventos e
+inscripciones están implementados.
 
 ## Eventos
 
@@ -189,14 +189,81 @@ el usuario aún no administra ninguna comunidad. Los eventos se ordenan por
 fecha descendente y usan paginación con `per_page=12` por defecto y máximo
 `50`.
 
-## Inscripciones autenticadas — pendiente de Darwin
+## Inscripciones autenticadas — implementado
 
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `GET` | `/events/{event}/registrations` | Lista inscritos y cupos para el organizador responsable autenticado. |
-| `POST` | `/events/{event}/registrations` | Inscribe o reactiva al estudiante autenticado. |
-| `DELETE` | `/events/{event}/registrations` | Cancela la inscripción activa del estudiante autenticado. |
-| `GET` | `/me/registrations` | Lista las inscripciones activas de la sesión actual. |
+Todas requieren sesión Sanctum; el actor siempre es el usuario de la sesión.
+Ninguna recibe cuerpo ni query string: el estudiante o el organizador se
+obtienen de la cookie de sesión.
 
-Las reglas y evidencia requeridas del módulo están documentadas en
+| Método | Ruta | Rol requerido | Descripción |
+| --- | --- | --- | --- |
+| `POST` | `/events/{event}/registrations` | `student` | Crea o reactiva la inscripción propia. |
+| `DELETE` | `/events/{event}/registrations` | `student` | Cancela la inscripción propia activa. |
+| `GET` | `/events/{event}/registrations` | `organizer` responsable | Lista inscritos activos y cupos. |
+| `GET` | `/me/registrations` | `student` | Lista las inscripciones activas de la sesión actual. |
+
+### Inscribirse o reactivar: `POST /events/{event}/registrations`
+
+Solo permite eventos con estado `published`. Si el estudiante ya tiene una
+inscripción `active` para ese evento, responde `409`. Si el cupo activo
+alcanzó `capacity`, responde `409`. Si existe una inscripción `cancelled`
+previa del mismo estudiante para el evento, la reactiva (`registered_at`
+actual y `cancelled_at` nulo) y responde `200`; si no existe, crea una nueva
+fila `active` y responde `201`.
+
+### Cancelar: `DELETE /events/{event}/registrations`
+
+Busca la inscripción `active` del estudiante de la sesión para ese evento. Si
+no existe o ya estaba cancelada, responde `404`. Nunca borra la fila: cambia
+el estado a `cancelled` y registra `cancelled_at`. Responde `200` y libera un
+cupo.
+
+### Lista de inscritos: `GET /events/{event}/registrations`
+
+Solo el organizador que administra la comunidad del evento (tabla
+`community_organizers`) puede consultarla; en caso contrario responde `403`.
+Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
+
+```json
+{
+  "data": [
+    {
+      "id": 5,
+      "registered_at": "2026-08-11T10:00:00.000000Z",
+      "cancelled_at": null,
+      "status": { "code": "active", "name": "Active" },
+      "student": {
+        "id": 2,
+        "first_name": "Estudiante",
+        "last_name": "PoliLink",
+        "email": "student@polilink.test"
+      }
+    }
+  ],
+  "summary": {
+    "capacity": 50,
+    "active_registrations": 1,
+    "available_capacity": 49
+  }
+}
+```
+
+### Mis inscripciones: `GET /me/registrations`
+
+Requiere rol `student`. Devuelve solo inscripciones `active` del usuario de la
+sesión, ordenadas por `registered_at` descendente, paginadas con
+`per_page=12` por defecto (mínimo `1`, máximo `50`). Cada elemento incluye el
+evento completo mediante el recurso de eventos existente; un evento cancelado
+no modifica la inscripción.
+
+### Errores de inscripciones
+
+| Código | Situación |
+| --- | --- |
+| `401` | No existe una sesión autenticada. |
+| `403` | El usuario no tiene el rol requerido o el organizador no administra la comunidad del evento. |
+| `404` | Cancelar una inscripción inexistente o ya cancelada. |
+| `409` | Inscripción duplicada, evento cancelado o cupo agotado. |
+
+Las reglas de dominio detalladas están en
 `docs/backend/DARWIN_REGISTRATIONS_HANDOFF.md`.

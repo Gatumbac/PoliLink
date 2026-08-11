@@ -27,6 +27,24 @@ Importa el archivo `docs/api/PoliLink.postman_collection.json` desde
 Crear evento guarda automáticamente el ID retornado en eventId; las dos
 solicitudes siguientes usan ese valor.
 
+## Recorrido de Darwin
+
+1. Ejecuta Obtener cookie CSRF.
+2. En la carpeta 03, ejecuta Buscar evento Hackathon TAWS; guarda su ID en
+   registrationEventId automáticamente.
+3. Cambia newStudentEmail por un correo único y ejecuta Registrar estudiante
+   nuevo (carpeta 01).
+4. Ejecuta Obtener cookie CSRF de nuevo y luego Login estudiante nuevo
+   (inscripciones).
+5. Ejecuta Inscribirme al evento (`201`), Cancelar mi inscripción (`200`) y
+   vuelve a ejecutar Inscribirme al evento para capturar la reactivación
+   (`200`).
+6. Ejecuta Mis inscripciones.
+7. Ejecuta Logout (carpeta 01), Obtener cookie CSRF y luego Login organizador
+   semilla.
+8. Ejecuta Lista de inscritos para ver los inscritos activos y el summary de
+   cupos del evento.
+
 ## Datos semilla
 
 - Usuario de la colección: gatumbac@espol.edu.ec y password.
@@ -34,7 +52,11 @@ solicitudes siguientes usan ese valor.
 - Categoría Hackathon: ID 3.
 - Modalidad presencial: ID 1.
 - Ubicación Campus Gustavo Galindo: ID 1.
+- Usuarios semilla de inscripciones: student@polilink.test y
+  organizer@polilink.test, ambos con password. El estudiante semilla ya tiene
+  una inscripción activa en Hackathon TAWS, por lo que el recorrido de Darwin
+  usa un estudiante nuevo para capturar la inscripción `201`.
 
-Para probar el registro, cambia newStudentEmail por un correo único en las
-variables de la colección. Las rutas de inscripciones aparecerán cuando Darwin
-integre su módulo autenticado.
+Para probar el registro de Gabriel, cambia newStudentEmail por un correo único
+en las variables de la colección; ese mismo correo se reutiliza en el
+recorrido de Darwin.
