@@ -81,5 +81,5 @@ El seeder crea los usuarios organizer@polilink.test y student@polilink.test, una
 Están implementados los modelos, migraciones, catálogos, gestión de eventos,
 panel temporal y autenticado de organizador, onboarding de comunidades y
 autenticación local con Laravel Sanctum. El módulo de inscripciones permanece
-asignado a Darwin Díaz. Consultar `../docs/API.md` para el contrato completo y
+asignado a Darwin Díaz. Consultar `../docs/api/API.md` para el contrato completo y
 la prueba manual de autenticación.

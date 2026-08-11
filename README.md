@@ -6,12 +6,10 @@ PoliLink será una plataforma web para centralizar la publicación, consulta e i
 
 ## Estado del repositorio
 
-Este repositorio contiene el molde inicial del proyecto. La infraestructura está configurada, pero las funcionalidades asignadas a los integrantes todavía no están implementadas.
-
-Darwin y Gabriel desarrollarán posteriormente sus respectivos módulos:
-
-- Gestión y consulta de eventos.
-- Inscripción, cancelación de inscripción, consulta de inscritos y cupos.
+El backend ya dispone de autenticación local, catálogo y filtros de eventos,
+gestión de comunidades y creación, edición y cancelación de eventos. El módulo
+de inscripciones, cancelaciones y consulta de inscritos está asignado a Darwin
+Díaz y permanece pendiente.
 
 ## Estructura del proyecto
 
@@ -109,12 +107,12 @@ Las carpetas vendor/ y node_modules/ no se incluyen en el repositorio. Se genera
 
 ## Documentación
 
-- Plan del primer avance: docs/PLAN_PRIMER_AVANCE.md
-- Bitácora de desarrollo: docs/BITACORA.md
-- Contrato propuesto de la API: docs/API.md
-- Documentación del backend: backend/README.md
-- Documentación del frontend: frontend/README.md
-- La propuesta original se conserva en el proyecto de trabajo; este repositorio contiene el molde técnico para comenzar el desarrollo.
+El índice y las rutas vigentes están en [docs/README.md](docs/README.md).
+
+- Propuesta académica: [docs/latex/main.tex](docs/latex/main.tex).
+- Contexto aprobado: [docs/CONTEXT/PROJECT_CONTEXT.md](docs/CONTEXT/PROJECT_CONTEXT.md).
+- Contrato API: [docs/api/API.md](docs/api/API.md).
+- Pruebas manuales: [docs/api/POSTMAN.md](docs/api/POSTMAN.md).
 
 ## Alcance académico
 
