@@ -36,7 +36,6 @@ detalle.
 
 ```json
 {
-  "organizer_id": 1,
   "community_id": 1,
   "event_category_id": 3,
   "event_modality_id": 1,
@@ -48,25 +47,21 @@ detalle.
 }
 ```
 
-El usuario debe tener el rol `organizer` y administrar la comunidad indicada.
-El evento se crea con estado `published`.
+Requiere sesión Sanctum. El usuario de la sesión debe tener el rol `organizer`
+y administrar la comunidad indicada. El evento se crea con estado `published`.
+El cliente no envía un identificador de organizador.
 
 ### Editar: `PATCH /events/{event}`
 
-El cuerpo requiere `organizer_id`. Los demás campos de creación son opcionales.
-Se puede enviar `community_id` para mover el evento únicamente a otra comunidad
-administrada por ese mismo organizador. No se puede editar un evento cancelado.
+Requiere sesión Sanctum. Los campos de creación son opcionales. Se puede enviar
+`community_id` para mover el evento únicamente a otra comunidad administrada
+por el organizador de la sesión. No se puede editar un evento cancelado.
 
 ### Cancelar: `PATCH /events/{event}/cancel`
 
-```json
-{
-  "organizer_id": 1
-}
-```
-
-Solo el organizador responsable puede cancelarlo. La operación cambia el
-estado a `cancelled`; no borra el registro ni permite una segunda cancelación.
+Requiere sesión Sanctum y no recibe cuerpo. Solo el organizador responsable
+puede cancelarlo. La operación cambia el estado a `cancelled`; no borra el
+registro ni permite una segunda cancelación.
 
 ### Respuesta de evento
 
@@ -96,6 +91,7 @@ calculan como capacidad menos inscripciones con estado `active`.
 | Código | Situación |
 | --- | --- |
 | `422` | Filtros o cuerpo inválidos; por ejemplo, cupo menor que uno. |
+| `401` | No existe una sesión autenticada para crear, editar o cancelar. |
 | `403` | El usuario no tiene rol de organizador o no administra la comunidad/evento. |
 | `404` | Evento inexistente o cancelado en una consulta pública. |
 | `409` | Intento de editar o cancelar un evento ya cancelado. |
@@ -193,26 +189,14 @@ el usuario aún no administra ninguna comunidad. Los eventos se ordenan por
 fecha descendente y usan paginación con `per_page=12` por defecto y máximo
 `50`.
 
-## Panel de organizador — implementado
+## Inscripciones autenticadas — pendiente de Darwin
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `GET` | `/organizers/{organizer}/communities` | Comunidades administradas por el organizador. |
-| `GET` | `/organizers/{organizer}/events` | Eventos propios, incluidos publicados y cancelados. |
-
-El identificador de la ruta debe pertenecer a un usuario con rol `organizer`.
-Las comunidades se ordenan por nombre. Los eventos usan la misma respuesta de
-evento anterior, se ordenan por fecha descendente y están paginados con
-`per_page=12` por defecto (máximo `50`).
-
-## Inscripciones — pendiente
-
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `GET` | `/events/{event}/registrations?organizer_id={id}` | Lista inscritos y cupos para el organizador responsable. |
-| `POST` | `/events/{event}/registrations` | Inscribe o reactiva a un estudiante con `student_id`. |
-| `DELETE` | `/events/{event}/registrations` | Cancela la inscripción activa con `student_id`. |
-| `GET` | `/students/{student}/registrations` | Lista las inscripciones activas de un estudiante. |
+| `GET` | `/events/{event}/registrations` | Lista inscritos y cupos para el organizador responsable autenticado. |
+| `POST` | `/events/{event}/registrations` | Inscribe o reactiva al estudiante autenticado. |
+| `DELETE` | `/events/{event}/registrations` | Cancela la inscripción activa del estudiante autenticado. |
+| `GET` | `/me/registrations` | Lista las inscripciones activas de la sesión actual. |
 
 Las reglas y evidencia requeridas del módulo están documentadas en
 `docs/backend/DARWIN_REGISTRATIONS_HANDOFF.md`.

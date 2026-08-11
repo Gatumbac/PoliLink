@@ -63,7 +63,7 @@ class EventController extends Controller
     public function store(StoreEventRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $organizer = $this->organizer($data['organizer_id']);
+        $organizer = $request->user();
 
         Gate::forUser($organizer)->authorize('create', Event::class);
 
@@ -71,7 +71,7 @@ class EventController extends Controller
         $publishedStatus = EventStatus::query()->where('code', 'published')->sole();
 
         $event = Event::query()->create([
-            ...Arr::except($data, ['organizer_id', 'community_id']),
+            ...Arr::except($data, ['community_id']),
             'community_organizer_id' => $communityOrganizer->id,
             'event_status_id' => $publishedStatus->id,
         ]);
@@ -84,7 +84,7 @@ class EventController extends Controller
     public function update(UpdateEventRequest $request, Event $event): EventResource
     {
         $data = $request->validated();
-        $organizer = $this->organizer($data['organizer_id']);
+        $organizer = $request->user();
 
         Gate::forUser($organizer)->authorize('update', $event);
         $this->ensureNotCancelled($event);
@@ -93,7 +93,7 @@ class EventController extends Controller
         $communityId = $data['community_id'] ?? $event->communityOrganizer->community_id;
         $communityOrganizer = $this->communityOrganizer($organizer, $communityId);
 
-        $event->fill(Arr::except($data, ['organizer_id', 'community_id']));
+        $event->fill(Arr::except($data, ['community_id']));
         $event->community_organizer_id = $communityOrganizer->id;
         $event->save();
 
@@ -102,7 +102,7 @@ class EventController extends Controller
 
     public function cancel(CancelEventRequest $request, Event $event): EventResource
     {
-        $organizer = $this->organizer($request->validated('organizer_id'));
+        $organizer = $request->user();
 
         Gate::forUser($organizer)->authorize('cancel', $event);
         $this->ensureNotCancelled($event);
@@ -112,19 +112,6 @@ class EventController extends Controller
         ]);
 
         return new EventResource($this->loadEvent($event));
-    }
-
-    private function organizer(int $organizerId): User
-    {
-        $organizer = User::query()->findOrFail($organizerId);
-
-        abort_unless(
-            $organizer->roles()->where('code', 'organizer')->exists(),
-            Response::HTTP_FORBIDDEN,
-            'El usuario no tiene el rol de organizador.',
-        );
-
-        return $organizer;
     }
 
     private function communityOrganizer(User $organizer, int $communityId): CommunityOrganizer

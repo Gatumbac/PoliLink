@@ -61,7 +61,7 @@ class EventApiTest extends TestCase
         $this->seed();
         $organizer = $this->organizer();
 
-        $response = $this->postJson('/api/events', $this->eventPayload($organizer));
+        $response = $this->authenticatedPost($organizer, '/api/events', $this->eventPayload());
 
         $response
             ->assertCreated()
@@ -71,23 +71,33 @@ class EventApiTest extends TestCase
         $this->assertDatabaseHas('events', ['title' => 'Taller Laravel']);
     }
 
-    public function test_event_creation_requires_a_valid_organizer_and_managed_community(): void
+    public function test_event_creation_requires_authentication_and_a_managed_community(): void
     {
         $this->seed();
         $student = User::query()->where('email', 'student@polilink.test')->sole();
         $organizer = $this->organizer();
         $unmanagedCommunity = Community::factory()->create();
 
-        $this->postJson('/api/events', $this->eventPayload($student))
-            ->assertForbidden();
+        $this->authenticatedPost($student, '/api/events', $this->eventPayload())->assertForbidden();
 
-        $this->postJson('/api/events', $this->eventPayload($organizer, [
+        $this->authenticatedPost($organizer, '/api/events', $this->eventPayload([
             'community_id' => $unmanagedCommunity->id,
         ]))->assertForbidden();
 
-        $this->postJson('/api/events', $this->eventPayload($organizer, [
+        $this->authenticatedPost($organizer, '/api/events', $this->eventPayload([
             'capacity' => 0,
         ]))->assertUnprocessable();
+
+    }
+
+    public function test_event_writes_require_authentication(): void
+    {
+        $this->seed();
+        $event = $this->seededEvent();
+
+        $this->postJson('/api/events', $this->eventPayload())->assertUnauthorized();
+        $this->patchJson("/api/events/{$event->id}", ['title' => 'Cambio'])->assertUnauthorized();
+        $this->patchJson("/api/events/{$event->id}/cancel")->assertUnauthorized();
     }
 
     public function test_owner_can_update_an_event_and_move_it_to_another_managed_community(): void
@@ -101,8 +111,7 @@ class EventApiTest extends TestCase
             'user_id' => $organizer->id,
         ]);
 
-        $this->patchJson("/api/events/{$event->id}", [
-            'organizer_id' => $organizer->id,
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
             'title' => 'Hackathon TAWS actualizado',
             'community_id' => $secondCommunity->id,
         ])
@@ -118,8 +127,7 @@ class EventApiTest extends TestCase
         $otherOrganizer = User::factory()->create();
         $otherOrganizer->roles()->attach(Role::query()->where('code', 'organizer')->sole());
 
-        $this->patchJson("/api/events/{$event->id}", [
-            'organizer_id' => $otherOrganizer->id,
+        $this->authenticatedPatch($otherOrganizer, "/api/events/{$event->id}", [
             'title' => 'Cambio no permitido',
         ])->assertForbidden();
     }
@@ -130,15 +138,11 @@ class EventApiTest extends TestCase
         $event = $this->seededEvent();
         $organizer = $this->organizer();
 
-        $this->patchJson("/api/events/{$event->id}/cancel", [
-            'organizer_id' => $organizer->id,
-        ])
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")
             ->assertOk()
             ->assertJsonPath('data.status.code', 'cancelled');
 
-        $this->patchJson("/api/events/{$event->id}/cancel", [
-            'organizer_id' => $organizer->id,
-        ])->assertConflict();
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")->assertConflict();
     }
 
     private function organizer(): User
@@ -151,12 +155,11 @@ class EventApiTest extends TestCase
         return Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
     }
 
-    private function eventPayload(User $organizer, array $overrides = []): array
+    private function eventPayload(array $overrides = []): array
     {
         $event = $this->seededEvent();
 
         return [
-            'organizer_id' => $organizer->id,
             'community_id' => $event->communityOrganizer->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
@@ -167,5 +170,25 @@ class EventApiTest extends TestCase
             'capacity' => 25,
             ...$overrides,
         ];
+    }
+
+    private function authenticatedPost(User $user, string $uri, array $payload)
+    {
+        return $this->actingAs($user, 'sanctum')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->withHeader('Referer', 'http://localhost:5173/')
+            ->withSession(['_token' => 'test-csrf-token'])
+            ->withHeader('X-CSRF-TOKEN', 'test-csrf-token')
+            ->postJson($uri, $payload);
+    }
+
+    private function authenticatedPatch(User $user, string $uri, array $payload = [])
+    {
+        return $this->actingAs($user, 'sanctum')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->withHeader('Referer', 'http://localhost:5173/')
+            ->withSession(['_token' => 'test-csrf-token'])
+            ->withHeader('X-CSRF-TOKEN', 'test-csrf-token')
+            ->patchJson($uri, $payload);
     }
 }

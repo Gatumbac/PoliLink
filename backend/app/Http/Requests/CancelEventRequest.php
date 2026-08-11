@@ -13,8 +13,6 @@ class CancelEventRequest extends FormRequest
 
     public function rules(): array
     {
-        return [
-            'organizer_id' => ['required', 'integer', 'exists:users,id'],
-        ];
+        return [];
     }
 }

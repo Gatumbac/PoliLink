@@ -14,7 +14,6 @@ class StoreEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organizer_id' => ['required', 'integer', 'exists:users,id'],
             'community_id' => ['required', 'integer', 'exists:communities,id'],
             'event_category_id' => ['required', 'integer', 'exists:event_categories,id'],
             'event_modality_id' => ['required', 'integer', 'exists:event_modalities,id'],

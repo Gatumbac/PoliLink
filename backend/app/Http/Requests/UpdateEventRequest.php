@@ -14,7 +14,6 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'organizer_id' => ['required', 'integer', 'exists:users,id'],
             'community_id' => ['sometimes', 'required', 'integer', 'exists:communities,id'],
             'event_category_id' => ['sometimes', 'required', 'integer', 'exists:event_categories,id'],
             'event_modality_id' => ['sometimes', 'required', 'integer', 'exists:event_modalities,id'],
