@@ -1,0 +1,26 @@
+<?php
+
+namespace Database\Factories;
+
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\RegistrationStatus;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Factories\Factory;
+
+/**
+ * @extends Factory<Registration>
+ */
+class RegistrationFactory extends Factory
+{
+    public function definition(): array
+    {
+        return [
+            'event_id' => Event::factory(),
+            'student_id' => User::factory(),
+            'registration_status_id' => RegistrationStatus::factory(),
+            'registered_at' => now(),
+            'cancelled_at' => null,
+        ];
+    }
+}
