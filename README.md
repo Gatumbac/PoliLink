@@ -37,50 +37,75 @@ Darwin y Gabriel desarrollarán posteriormente sus respectivos módulos:
 - Base de datos prevista: MySQL, de acuerdo con la propuesta del proyecto.
 - Control de versiones: Git y GitHub.
 
-## Requisitos para ejecutar el proyecto
+## Inicio local recomendado
+
+Para un entorno simple y con diagnóstico completo en VS Code, Laravel y React
+se ejecutan en la máquina host. Docker Compose solo ejecuta MySQL.
+
+### 1. Iniciar MySQL
+
+Instalar Docker Desktop o Docker Engine con Compose y, desde la raíz del
+repositorio, ejecutar:
+
+```bash
+docker compose up -d mysql
+```
+
+La base queda disponible en `127.0.0.1:3306` con base de datos `polilink`,
+usuario `polilink` y contraseña `polilink`. Sus datos persisten en un volumen
+de Docker.
+
+### 2. Iniciar el backend en el host
+
+Desde `backend/`:
+
+```bash
+composer install
+cp .env.example .env
+php artisan key:generate
+```
+
+En `backend/.env`, configurar:
+
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=polilink
+DB_USERNAME=polilink
+DB_PASSWORD=polilink
+```
+
+Luego ejecutar:
+
+```bash
+php artisan migrate
+php artisan serve
+```
+
+El backend queda disponible en `http://localhost:8000`.
+
+### 3. Iniciar el frontend en el host
+
+En otra terminal, desde `frontend/`:
+
+```bash
+npm install
+npm run dev
+```
+
+El frontend queda disponible normalmente en `http://localhost:5173`.
+
+## Requisitos del host
 
 Instalar previamente:
 
 - PHP 8.3 o superior.
 - Composer.
 - Node.js y npm.
-- MySQL para la configuración definida en el backend.
+- Docker Desktop o Docker Engine con Compose.
 
 Las carpetas vendor/ y node_modules/ no se incluyen en el repositorio. Se generan localmente a partir de composer.lock y package-lock.json.
-
-## Instalación del backend
-
-Desde la carpeta raíz:
-
-    cd backend
-    composer install
-    cp .env.example .env
-    php artisan key:generate
-
-Crear una base de datos MySQL llamada polilink y verificar las variables DB_* del archivo .env. Luego ejecutar:
-
-    php artisan migrate
-    php artisan db:seed
-    php artisan test
-    php artisan serve
-
-El backend quedará disponible en http://localhost:8000.
-
-Actualmente solo existe el endpoint técnico:
-
-    GET http://localhost:8000/api/health
-
-## Instalación del frontend
-
-En otra terminal:
-
-    cd frontend
-    npm install
-    npm run lint
-    npm run build
-    npm run dev
-
-El frontend quedará disponible en la URL que muestre Vite, normalmente http://localhost:5173.
 
 ## Documentación
 
@@ -94,4 +119,3 @@ El frontend quedará disponible en la URL que muestre Vite, normalmente http://l
 ## Alcance académico
 
 El proyecto se desarrollará progresivamente. La autenticación institucional, los pagos, el correo, el calendario institucional, los códigos QR y la validación de asistencia están fuera del alcance inicial.
-

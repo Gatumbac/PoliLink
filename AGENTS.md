@@ -31,6 +31,21 @@ Consult the relevant README before working in `backend/` or `frontend/`. Keep
 application code, API documentation, and the academic proposal consistent, but
 do not broaden the requested change just to make related documents match.
 
+## Local development environment
+
+- The default workflow runs Laravel and React on the host machine; Docker
+  Compose runs only the `mysql` service.
+- Host Laravel connects to the published database with `DB_HOST=127.0.0.1`,
+  `DB_PORT=3306`, `DB_DATABASE=polilink`, `DB_USERNAME=polilink`, and
+  `DB_PASSWORD=polilink`. The hostname `mysql` is only valid from another
+  Docker container.
+- Humans must start, stop, restart, and manage every server or container,
+  including MySQL, Laravel, Vite, and Docker Compose. Agents may document the
+  required commands and inspect explicitly provided logs, but must never run
+  those lifecycle commands themselves.
+- Do not run builds, tests, or validation commands unless the user explicitly
+  requests that action.
+
 ## Working on the LaTeX proposal
 
 - Preserve the existing title, authors, course, formal Spanish writing style,
