@@ -116,6 +116,18 @@ Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
 `GET /communities` devuelve únicamente comunidades que poseen al menos un
 evento con estado `published`, para evitar opciones de filtro sin resultados.
 
+## Panel de organizador — implementado
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/organizers/{organizer}/communities` | Comunidades administradas por el organizador. |
+| `GET` | `/organizers/{organizer}/events` | Eventos propios, incluidos publicados y cancelados. |
+
+El identificador de la ruta debe pertenecer a un usuario con rol `organizer`.
+Las comunidades se ordenan por nombre. Los eventos usan la misma respuesta de
+evento anterior, se ordenan por fecha descendente y están paginados con
+`per_page=12` por defecto (máximo `50`).
+
 ## Inscripciones — pendiente
 
 | Método | Ruta | Descripción |
@@ -123,6 +135,7 @@ evento con estado `published`, para evitar opciones de filtro sin resultados.
 | `GET` | `/events/{event}/registrations?organizer_id={id}` | Lista inscritos y cupos para el organizador responsable. |
 | `POST` | `/events/{event}/registrations` | Inscribe o reactiva a un estudiante con `student_id`. |
 | `DELETE` | `/events/{event}/registrations` | Cancela la inscripción activa con `student_id`. |
+| `GET` | `/students/{student}/registrations` | Lista las inscripciones activas de un estudiante. |
 
 Las reglas y evidencia requeridas del módulo están documentadas en
 `docs/backend/DARWIN_REGISTRATIONS_HANDOFF.md`.

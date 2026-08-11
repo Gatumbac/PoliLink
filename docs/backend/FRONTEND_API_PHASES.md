@@ -18,8 +18,7 @@ hay aprobación administrativa de publicaciones.
 
 - Implementado: esquema, modelos, seeders y rutas de catálogo/detalle/gestión
   de eventos con identidad temporal `organizer_id`.
-- Pendiente: APIs de catálogos para formularios, panel de organizador,
-  inscripciones y autenticación local.
+- Pendiente: inscripciones y autenticación local.
 - La autenticación institucional está fuera de alcance. La autenticación local
   de esta hoja de ruta requiere aprobación antes de implementarse.
 
@@ -47,15 +46,15 @@ de inscripción, mis inscripciones y panel de inscritos.
 
 | Método | Ruta | Responsable | Uso |
 | --- | --- | --- | --- |
-| `GET` | `/api/organizers/{organizer}/communities` | Gabriel | Comunidades administradas para el selector del formulario. |
-| `GET` | `/api/organizers/{organizer}/events` | Gabriel | Panel del organizador; incluye publicados y cancelados propios. |
-| `POST` | `/api/events` | Gabriel | Crear evento con `organizer_id` temporal. |
-| `PATCH` | `/api/events/{event}` | Gabriel | Editar evento propio. |
-| `PATCH` | `/api/events/{event}/cancel` | Gabriel | Cancelar evento propio. |
-| `POST` | `/api/events/{event}/registrations` | Darwin | Inscribir o reactivar con `student_id` temporal. |
-| `DELETE` | `/api/events/{event}/registrations` | Darwin | Cancelar inscripción activa. |
-| `GET` | `/api/events/{event}/registrations?organizer_id={id}` | Darwin | Inscritos activos y cupos para el responsable. |
-| `GET` | `/api/students/{student}/registrations` | Darwin | Pantalla de mis inscripciones. |
+| `GET` | `/api/organizers/{organizer}/communities` | Gabriel | Hecho — comunidades administradas para el selector del formulario. |
+| `GET` | `/api/organizers/{organizer}/events` | Gabriel | Hecho — panel del organizador, incluidos publicados y cancelados propios. |
+| `POST` | `/api/events` | Gabriel | Hecho — crear evento con `organizer_id` temporal. |
+| `PATCH` | `/api/events/{event}` | Gabriel | Hecho — editar evento propio. |
+| `PATCH` | `/api/events/{event}/cancel` | Gabriel | Hecho — cancelar evento propio. |
+| `POST` | `/api/events/{event}/registrations` | Darwin | Pendiente — inscribir o reactivar con `student_id` temporal. |
+| `DELETE` | `/api/events/{event}/registrations` | Darwin | Pendiente — cancelar inscripción activa. |
+| `GET` | `/api/events/{event}/registrations?organizer_id={id}` | Darwin | Pendiente — inscritos activos y cupos para el responsable. |
+| `GET` | `/api/students/{student}/registrations` | Darwin | Pendiente — pantalla de mis inscripciones activas. |
 
 Las rutas de esta fase permiten cumplir el primer avance usando los usuarios de
 prueba. No deben recibir roles, estados o IDs de relaciones internas desde la

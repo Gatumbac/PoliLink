@@ -18,6 +18,7 @@
 | `POST` | `/api/events/{event}/registrations` | `student_id` en JSON | Inscribe o reactiva la inscripción del estudiante. |
 | `DELETE` | `/api/events/{event}/registrations` | `student_id` en JSON | Cancela la inscripción activa del estudiante. |
 | `GET` | `/api/events/{event}/registrations?organizer_id={id}` | `organizer_id` en query | Devuelve inscritos activos y cupos para el organizador responsable. |
+| `GET` | `/api/students/{student}/registrations` | `student` en ruta | Devuelve las inscripciones activas para la pantalla personal. |
 
 ## Reglas obligatorias
 
@@ -40,6 +41,8 @@
 - El `GET` devuelve solo inscripciones activas y los campos `capacity`,
   `active_registrations` y `available_capacity`. Un organizador no responsable
   recibe `403`.
+- `GET /students/{student}/registrations` valida el rol `student`, devuelve
+  solo inscripciones activas y pagina de a 12 elementos por defecto.
 - Usar `422` para validación, `403` para rol/propiedad, `404` para recursos no
   encontrados y `409` para conflictos de cupo, estado o duplicado.
 
