@@ -1,59 +1,112 @@
-# Contrato propuesto de la API
+# Contrato de la API
 
-Este archivo describe las rutas planificadas para los módulos de eventos e inscripciones. Actualmente solo funciona el endpoint de salud y las rutas de este documento quedan como guía para Darwin y Gabriel.
-
-La API tendrá como prefijo `/api` y devolverá respuestas en formato JSON.
+La API usa el prefijo `/api` y responde JSON. El módulo de eventos está
+implementado; el módulo de inscripciones queda reservado para Darwin Díaz.
 
 ## Eventos
 
-| Método | Ruta | Descripción |
+| Método | Ruta | Estado | Descripción |
+| --- | --- | --- | --- |
+| `GET` | `/events` | Implementado | Lista eventos publicados y aplica filtros. |
+| `GET` | `/events/{event}` | Implementado | Obtiene el detalle de un evento publicado. |
+| `POST` | `/events` | Implementado | Crea un evento para una comunidad administrada. |
+| `PATCH` | `/events/{event}` | Implementado | Actualiza un evento propio publicado. |
+| `PATCH` | `/events/{event}/cancel` | Implementado | Cancela un evento propio sin eliminarlo. |
+
+### Catálogo: `GET /events`
+
+Filtros opcionales y combinables:
+
+| Parámetro | Formato | Descripción |
 | --- | --- | --- |
-| `GET` | `/events` | Lista eventos activos y acepta filtros. |
-| `GET` | `/events/{id}` | Obtiene el detalle de un evento. |
-| `POST` | `/events` | Crea un evento. |
-| `PATCH` | `/events/{id}` | Actualiza un evento. |
-| `PATCH` | `/events/{id}/cancel` | Cambia el estado del evento a cancelado. |
+| `search` | texto | Busca en título y descripción. |
+| `date` | `YYYY-MM-DD` | Filtra por día del evento. |
+| `category` | código | Código de categoría, por ejemplo `hackathon`. |
+| `modality` | código | Código de modalidad, por ejemplo `in_person`. |
+| `community_id` | entero | Comunidad organizadora. |
+| `page` | entero | Página, mínimo `1`. |
+| `per_page` | entero | Elementos por página; predeterminado `12`, máximo `50`. |
 
-### Filtros de `GET /events`
+Solo devuelve eventos con estado `published`, ordenados por `starts_at`
+ascendente. Un evento cancelado no se muestra ni en el catálogo ni en
+`GET /events/{event}`; ambas consultas públicas devuelven `404` para ese
+detalle.
 
-- `search`: texto del título o descripción.
-- `date`: fecha del evento.
-- `category`: categoría.
-- `modality`: modalidad presencial, virtual o híbrida.
-- `community_id`: comunidad organizadora.
-
-## Inscripciones
-
-| Método | Ruta | Descripción |
-| --- | --- | --- |
-| `GET` | `/events/{id}/registrations` | Lista inscritos y cupos disponibles. |
-| `POST` | `/events/{id}/registrations` | Inscribe al estudiante actual. |
-| `DELETE` | `/events/{id}/registrations` | Cancela la inscripción del estudiante actual. |
-
-## Reglas de negocio
-
-- No se permiten inscripciones duplicadas.
-- No se permiten inscripciones cuando el evento está lleno o cancelado.
-- Solo el organizador responsable puede editar o cancelar su evento.
-- La cancelación cambia el estado; no elimina el registro.
-- Los cupos disponibles se calculan restando las inscripciones activas al cupo máximo.
-
-## Recursos persistentes
-
-- users: usuarios locales identificados por los roles student y organizer.
-- communities: clubes u organizaciones estudiantiles.
-- events: eventos asociados a un organizador y una comunidad.
- - registrations: inscripciones únicas por combinación de evento y estudiante.
-
-## Identidad temporal
-
-Para este primer avance, las operaciones de escritura reciben organizer_id o student_id en el cuerpo o en la consulta. Esta solución es temporal y será reemplazada por autenticación local con roles antes de la entrega final.
-
-## Respuesta de error propuesta
+### Crear: `POST /events`
 
 ```json
 {
-  "message": "No hay cupos disponibles.",
-  "errors": {}
+  "organizer_id": 1,
+  "community_id": 1,
+  "event_category_id": 3,
+  "event_modality_id": 1,
+  "location_id": 1,
+  "title": "Taller Laravel",
+  "description": "Introducción a Laravel.",
+  "starts_at": "2026-08-20T10:00:00-05:00",
+  "capacity": 30
 }
 ```
+
+El usuario debe tener el rol `organizer` y administrar la comunidad indicada.
+El evento se crea con estado `published`.
+
+### Editar: `PATCH /events/{event}`
+
+El cuerpo requiere `organizer_id`. Los demás campos de creación son opcionales.
+Se puede enviar `community_id` para mover el evento únicamente a otra comunidad
+administrada por ese mismo organizador. No se puede editar un evento cancelado.
+
+### Cancelar: `PATCH /events/{event}/cancel`
+
+```json
+{
+  "organizer_id": 1
+}
+```
+
+Solo el organizador responsable puede cancelarlo. La operación cambia el
+estado a `cancelled`; no borra el registro ni permite una segunda cancelación.
+
+### Respuesta de evento
+
+```json
+{
+  "data": {
+    "id": 1,
+    "title": "Hackathon TAWS",
+    "description": "Evento de demostración.",
+    "starts_at": "2026-08-20T14:00:00.000000Z",
+    "capacity": 50,
+    "available_capacity": 49,
+    "category": { "id": 3, "code": "hackathon", "name": "Hackathon" },
+    "modality": { "id": 1, "code": "in_person", "name": "In person" },
+    "location": { "id": 1, "name": "Campus Gustavo Galindo", "description": null },
+    "community": { "id": 1, "name": "TAWS", "description": "..." },
+    "status": { "code": "published", "name": "Published" }
+  }
+}
+```
+
+La lista añade la metadata de paginación de Laravel. Los cupos disponibles se
+calculan como capacidad menos inscripciones con estado `active`.
+
+### Errores de eventos
+
+| Código | Situación |
+| --- | --- |
+| `422` | Filtros o cuerpo inválidos; por ejemplo, cupo menor que uno. |
+| `403` | El usuario no tiene rol de organizador o no administra la comunidad/evento. |
+| `404` | Evento inexistente o cancelado en una consulta pública. |
+| `409` | Intento de editar o cancelar un evento ya cancelado. |
+
+## Inscripciones — pendiente
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/events/{event}/registrations?organizer_id={id}` | Lista inscritos y cupos para el organizador responsable. |
+| `POST` | `/events/{event}/registrations` | Inscribe o reactiva a un estudiante con `student_id`. |
+| `DELETE` | `/events/{event}/registrations` | Cancela la inscripción activa con `student_id`. |
+
+Las reglas y evidencia requeridas del módulo están documentadas en
+`docs/backend/DARWIN_REGISTRATIONS_HANDOFF.md`.
