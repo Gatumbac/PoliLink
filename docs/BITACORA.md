@@ -15,7 +15,7 @@ Organizar el proyecto PoliLink en una carpeta independiente y preparar los espac
 - Se creó un README específico para backend y otro para frontend.
 - Se agregó `.env.example` como referencia de configuración.
 - Se agregó `.gitignore` para evitar versionar dependencias, credenciales y archivos generados.
-- Se documentaron los endpoints iniciales de la API en `docs/API.md`.
+- Se documentaron los endpoints iniciales de la API en `docs/api/API.md`.
 
 ### Decisiones
 

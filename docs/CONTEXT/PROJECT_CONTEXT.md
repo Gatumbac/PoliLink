@@ -31,7 +31,7 @@ El problema observado es que los eventos se difunden de forma dispersa, principa
 
 ## Estado de la propuesta LaTeX
 
-- Archivo principal: `main.tex`.
+- Archivo principal: `docs/latex/main.tex`.
 - Contiene portada, problemática, objetivos, alcance, características, requisitos, arquitectura, lenguajes, bocetos de baja fidelidad y referencias.
 - La portada debe permanecer monocromática, centrada y de tipografía uniforme; no usar colores ni logos externos.
 - El diagrama de arquitectura fue ajustado para evitar texto superpuesto; mantener cuatro nodos compactos sin etiquetas sobre las flechas.
@@ -47,6 +47,6 @@ El problema observado es que los eventos se difunden de forma dispersa, principa
 
 ## Próximo trabajo sugerido
 
-1. Compilar `main.tex` en Overleaf y corregir cualquier detalle de maquetación.
+1. Compilar `docs/latex/main.tex` en Overleaf y corregir cualquier detalle de maquetación.
 2. Elaborar en Figma las pantallas: catálogo, detalle, crear evento, mis inscripciones y lista de inscritos.
 3. Reemplazar o complementar los bocetos LaTeX con las capturas de Figma.

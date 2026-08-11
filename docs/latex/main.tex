@@ -13,6 +13,7 @@
 \usepackage[hidelinks]{hyperref}
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric}
+\usepackage{graphicx}
 
 \setstretch{1.15}
 \setlist[itemize]{noitemsep,topsep=3pt}
@@ -182,40 +183,89 @@ Como desventaja, TypeScript requiere una etapa de compilación a JavaScript y de
 
 \section{Prototipo de baja fidelidad}
 
-\textbf{Herramienta de diseño utilizada:} Figma (prototipo a elaborar antes de la entrega final de la propuesta).
+\textbf{Herramienta de diseño utilizada:} Figma.
 
-Las pantallas principales serán: catálogo de eventos, detalle de evento, formulario de creación de evento, mis inscripciones y panel de inscritos. A continuación se presentan bocetos de baja fidelidad que servirán como guía inicial para el prototipo en Figma.
+Las pantallas principales son: catálogo de eventos, detalle de evento, panel del organizador y formulario de creación de evento. A continuación se presentan los bocetos de baja fidelidad elaborados en Figma que sirven como guía inicial para el desarrollo de la interfaz.
 
 \begin{figure}[h!]
 \centering
-\begin{tikzpicture}[font=\small]
-\draw[thick] (0,0) rectangle (5.4,7.6);
-\node at (2.7,7.2) {\textbf{PoliLink}};
-\draw (0.45,6.45) rectangle (4.95,6.85);
-\node at (2.7,6.65) {Buscar eventos};
-\draw (0.45,5.75) rectangle (2.45,6.15);
-\node at (1.45,5.95) {Fecha};
-\draw (2.95,5.75) rectangle (4.95,6.15);
-\node at (3.95,5.95) {Categoría};
-\draw (0.45,4.2) rectangle (4.95,5.3);
-\node[align=center] at (2.7,4.75) {Hackatón TAWS\\ Fecha -- Lugar -- Cupos};
-\draw (0.45,2.65) rectangle (4.95,3.75);
-\node[align=center] at (2.7,3.2) {Taller de programación\\ Fecha -- Lugar -- Cupos};
-\draw (0.45,1.1) rectangle (4.95,2.2);
-\node[align=center] at (2.7,1.65) {Charla profesional\\ Fecha -- Lugar -- Cupos};
-\node at (2.7,0.45) {Catálogo de eventos};
+\includegraphics[width=0.85\textwidth]{images/1-catalogo.png}
+\caption{Catálogo de eventos. Pantalla principal donde el estudiante busca eventos por nombre, tema o etiqueta y los filtra por categoría (Tecnología, Arte \& Cultura, Emprendimiento, Deportes, Ciencias, Voluntariado).}
+\end{figure}
 
-\draw[thick] (7,0) rectangle (12.4,7.6);
-\node at (9.7,7.2) {\textbf{Detalle de evento}};
-\draw (7.45,5.85) rectangle (11.95,6.75);
-\node at (9.7,6.3) {Título del evento};
-\draw (7.45,3.65) rectangle (11.95,5.4);
-\node[align=center] at (9.7,4.55) {Descripción\\ Fecha, hora y ubicación\\ Cupos disponibles};
-\draw[fill=gray!20] (7.8,2.45) rectangle (11.6,3.05);
-\node at (9.7,2.75) {Inscribirme};
-\node at (9.7,0.45) {Información e inscripción};
-\end{tikzpicture}
-\caption{Bocetos de baja fidelidad para las pantallas principales.}
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.85\textwidth]{images/2-descripcion.png}
+\caption{Detalle de evento. Muestra la información completa del evento (descripción, etiquetas, organizador, fecha, horario, ubicación y modalidad), el cupo disponible y el botón para inscribirse.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.85\textwidth]{images/3_panel.png}
+\caption{Panel del organizador. Permite al organizador supervisar sus eventos publicados, el total de inscritos, la ocupación media y gestionar cada evento (editar, ver inscritos, eliminar).}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.85\textwidth]{images/4-crearEvento.png}
+\caption{Formulario de creación de evento. Permite registrar la información básica del evento: título, descripción, categoría y comunidad organizadora, entre otros campos.}
+\end{figure}
+
+\section{Implementación}
+
+\subsection{Backend}
+
+En este avance se desarrolló el backend de PoliLink con Laravel, MySQL y una
+API REST. La aplicación cuenta con autenticación local mediante Laravel Sanctum,
+catálogo público de eventos, filtros, gestión de comunidades y operaciones para
+crear, editar y cancelar eventos desde la sesión del organizador. El repositorio
+del grupo se encuentra en \url{https://github.com/Gatumbac/PoliLink}.
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabularx}{\textwidth}{|p{7.1cm}|p{3.1cm}|p{2cm}|}
+\hline
+\textbf{Implementación} & \textbf{Responsable} & \textbf{Estado} \\
+\hline
+Catálogo público de eventos, búsqueda, filtros y datos de referencia para formularios. & Gabriel Tumbaco & Hecho \\
+\hline
+Autenticación local con Laravel Sanctum, registro, inicio y cierre de sesión. & Gabriel Tumbaco & Hecho \\
+\hline
+Gestión de comunidades y consulta de comunidades y eventos propios. & Gabriel Tumbaco & Hecho \\
+\hline
+Creación, edición y cancelación de eventos propios mediante sesión autenticada. & Gabriel Tumbaco & Hecho \\
+\hline
+Inscripción o reactivación de inscripción en eventos. & Darwin Díaz & Pendiente \\
+\hline
+Cancelación de inscripción y liberación de cupos. & Darwin Díaz & Pendiente \\
+\hline
+Consulta de inscritos, cupos disponibles y mis inscripciones. & Darwin Díaz & Pendiente \\
+\hline
+\end{tabularx}
+\caption{Estado de implementación del backend para el primer avance.}
+\end{table}
+
+Las siguientes capturas corresponden a pruebas reales realizadas con Postman.
+Las evidencias de inscripción y consulta de inscritos se agregarán cuando Darwin
+Díaz complete su componente asignado.
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend-1-login-organizador.png}
+\caption{Inicio de sesión del organizador mediante la API de Laravel Sanctum.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend-2-crear-evento.png}
+\caption{Creación de un evento por parte de un organizador autenticado.}
+\end{figure}
+
+\begin{figure}[h!]
+\centering
+\includegraphics[width=0.95\textwidth]{images/backend-3-consultar-eventos.png}
+\caption{Consulta del catálogo de eventos mediante la API REST.}
 \end{figure}
 
 \clearpage

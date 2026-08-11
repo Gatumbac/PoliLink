@@ -200,7 +200,7 @@ en una base de datos de prueba.
 
 **Propósito:** que frontend y equipo puedan integrar sin adivinar el backend.
 
-- Actualizar `docs/API.md` con cuerpos de solicitud, respuestas, errores,
+- Actualizar `docs/api/API.md` con cuerpos de solicitud, respuestas, errores,
   paginación y filtros implementados.
 - Actualizar `backend/README.md` con instalación, configuración MySQL,
   migraciones, seeders y usuarios de desarrollo.
@@ -252,6 +252,6 @@ Fase 9 es opcional y posterior a las rutas funcionales.
 
 - `docs/CONTEXT/PROJECT_CONTEXT.md`
 - `docs/PLAN_PRIMER_AVANCE.md`
-- `docs/API.md`
+- `docs/api/API.md`
 - `docs/backend/DATABASE_SCHEMA_PLAN.md`
 - `docs/backend/LARAVEL_BASICS.md`

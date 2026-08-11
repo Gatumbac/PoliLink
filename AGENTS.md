@@ -5,7 +5,7 @@
 PoliLink is a Lenguajes de Programación project about the centralized
 management and publication of ESPOL community events. Read
 `docs/CONTEXT/PROJECT_CONTEXT.md` before changing the proposal or implementing
-features related to its scope. `docs/CONTEXT/main.tex` is the complete proposal
+features related to its scope. `docs/latex/main.tex` is the complete proposal
 source.
 
 ## Scope that must remain unchanged
@@ -24,8 +24,10 @@ source.
 
 - `backend/`: Laravel API.
 - `frontend/`: React and TypeScript interface.
-- `docs/`: technical documentation and development log.
-- `docs/CONTEXT/`: approved academic context and LaTeX proposal.
+- `docs/`: technical documentation and development log; see `docs/README.md`.
+- `docs/CONTEXT/`: approved academic context.
+- `docs/latex/`: current LaTeX proposal and its images.
+- `docs/api/`: API contract, Postman guide and importable collection.
 
 Consult the relevant README before working in `backend/` or `frontend/`. Keep
 application code, API documentation, and the academic proposal consistent, but

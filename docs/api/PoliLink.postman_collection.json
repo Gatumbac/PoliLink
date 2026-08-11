@@ -1,0 +1,214 @@
+{
+  "info": {
+    "_postman_id": "a8911c84-1958-45a2-a563-70bcbf57cd98",
+    "name": "PoliLink - Backend actual",
+    "description": "Colección para los endpoints implementados. Ejecuta primero Obtener cookie CSRF antes de POST, PATCH o DELETE. Inscripciones no están incluidas porque Darwin aún no las implementa.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8000" },
+    { "key": "xsrfToken", "value": "" },
+    { "key": "newStudentEmail", "value": "cambia-este-correo@example.test" },
+    { "key": "password", "value": "password123" },
+    { "key": "communityId", "value": "1" },
+    { "key": "eventCategoryId", "value": "3" },
+    { "key": "eventModalityId", "value": "1" },
+    { "key": "locationId", "value": "1" },
+    { "key": "eventId", "value": "1" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.cookies.get('XSRF-TOKEN', (error, cookie) => {",
+          "  if (!error && cookie) pm.collectionVariables.set('xsrfToken', decodeURIComponent(cookie));",
+          "});"
+        ]
+      }
+    }
+  ],
+  "item": [
+    {
+      "name": "00. Público",
+      "item": [
+        { "name": "Health", "request": { "method": "GET", "url": "{{baseUrl}}/api/health" } },
+        { "name": "Catálogo de eventos", "request": { "method": "GET", "url": "{{baseUrl}}/api/events?per_page=12" } },
+        { "name": "Categorías", "request": { "method": "GET", "url": "{{baseUrl}}/api/event-categories" } },
+        { "name": "Modalidades", "request": { "method": "GET", "url": "{{baseUrl}}/api/event-modalities" } },
+        { "name": "Ubicaciones", "request": { "method": "GET", "url": "{{baseUrl}}/api/locations" } },
+        { "name": "Comunidades públicas", "request": { "method": "GET", "url": "{{baseUrl}}/api/communities" } }
+      ]
+    },
+    {
+      "name": "01. Autenticación y CSRF",
+      "item": [
+        {
+          "name": "Obtener cookie CSRF",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/sanctum/csrf-cookie"
+          }
+        },
+        {
+          "name": "Registrar estudiante nuevo",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"first_name\": \"Postman\",\n  \"last_name\": \"PoliLink\",\n  \"email\": \"{{newStudentEmail}}\",\n  \"password\": \"{{password}}\",\n  \"password_confirmation\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login estudiante semilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"student@polilink.test\",\n  \"password\": \"password\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Sesión actual",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/auth/me"
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/auth/logout"
+          }
+        }
+      ]
+    },
+    {
+      "name": "02. Comunidad y eventos autenticados",
+      "item": [
+        {
+          "name": "Login organizador semilla",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"organizer@polilink.test\",\n  \"password\": \"password\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Mis comunidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/me/communities"
+          }
+        },
+        {
+          "name": "Mis eventos",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/me/events?per_page=12"
+          }
+        },
+        {
+          "name": "Crear evento",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "if (pm.response.code === 201) pm.collectionVariables.set('eventId', pm.response.json().data.id);"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"community_id\": {{communityId}},\n  \"event_category_id\": {{eventCategoryId}},\n  \"event_modality_id\": {{eventModalityId}},\n  \"location_id\": {{locationId}},\n  \"title\": \"Taller Postman {{$timestamp}}\",\n  \"description\": \"Evento creado para probar la API.\",\n  \"starts_at\": \"2026-12-01T10:00:00-05:00\",\n  \"capacity\": 30\n}" },
+            "url": "{{baseUrl}}/api/events"
+          }
+        },
+        {
+          "name": "Editar evento creado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"description\": \"Descripción actualizada desde Postman.\"\n}" },
+            "url": "{{baseUrl}}/api/events/{{eventId}}"
+          }
+        },
+        {
+          "name": "Cancelar evento creado",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/events/{{eventId}}/cancel"
+          }
+        }
+      ]
+    }
+  ]
+}

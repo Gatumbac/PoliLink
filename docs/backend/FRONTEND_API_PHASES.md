@@ -145,6 +145,6 @@ Fase 1 ──> Fase 2 ──> evidencia de Avance 1
 
 - `docs/CONTEXT/PROJECT_CONTEXT.md`
 - `docs/PLAN_PRIMER_AVANCE.md`
-- `docs/API.md`
+- `docs/api/API.md`
 - `docs/backend/DARWIN_REGISTRATIONS_HANDOFF.md`
 - [Laravel Sanctum](https://laravel.com/docs/13.x/sanctum)

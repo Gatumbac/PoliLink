@@ -174,7 +174,7 @@ controladores del dominio.
    foráneas, índices y restricciones contra inscripciones duplicadas.
 3. Crear los modelos Eloquent y sus relaciones.
 4. Crear controladores y validaciones de solicitudes.
-5. Definir las rutas en `routes/api.php` según `docs/API.md`.
+5. Definir las rutas en `routes/api.php` según `docs/api/API.md`.
 6. Agregar seeders y pruebas para reglas como cupos, eventos cancelados e
    inscripciones duplicadas.
 
@@ -182,5 +182,5 @@ controladores del dominio.
 
 - `backend/routes/api.php`: rutas implementadas actualmente.
 - `backend/database/migrations/`: estructura base real de MySQL.
-- `docs/API.md`: contrato planificado de la API.
+- `docs/api/API.md`: contrato planificado de la API.
 - `docs/PLAN_PRIMER_AVANCE.md`: entidades, reglas y criterios de aceptación.

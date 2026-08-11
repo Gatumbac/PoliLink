@@ -8,7 +8,7 @@ por ID ni una versión temporal de estas APIs.
 
 1. Esperar a que se integren los cambios actuales de Fase 5 en master.
 2. Crear la rama feat/registrations-darwin.
-3. Revisar docs/API.md, docs/backend/FRONTEND_API_PHASES.md y este archivo
+3. Revisar docs/api/API.md, docs/backend/FRONTEND_API_PHASES.md y este archivo
    antes de modificar código.
 4. Implementar solo inscripciones y cupos. No cambiar migraciones, modelos
    compartidos, seeders, autenticación, comunidades ni el controlador de
@@ -96,7 +96,7 @@ ser una colección paginada de RegistrationResource con el evento completo.
 
 ## Entrega
 
-- Actualizar docs/API.md y docs/backend/FRONTEND_API_PHASES.md para marcar
+- Actualizar docs/api/API.md y docs/backend/FRONTEND_API_PHASES.md para marcar
   Fase 5 completa cuando las cuatro rutas estén integradas.
 - Obtener capturas manuales con Sanctum: login, inscripción, cancelación,
   lista de inscritos y mis inscripciones.

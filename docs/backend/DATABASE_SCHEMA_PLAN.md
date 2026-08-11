@@ -149,5 +149,5 @@ registrations ──> registration_statuses
 
 - `docs/CONTEXT/PROJECT_CONTEXT.md`
 - `docs/PLAN_PRIMER_AVANCE.md`
-- `docs/API.md`
+- `docs/api/API.md`
 - `backend/database/migrations/0001_01_01_000000_create_users_table.php`

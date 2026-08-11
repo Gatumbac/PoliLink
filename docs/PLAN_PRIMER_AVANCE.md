@@ -113,7 +113,7 @@ Para el primer avance se puede utilizar una sesión o usuario de prueba simplifi
 
 ### 4.4. Frontend
 
-Implementar las siguientes vistas, tomando como referencia los bocetos de `main.tex` y las imágenes existentes:
+Implementar las siguientes vistas, tomando como referencia los bocetos de `docs/latex/main.tex` y las imágenes existentes:
 
 1. **Catálogo de eventos**
    - Mostrar eventos activos.
@@ -216,4 +216,3 @@ No forman parte de este avance:
 - Aprobación administrativa de eventos.
 - Aplicación móvil nativa.
 - Notificaciones push.
-
