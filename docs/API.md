@@ -164,6 +164,35 @@ de intentos `429`.
 4. Ejecutar register o login, luego `GET /api/auth/me`, `DELETE /api/auth/logout`
    y nuevamente `GET /api/auth/me` para evidenciar el `401` final.
 
+## Onboarding de comunidades — implementado
+
+Estas rutas requieren una sesión autenticada mediante Sanctum. La identidad se
+obtiene desde la cookie de sesión; el cliente no envía un usuario ni roles.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/communities` | Crea una comunidad y convierte al usuario actual en organizador. |
+| `GET` | `/me/communities` | Lista las comunidades administradas por la sesión actual. |
+| `GET` | `/me/events` | Lista sus eventos, incluidos los cancelados. |
+
+`POST /api/communities` recibe:
+
+```json
+{
+  "name": "Club de Robótica",
+  "description": "Comunidad de robótica de ESPOL."
+}
+```
+
+El servidor crea la comunidad, conserva el rol `student`, asigna `organizer` y
+crea la relación de responsabilidad dentro de una sola transacción. Devuelve
+`201`; un nombre repetido o inválido devuelve `422`.
+
+Las rutas `/api/me/communities` y `/api/me/events` devuelven listas vacías si
+el usuario aún no administra ninguna comunidad. Los eventos se ordenan por
+fecha descendente y usan paginación con `per_page=12` por defecto y máximo
+`50`.
+
 ## Panel de organizador — implementado
 
 | Método | Ruta | Descripción |

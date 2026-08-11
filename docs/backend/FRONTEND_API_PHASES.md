@@ -79,19 +79,20 @@ para la SPA React. No es integración institucional. Antes de `register` o
 No se recibe `role_id` en el registro. Un usuario nuevo inicia como estudiante
 para impedir que se otorgue privilegios de organizador desde el navegador.
 
-## Fase 4 — Onboarding de comunidades y organizadores
+## Fase 4 — Onboarding de comunidades y organizadores — Hecho
 
 **Pantallas:** crear comunidad, selector de comunidades y panel de organizador.
 
 | Método | Ruta | Uso |
 | --- | --- | --- |
-| `POST` | `/api/communities` | El usuario autenticado crea una comunidad; se le asigna rol `organizer` y relación `community_organizers` en la misma transacción. |
-| `GET` | `/api/me/communities` | Comunidades que administra el usuario autenticado. |
-| `GET` | `/api/me/events` | Eventos propios, incluidos los cancelados, para el panel. |
+| `POST` | `/api/communities` | Hecho — el usuario autenticado crea una comunidad, recibe rol `organizer` y relación `community_organizers` en una transacción. |
+| `GET` | `/api/me/communities` | Hecho — comunidades que administra el usuario autenticado. |
+| `GET` | `/api/me/events` | Hecho — eventos propios, incluidos los cancelados, para el panel. |
 
 No se requiere API para modificar roles ni para administrar organizadores de
-otra comunidad. Tampoco se requiere editar o eliminar comunidades mientras no
-exista una pantalla y requisito concreto para ello.
+otra comunidad. Un estudiante sin comunidades recibe listas vacías para que la
+interfaz pueda mostrar onboarding. Tampoco se requiere editar o eliminar
+comunidades mientras no exista una pantalla y requisito concreto para ello.
 
 ## Fase 5 — Reemplazo de identidad temporal y flujos finales
 

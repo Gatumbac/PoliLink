@@ -17,6 +17,17 @@ type AuthPayload = {
   password_confirmation: string
 }
 
+type Community = {
+  id: number
+  name: string
+  description: string | null
+}
+
+type EventPage = {
+  data: Array<Record<string, unknown>>
+  meta: { current_page: number; last_page: number; per_page: number; total: number }
+}
+
 function csrfToken(): string | undefined {
   const cookie = document.cookie
     .split('; ')
@@ -64,4 +75,17 @@ export const authApi = {
   },
   logout: () => request<void>('/auth/logout', { method: 'DELETE' }),
   me: () => request<{ data: AuthUser }>('/auth/me'),
+}
+
+export const communityApi = {
+  create: (payload: Pick<Community, 'name' | 'description'>) =>
+    request<{ data: Community }>('/communities', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    }),
+}
+
+export const dashboardApi = {
+  communities: () => request<{ data: Community[] }>('/me/communities'),
+  events: (perPage = 12) => request<EventPage>('/me/events?per_page=' + perPage),
 }

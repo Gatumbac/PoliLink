@@ -1,0 +1,140 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Models\Community;
+use App\Models\CommunityOrganizer;
+use App\Models\Event;
+use App\Models\EventStatus;
+use App\Models\User;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Tests\TestCase;
+
+class CommunityOnboardingApiTest extends TestCase
+{
+    use RefreshDatabase;
+
+    public function test_onboarding_routes_require_authentication(): void
+    {
+        $this->getJson('/api/me/communities')->assertUnauthorized();
+        $this->getJson('/api/me/events')->assertUnauthorized();
+        $this->postJson('/api/communities', ['name' => 'Comunidad nueva'])->assertUnauthorized();
+    }
+
+    public function test_student_without_communities_receives_empty_dashboard_lists(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $this->authenticatedGet($student, '/api/me/communities')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+
+        $this->authenticatedGet($student, '/api/me/events')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_student_can_create_a_community_and_becomes_its_organizer(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $this->authenticatedPost($student, '/api/communities', [
+            'name' => 'Club de Robótica',
+            'description' => 'Comunidad de robótica de ESPOL.',
+        ])
+            ->assertCreated()
+            ->assertJsonPath('data.name', 'Club de Robótica');
+
+        $student->refresh();
+        $community = Community::query()->where('name', 'Club de Robótica')->sole();
+
+        $this->assertTrue($student->roles()->where('code', 'student')->exists());
+        $this->assertTrue($student->roles()->where('code', 'organizer')->exists());
+        $this->assertDatabaseHas('community_organizers', [
+            'community_id' => $community->id,
+            'user_id' => $student->id,
+        ]);
+
+        $this->authenticatedGet($student, '/api/me/communities')
+            ->assertOk()
+            ->assertJsonPath('data.0.id', $community->id);
+    }
+
+    public function test_community_name_must_be_unique(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $this->authenticatedPost($student, '/api/communities', [
+            'name' => 'Club de Robótica',
+        ])->assertCreated();
+
+        $this->authenticatedPost($student, '/api/communities', [
+            'name' => 'Club de Robótica',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('name');
+    }
+
+    public function test_dashboard_lists_only_own_events_including_cancelled_events(): void
+    {
+        $this->seed();
+        $organizer = User::query()->where('email', 'organizer@polilink.test')->sole();
+        $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
+
+        Event::factory()->create([
+            'community_organizer_id' => $event->community_organizer_id,
+            'event_category_id' => $event->event_category_id,
+            'event_modality_id' => $event->event_modality_id,
+            'location_id' => $event->location_id,
+            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'title' => 'Evento cancelado propio',
+            'starts_at' => now()->addYear(),
+        ]);
+
+        $otherCommunity = Community::factory()->create();
+        $otherAssignment = CommunityOrganizer::factory()->create([
+            'community_id' => $otherCommunity->id,
+        ]);
+        Event::factory()->create([
+            'community_organizer_id' => $otherAssignment->id,
+            'event_category_id' => $event->event_category_id,
+            'event_modality_id' => $event->event_modality_id,
+            'location_id' => $event->location_id,
+            'event_status_id' => $event->event_status_id,
+            'title' => 'Evento ajeno',
+        ]);
+
+        $this->authenticatedGet($organizer, '/api/me/events?per_page=1')
+            ->assertOk()
+            ->assertJsonCount(1, 'data')
+            ->assertJsonPath('meta.total', 2)
+            ->assertJsonFragment(['code' => 'cancelled'])
+            ->assertJsonMissing(['title' => 'Evento ajeno']);
+    }
+
+    private function student(): User
+    {
+        return User::query()->where('email', 'student@polilink.test')->sole();
+    }
+
+    private function authenticatedGet(User $user, string $uri)
+    {
+        return $this->actingAs($user, 'web')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->withHeader('Referer', 'http://localhost:5173/')
+            ->getJson($uri);
+    }
+
+    private function authenticatedPost(User $user, string $uri, array $payload)
+    {
+        return $this->actingAs($user, 'web')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->withHeader('Referer', 'http://localhost:5173/')
+            ->withSession(['_token' => 'test-csrf-token'])
+            ->withHeader('X-CSRF-TOKEN', 'test-csrf-token')
+            ->postJson($uri, $payload);
+    }
+}

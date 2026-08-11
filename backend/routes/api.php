@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\OrganizerController;
 use App\Http\Controllers\ReferenceDataController;
@@ -20,6 +22,12 @@ Route::prefix('auth')->group(function () {
         Route::delete('/logout', [AuthController::class, 'logout']);
         Route::get('/me', [AuthController::class, 'me']);
     });
+});
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('/communities', [CommunityController::class, 'store']);
+    Route::get('/me/communities', [DashboardController::class, 'communities']);
+    Route::get('/me/events', [DashboardController::class, 'events']);
 });
 
 Route::get('/events', [EventController::class, 'index']);
