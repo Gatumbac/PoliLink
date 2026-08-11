@@ -1,0 +1,198 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ListMyRegistrationsRequest;
+use App\Http\Resources\RegistrationResource;
+use App\Models\CommunityOrganizer;
+use App\Models\Event;
+use App\Models\Registration;
+use App\Models\RegistrationStatus;
+use App\Models\User;
+use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpFoundation\Response;
+
+class RegistrationController extends Controller
+{
+    public function store(Request $request, Event $event): JsonResponse
+    {
+        $user = $request->user();
+        $this->ensureRole($user, 'student');
+
+        [$registration, $wasReactivated] = DB::transaction(function () use ($event, $user) {
+            $lockedEvent = Event::query()->lockForUpdate()->findOrFail($event->id);
+            $this->ensureNotCancelled($lockedEvent);
+
+            $hasActiveRegistration = Registration::query()
+                ->where('event_id', $lockedEvent->id)
+                ->where('student_id', $user->id)
+                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->exists();
+            abort_if($hasActiveRegistration, Response::HTTP_CONFLICT, 'Ya estás inscrito en este evento.');
+
+            $activeCount = Registration::query()
+                ->where('event_id', $lockedEvent->id)
+                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->count();
+            abort_if($activeCount >= $lockedEvent->capacity, Response::HTTP_CONFLICT, 'El evento alcanzó su capacidad máxima.');
+
+            $activeStatusId = RegistrationStatus::query()->where('code', 'active')->sole()->id;
+
+            $cancelledRegistration = Registration::query()
+                ->where('event_id', $lockedEvent->id)
+                ->where('student_id', $user->id)
+                ->whereHas('status', fn ($query) => $query->where('code', 'cancelled'))
+                ->first();
+
+            if ($cancelledRegistration) {
+                $cancelledRegistration->update([
+                    'registration_status_id' => $activeStatusId,
+                    'registered_at' => now(),
+                    'cancelled_at' => null,
+                ]);
+
+                return [$cancelledRegistration, true];
+            }
+
+            $registration = Registration::query()->create([
+                'event_id' => $lockedEvent->id,
+                'student_id' => $user->id,
+                'registration_status_id' => $activeStatusId,
+                'registered_at' => now(),
+                'cancelled_at' => null,
+            ]);
+
+            return [$registration, false];
+        });
+
+        return (new RegistrationResource($this->loadRegistration($registration)))
+            ->response()
+            ->setStatusCode($wasReactivated ? Response::HTTP_OK : Response::HTTP_CREATED);
+    }
+
+    public function destroy(Request $request, Event $event): RegistrationResource
+    {
+        $user = $request->user();
+        $this->ensureRole($user, 'student');
+
+        $registration = DB::transaction(function () use ($event, $user) {
+            Event::query()->lockForUpdate()->findOrFail($event->id);
+
+            $registration = Registration::query()
+                ->where('event_id', $event->id)
+                ->where('student_id', $user->id)
+                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->first();
+
+            abort_if(! $registration, Response::HTTP_NOT_FOUND, 'No tienes una inscripción activa en este evento.');
+
+            $registration->update([
+                'registration_status_id' => RegistrationStatus::query()->where('code', 'cancelled')->sole()->id,
+                'cancelled_at' => now(),
+            ]);
+
+            return $registration;
+        });
+
+        return new RegistrationResource($this->loadRegistration($registration));
+    }
+
+    public function index(Request $request, Event $event): JsonResponse
+    {
+        $organizer = $request->user();
+        $this->ensureRole($organizer, 'organizer');
+        $this->ensureManagesEventCommunity($organizer, $event);
+
+        $attendees = Registration::query()
+            ->where('event_id', $event->id)
+            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+            ->with(['status', 'student'])
+            ->orderBy('registered_at')
+            ->get();
+
+        $activeCount = $attendees->count();
+
+        return RegistrationResource::collection($attendees)
+            ->additional([
+                'summary' => [
+                    'capacity' => $event->capacity,
+                    'active_registrations' => $activeCount,
+                    'available_capacity' => max(0, $event->capacity - $activeCount),
+                ],
+            ])
+            ->response();
+    }
+
+    public function myRegistrations(ListMyRegistrationsRequest $request): JsonResponse
+    {
+        $user = $request->user();
+        $this->ensureRole($user, 'student');
+
+        $registrations = Registration::query()
+            ->where('student_id', $user->id)
+            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+            ->with([
+                'status',
+                'event' => fn ($query) => $query->with($this->eventRelations())->withCount('activeRegistrations'),
+            ])
+            ->orderByDesc('registered_at')
+            ->paginate($request->validated('per_page', 12))
+            ->withQueryString();
+
+        return RegistrationResource::collection($registrations)->response();
+    }
+
+    private function ensureRole(User $user, string $code): void
+    {
+        abort_unless(
+            $user->roles()->where('code', $code)->exists(),
+            Response::HTTP_FORBIDDEN,
+            'No tienes permisos para realizar esta acción.',
+        );
+    }
+
+    private function ensureNotCancelled(Event $event): void
+    {
+        abort_if(
+            $event->status()->where('code', 'cancelled')->exists(),
+            Response::HTTP_CONFLICT,
+            'El evento está cancelado.',
+        );
+    }
+
+    private function ensureManagesEventCommunity(User $organizer, Event $event): void
+    {
+        $event->loadMissing('communityOrganizer');
+
+        $manages = CommunityOrganizer::query()
+            ->where('community_id', $event->communityOrganizer->community_id)
+            ->where('user_id', $organizer->id)
+            ->exists();
+
+        abort_unless($manages, Response::HTTP_FORBIDDEN, 'El organizador no administra la comunidad del evento.');
+    }
+
+    private function loadRegistration(Registration $registration): Registration
+    {
+        return $registration->load([
+            'status',
+            'event' => fn ($query) => $query->with($this->eventRelations())->withCount('activeRegistrations'),
+        ]);
+    }
+
+    /**
+     * @return array<int, string>
+     */
+    private function eventRelations(): array
+    {
+        return [
+            'communityOrganizer.community',
+            'category',
+            'modality',
+            'location',
+            'status',
+        ];
+    }
+}
