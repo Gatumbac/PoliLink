@@ -100,6 +100,22 @@ calculan como capacidad menos inscripciones con estado `active`.
 | `404` | Evento inexistente o cancelado en una consulta pública. |
 | `409` | Intento de editar o cancelar un evento ya cancelado. |
 
+## Datos de referencia — implementado
+
+Estas rutas son públicas, de solo lectura y no requieren identidad temporal.
+Sirven para llenar filtros y selectores del frontend.
+
+| Método | Ruta | Respuesta |
+| --- | --- | --- |
+| `GET` | `/event-categories` | Categorías con `id`, `code` y `name`. |
+| `GET` | `/event-modalities` | Modalidades con `id`, `code` y `name`. |
+| `GET` | `/locations` | Ubicaciones con `id`, `name` y `description`. |
+| `GET` | `/communities` | Comunidades con `id`, `name` y `description`. |
+
+Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
+`GET /communities` devuelve únicamente comunidades que poseen al menos un
+evento con estado `published`, para evitar opciones de filtro sin resultados.
+
 ## Inscripciones — pendiente
 
 | Método | Ruta | Descripción |
