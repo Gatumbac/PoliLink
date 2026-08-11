@@ -116,6 +116,54 @@ Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
 `GET /communities` devuelve únicamente comunidades que poseen al menos un
 evento con estado `published`, para evitar opciones de filtro sin resultados.
 
+## Autenticación local — implementado
+
+La SPA usa Laravel Sanctum con cookies de sesión y CSRF. No se emiten tokens
+Bearer ni se integra ninguna cuenta institucional.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/sanctum/csrf-cookie` | Inicializa las cookies CSRF y de sesión. |
+| `POST` | `/auth/register` | Registra un usuario local con rol `student`. |
+| `POST` | `/auth/login` | Inicia la sesión local. |
+| `DELETE` | `/auth/logout` | Cierra la sesión actual. Requiere sesión. |
+| `GET` | `/auth/me` | Devuelve el usuario y sus roles. Requiere sesión. |
+
+Las últimas cuatro rutas usan el prefijo `/api`. El registro recibe
+`first_name`, `last_name`, `email`, `password` y `password_confirmation`. El
+servidor asigna exclusivamente el rol `student`; no acepta roles enviados por
+el navegador. Login recibe `email` y `password` y aplica un máximo de cinco
+intentos fallidos por minuto para el mismo email e IP.
+
+`GET /auth/me`, `POST /auth/login` y `POST /auth/register` responden:
+
+```json
+{
+  "data": {
+    "id": 2,
+    "first_name": "Estudiante",
+    "last_name": "PoliLink",
+    "email": "student@polilink.test",
+    "roles": [{ "code": "student", "name": "Student" }]
+  }
+}
+```
+
+`DELETE /auth/logout` responde `204`. Las credenciales inválidas responden
+`401`, una sesión ausente responde `401`, los datos inválidos `422` y el límite
+de intentos `429`.
+
+### Prueba manual con Postman
+
+1. Usar `http://localhost:8000` como backend y conservar las cookies de la
+   colección.
+2. Solicitar `GET /sanctum/csrf-cookie`.
+3. Enviar `Origin: http://localhost:5173` y copiar el valor URL-decodificado de
+   la cookie `XSRF-TOKEN` al encabezado `X-XSRF-TOKEN` para cada `POST` o
+   `DELETE`.
+4. Ejecutar register o login, luego `GET /api/auth/me`, `DELETE /api/auth/logout`
+   y nuevamente `GET /api/auth/me` para evidenciar el `401` final.
+
 ## Panel de organizador — implementado
 
 | Método | Ruta | Descripción |

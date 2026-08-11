@@ -18,7 +18,7 @@ hay aprobación administrativa de publicaciones.
 
 - Implementado: esquema, modelos, seeders y rutas de catálogo/detalle/gestión
   de eventos con identidad temporal `organizer_id`.
-- Pendiente: inscripciones y autenticación local.
+- Pendiente: inscripciones.
 - La autenticación institucional está fuera de alcance. La autenticación local
   de esta hoja de ruta requiere aprobación antes de implementarse.
 
@@ -60,21 +60,21 @@ Las rutas de esta fase permiten cumplir el primer avance usando los usuarios de
 prueba. No deben recibir roles, estados o IDs de relaciones internas desde la
 interfaz.
 
-## Fase 3 — Autenticación local
+## Fase 3 — Autenticación local — Hecho
 
 **Pantallas:** registro, inicio de sesión y sesión persistente.
 
-La implementación recomendada es autenticación local con Laravel Sanctum en
-modo cookie para la SPA React. No es integración institucional. Antes de
-`register` o `login`, React obtiene la cookie CSRF de Sanctum.
+La implementación usa autenticación local con Laravel Sanctum en modo cookie
+para la SPA React. No es integración institucional. Antes de `register` o
+`login`, React obtiene la cookie CSRF de Sanctum.
 
 | Método | Ruta | Uso |
 | --- | --- | --- |
-| `GET` | `/sanctum/csrf-cookie` | Preparar cookie CSRF para la SPA. |
-| `POST` | `/api/auth/register` | Crea un usuario local y le asigna solamente el rol `student`. |
-| `POST` | `/api/auth/login` | Inicia sesión local con email y contraseña. |
-| `DELETE` | `/api/auth/logout` | Cierra la sesión actual. |
-| `GET` | `/api/auth/me` | Devuelve usuario, roles y contexto de sesión. |
+| `GET` | `/sanctum/csrf-cookie` | Hecho — preparar cookie CSRF para la SPA. |
+| `POST` | `/api/auth/register` | Hecho — crea un usuario local y le asigna solamente el rol `student`. |
+| `POST` | `/api/auth/login` | Hecho — inicia sesión local con email y contraseña. |
+| `DELETE` | `/api/auth/logout` | Hecho — cierra la sesión actual. |
+| `GET` | `/api/auth/me` | Hecho — devuelve usuario, roles y contexto de sesión. |
 
 No se recibe `role_id` en el registro. Un usuario nuevo inicia como estudiante
 para impedir que se otorgue privilegios de organizador desde el navegador.
