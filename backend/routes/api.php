@@ -5,6 +5,7 @@ use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReferenceDataController;
+use App\Http\Controllers\RegistrationController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/health', function () {
@@ -30,6 +31,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/events', [EventController::class, 'store']);
     Route::patch('/events/{event}', [EventController::class, 'update']);
     Route::patch('/events/{event}/cancel', [EventController::class, 'cancel']);
+    Route::post('/events/{event}/registrations', [RegistrationController::class, 'store']);
+    Route::delete('/events/{event}/registrations', [RegistrationController::class, 'destroy']);
+    Route::get('/events/{event}/registrations', [RegistrationController::class, 'index']);
+    Route::get('/me/registrations', [RegistrationController::class, 'myRegistrations']);
 });
 
 Route::get('/events', [EventController::class, 'index']);

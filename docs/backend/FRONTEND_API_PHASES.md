@@ -17,8 +17,7 @@ hay aprobación administrativa de publicaciones.
 ## Estado actual
 
 - Implementado: esquema, modelos, seeders, catálogo, autenticación local,
-  onboarding y gestión autenticada de eventos.
-- Pendiente: inscripciones.
+  onboarding, gestión autenticada de eventos e inscripciones.
 - La autenticación institucional está fuera de alcance. La autenticación local
   de esta hoja de ruta requiere aprobación antes de implementarse.
 
@@ -51,10 +50,10 @@ de inscripción, mis inscripciones y panel de inscritos.
 | `POST` | `/api/events` | Gabriel | Hecho — crear evento desde sesión autenticada. |
 | `PATCH` | `/api/events/{event}` | Gabriel | Hecho — editar evento propio desde sesión autenticada. |
 | `PATCH` | `/api/events/{event}/cancel` | Gabriel | Hecho — cancelar evento propio desde sesión autenticada. |
-| `POST` | `/api/events/{event}/registrations` | Darwin | Pendiente — inscribir o reactivar con Sanctum. |
-| `DELETE` | `/api/events/{event}/registrations` | Darwin | Pendiente — cancelar inscripción activa con Sanctum. |
-| `GET` | `/api/events/{event}/registrations` | Darwin | Pendiente — inscritos y cupos para el organizador autenticado. |
-| `GET` | `/api/me/registrations` | Darwin | Pendiente — pantalla de mis inscripciones activas. |
+| `POST` | `/api/events/{event}/registrations` | Darwin | Hecho — inscribir o reactivar con Sanctum. |
+| `DELETE` | `/api/events/{event}/registrations` | Darwin | Hecho — cancelar inscripción activa con Sanctum. |
+| `GET` | `/api/events/{event}/registrations` | Darwin | Hecho — inscritos y cupos para el organizador autenticado. |
+| `GET` | `/api/me/registrations` | Darwin | Hecho — pantalla de mis inscripciones activas. |
 
 Las rutas de esta fase permiten cumplir el primer avance usando los usuarios de
 prueba. No deben recibir roles, estados o IDs de relaciones internas desde la
@@ -94,19 +93,20 @@ otra comunidad. Un estudiante sin comunidades recibe listas vacías para que la
 interfaz pueda mostrar onboarding. Tampoco se requiere editar o eliminar
 comunidades mientras no exista una pantalla y requisito concreto para ello.
 
-## Fase 5 — Reemplazo de identidad temporal y flujos finales — Parcial
+## Fase 5 — Reemplazo de identidad temporal y flujos finales — Hecho
 
 **Pantallas:** todas las anteriores conectadas a sesión real.
 
-Los eventos ya eliminan `organizer_id` y toman el actor desde la sesión. La
-adaptación de inscripciones permanece pendiente de la implementación de Darwin.
+Los eventos ya eliminan `organizer_id` y toman el actor desde la sesión. Las
+inscripciones también se resuelven desde `$request->user()`, sin `student_id`
+ni rutas por ID.
 
 | Método | Ruta | Uso |
 | --- | --- | --- |
-| `GET` | `/api/me/registrations` | Pendiente Darwin — mis inscripciones activas. |
-| `POST` | `/api/events/{event}/registrations` | Pendiente Darwin — inscripción del estudiante autenticado. |
-| `DELETE` | `/api/events/{event}/registrations` | Pendiente Darwin — cancelación de la inscripción propia. |
-| `GET` | `/api/events/{event}/registrations` | Pendiente Darwin — lista de inscritos y cupos para el organizador responsable. |
+| `GET` | `/api/me/registrations` | Hecho — mis inscripciones activas. |
+| `POST` | `/api/events/{event}/registrations` | Hecho — inscripción del estudiante autenticado. |
+| `DELETE` | `/api/events/{event}/registrations` | Hecho — cancelación de la inscripción propia. |
+| `GET` | `/api/events/{event}/registrations` | Hecho — lista de inscritos y cupos para el organizador responsable. |
 | `POST` | `/api/events` | Hecho — crear desde el organizador autenticado. |
 | `PATCH` | `/api/events/{event}` | Hecho — editar evento propio autenticado. |
 | `PATCH` | `/api/events/{event}/cancel` | Hecho — cancelar evento propio autenticado. |
