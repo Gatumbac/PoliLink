@@ -14,6 +14,7 @@
 \usepackage{tikz}
 \usetikzlibrary{arrows.meta,positioning,shapes.geometric}
 \usepackage{graphicx}
+\usepackage{float}
 
 \setstretch{1.15}
 \setlist[itemize]{noitemsep,topsep=3pt}
@@ -205,13 +206,13 @@ Las pantallas principales son: catálogo de eventos, detalle de evento, panel de
 \caption{Panel del organizador. Permite al organizador supervisar sus eventos publicados, el total de inscritos, la ocupación media y gestionar cada evento (editar, ver inscritos, eliminar).}
 \end{figure}
 
-\begin{figure}[h!]
+\clearpage
+\begin{figure}[H]
 \centering
 \includegraphics[width=0.85\textwidth]{images/4-crearEvento.png}
 \caption{Formulario de creación de evento. Permite registrar la información básica del evento: título, descripción, categoría y comunidad organizadora, entre otros campos.}
 \end{figure}
 
-\clearpage
 \section{Implementación}
 
 \subsection{Backend}
