@@ -14,6 +14,7 @@ contrato de la API y las guías de implementación.
 | `api/POSTMAN.md` | Guía para probar la API manualmente. |
 | `api/PoliLink.postman_collection.json` | Colección importable de Postman. |
 | `backend/` | Diseño de base de datos, fases del backend y handoff de Darwin. |
+| `backend/COMMUNITY_MEMBERSHIP_FLOW.md` | Propuesta de descubrimiento, membresías y solicitudes de unión. |
 | `PLAN_PRIMER_AVANCE.md` | Plan funcional del primer avance. |
 | `BITACORA.md` | Historial de decisiones y avances. |
 

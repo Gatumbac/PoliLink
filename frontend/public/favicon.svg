@@ -1,19 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title desc">
-  <title id="title">Tortuga ESPOL</title>
-  <desc id="desc">Icono de una tortuga para PoliLink</desc>
-  <rect width="64" height="64" rx="16" fill="#f7f4ed"/>
-
-  <g fill="#0b6b4f" stroke="#1c1c1c" stroke-linejoin="round" stroke-width="2.5">
-    <path d="M19 26c-6-5-13-6-15-3s4 9 13 11l5-4z"/>
-    <path d="M45 26c6-5 13-6 15-3s-4 9-13 11l-5-4z"/>
-    <path d="M20 43c-6 3-10 8-8 11 2 2 9-1 14-7l-2-5z"/>
-    <path d="M44 43c6 3 10 8 8 11-2 2-9-1-14-7l2-5z"/>
-    <path d="M27 18c0-6 2-10 5-10s5 4 5 10v5H27z"/>
-    <path d="m32 50-4 7h8z"/>
-  </g>
-
-  <ellipse cx="32" cy="34" rx="19" ry="18" fill="#005b9a" stroke="#f2c300" stroke-width="3"/>
-  <path d="M32 17v34M14 34h36M19 22c4 4 8 6 13 6s9-2 13-6M19 46c4-4 8-6 13-6s9 2 13 6" fill="none" stroke="#f2c300" stroke-linecap="round" stroke-width="1.8"/>
-  <circle cx="29.5" cy="13" r="1.4" fill="#1c1c1c"/>
-  <circle cx="34.5" cy="13" r="1.4" fill="#1c1c1c"/>
+  <title id="title">P de PoliLink</title>
+  <desc id="desc">Icono con la letra P para PoliLink</desc>
+  <rect width="64" height="64" rx="16" fill="#005b9a"/>
+  <path d="M18 50V14h15c10 0 15 5 15 13s-5 13-15 13h-7v10zm8-18h7c5 0 7-2 7-5s-2-5-7-5h-7z" fill="#f7f4ed" fill-rule="evenodd"/>
 </svg>

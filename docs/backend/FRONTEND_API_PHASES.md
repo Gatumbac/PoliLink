@@ -206,6 +206,18 @@ Ejecutar los recorridos completos navegador → Laravel → MySQL, cubrir respue
 `401`, `403`, `404`, `409` y `422`, registrar evidencia, actualizar README/API/
 bitácora y revisar la propuesta LaTeX en Overleaf.
 
+## Flujo futuro de comunidades y membresías
+
+La propuesta [`COMMUNITY_MEMBERSHIP_FLOW.md`](COMMUNITY_MEMBERSHIP_FLOW.md)
+documenta un flujo posterior para buscar comunidades, solicitar pertenencia y
+permitir que sus organizadores aprueben o rechacen solicitudes. Está marcado
+como `Planned` y requiere aprobación de alcance antes de añadir migraciones,
+endpoints o pantallas.
+
+Este flujo separa la pertenencia de la administración. No modifica la regla
+vigente de que los eventos publicados son públicos ni introduce aprobación
+administrativa de eventos.
+
 ## Plantilla para documentar cada fase
 
 Cada fase detallada debe incluir objetivo, responsables, prerrequisitos, APIs,
