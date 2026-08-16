@@ -1,155 +1,84 @@
-# Plan: Esquema relacional normalizado para PoliLink
+# Modelo de base de datos de PoliLink
 
-**Fecha:** 2026-08-10  
-**Estado:** Implementado en el backend; este documento conserva el diseño relacional.
-**Contexto:** El backend Laravel conserva únicamente sus tablas base. Se debe
-definir primero un modelo relacional para eventos e inscripciones, sin JSON ni
-tipos `ENUM`, antes de crear migraciones.
+**Estado:** Implementado localmente con migraciones limpias.
 
-## Objetivos
+El modelo separa la administración global del sistema de la pertenencia a una
+comunidad. Un usuario normal no necesita un registro de rol global; `is_admin`
+es el único privilegio global actual. Los roles `member`, `organizer` y `tutor`
+pertenecen a una membresía concreta.
 
-- [x] Extraer las reglas y límites del dominio desde el contexto, el contrato
-  de API y el plan del primer avance.
-- [x] Proponer un modelo hasta tercera forma normal (3FN).
-- [x] Definir claves, cardinalidades, restricciones e índices requeridos.
-- [ ] Acordar el diseño con el equipo antes de crear migraciones.
-- [ ] Implementar migraciones, modelos, seeders y pruebas en `backend/`.
+## Tablas principales
 
-## Esquema propuesto
+| Tabla | Propósito y restricciones |
+| --- | --- |
+| `users` | Identidad, credenciales e `is_admin BOOLEAN NOT NULL DEFAULT FALSE`. `email` es único. |
+| `communities` | Comunidades con `name` único y descripción opcional. |
+| `community_roles` | Catálogo fijo: `member`, `organizer`, `tutor`; `code` y `name` únicos. |
+| `membership_statuses` | Catálogo fijo: `pending`, `active`, `rejected`, `left`. |
+| `community_memberships` | Relación única usuario-comunidad con rol, estado, fechas de solicitud/revisión y `reviewed_by`. |
+| `events` | Evento relacionado directamente con `community_id`, catálogos, estado, imagen opcional, fecha y capacidad. |
+| `registrations` | Relación `event_id`–`user_id`, estado y fechas; `UNIQUE (event_id, user_id)`. |
 
-### Usuarios y roles
+`community_memberships` tiene estas columnas de relación y auditoría:
 
-| Tabla | Columnas principales | Restricciones |
-| --- | --- | --- |
-| `users` | `id`, `first_name`, `last_name`, `email`, `password`, marcas de tiempo de Laravel | `email` único. Se reutiliza la tabla base; no se agrega una columna `role`. |
-| `roles` | `id`, `code`, `name` | `code` y `name` únicos. Semillas: `student`, `organizer`, `admin`. |
-| `role_user` | `user_id`, `role_id` | PK compuesta (`user_id`, `role_id`); ambas columnas son FK. Representa una relación N:M. |
+```text
+id, community_id, user_id, community_role_id, membership_status_id,
+requested_at, reviewed_at, reviewed_by, created_at, updated_at
+```
 
-### Comunidades y responsables
-
-| Tabla | Columnas principales | Restricciones |
-| --- | --- | --- |
-| `communities` | `id`, `name`, `description`, `created_at`, `updated_at` | `name` único. |
-| `community_organizers` | `id`, `community_id`, `user_id`, marcas de tiempo | FK hacia comunidad y usuario; `UNIQUE (community_id, user_id)`. Solo se crean filas para usuarios con rol `organizer`. |
-
-`community_organizers` evita guardar dos hechos redundantes en un evento:
-la comunidad y el organizador se obtienen de una única relación responsable.
-
-### Catálogos controlados
-
-| Tabla | Columnas principales | Semillas iniciales |
-| --- | --- | --- |
-| `event_categories` | `id`, `code`, `name`, `is_active` | `code` estable; categorías activas se ofrecen en formularios y filtros. |
-| `event_modalities` | `id`, `code`, `name`, `is_active` | `code` estable; modalidades activas se ofrecen en formularios y filtros. |
-| `locations` | `id`, `name`, `description`, `is_active` | Lugares reutilizables; los inactivos se conservan para eventos históricos. |
-| `event_statuses` | `id`, `code`, `name` | `published`, `cancelled`. |
-| `registration_statuses` | `id`, `code`, `name` | `active`, `cancelled`. |
-
-Cada catálogo tiene `code` y `name` únicos. Los códigos son estables para la
-API; los nombres son texto de presentación. No se usan columnas JSON ni
-`ENUM` de MySQL.
-
-### Hechos del negocio
-
-| Tabla | Columnas principales | Restricciones |
-| --- | --- | --- |
-| `events` | `id`, `community_organizer_id`, `event_category_id`, `event_modality_id`, `location_id`, `event_status_id`, `title`, `description`, `image_path`, `starts_at`, `capacity`, marcas de tiempo | Todas las FK son obligatorias y usan `RESTRICT` al borrar. `image_path` es opcional y guarda únicamente la ruta relativa del archivo en el disco público del backend. `capacity` es entero sin signo; la validación `min:1` se aplica en Laravel. Un evento no se elimina: se cambia su estado a `cancelled`. |
-| `registrations` | `id`, `event_id`, `student_id`, `registration_status_id`, `registered_at`, `cancelled_at`, marcas de tiempo | `UNIQUE (event_id, student_id)`. `student_id` referencia `users`; solo se acepta un usuario con rol `student`. |
-
-Una cancelación actualiza la misma fila de `registrations` a estado
-`cancelled`; así se preserva la relación histórica y nunca existen dos
-inscripciones para el mismo estudiante y evento. Una reinscripción, si el
-equipo decide permitirla, reactiva esa fila dentro de una transacción; no crea
-otra.
+Un registro `active` representa la pertenencia. El rol `organizer` permite
+crear, editar, cancelar y administrar imágenes de eventos; `tutor` solo
+identifica al profesor tutor; `member` representa una participación normal.
+Solo un `organizer` puede asignar o cambiar roles comunitarios. La aplicación
+debe conservar al menos un organizador activo por comunidad.
 
 ## Relaciones
 
 ```text
-users ──< role_user >── roles
-users ──< community_organizers >── communities
-community_organizers ──< events >── event_categories
-                              ├── event_modalities
-                              ├── locations
-                              └── event_statuses
-users (students) ──< registrations >── events
-registrations ──> registration_statuses
+users ──< community_memberships >── communities
+community_memberships ──> community_roles
+community_memberships ──> membership_statuses
+users (reviewed_by) ──< community_memberships
+communities ──< events ──< registrations >── users
 ```
 
-## Reglas y garantías
+No existen las tablas `roles`, `role_user` ni `community_organizers`. Tampoco
+se usan `community_organizer_id` o `student_id`; las policies consultan la
+membresía activa y las inscripciones usan `user_id`.
 
-1. Crear un evento lo deja en `published`; no hay estado de aprobación.
-2. La aplicación valida que un `community_organizers.user_id` tenga el rol
-   `organizer` y que `registrations.student_id` tenga el rol `student`.
-3. La inscripción debe ejecutarse en una transacción: bloquear el evento,
-   contar solo registros con estado `active`, comparar contra `capacity` y
-   crear o reactivar la inscripción.
-4. El catálogo muestra solo eventos `published`; sus cupos disponibles se
-   calculan, no se almacenan: `capacity - COUNT(registrations activas)`.
-   Las categorías, modalidades y ubicaciones inactivas no se ofrecen para
-   nuevos eventos ni filtros públicos.
-5. No se permite registrar a un estudiante en un evento cancelado, ni editar o
-   cancelar un evento de otro organizador.
-6. Las FK protegen catálogos y hechos históricos con `RESTRICT`; no se usan
-   borrados en cascada para eventos o inscripciones.
+## Normalización e integridad
 
-## Índices
+- No se guardan listas, JSON de miembros ni nombres duplicados en relaciones.
+- Los datos de usuario, comunidad, rol y estado viven en sus propias tablas.
+- La combinación `community_id + user_id` evita membresías duplicadas.
+- Las FK usan `RESTRICT` para comunidades, usuarios, roles, estados y eventos,
+  preservando el historial. `reviewed_by` permite `NULL` y usa `SET NULL`.
+- Los catálogos de eventos conservan `is_active`; desactivarlos no modifica
+  eventos históricos.
+- La capacidad disponible se calcula desde las inscripciones activas y no se
+  almacena como dato redundante.
 
-- `users(email)` único.
-- `role_user(user_id, role_id)` PK compuesta y un índice inverso
-  `role_user(role_id, user_id)` para consultas por rol.
-- `community_organizers(community_id, user_id)` único y un índice inverso por
-  `user_id`.
-- `events(event_status_id, starts_at)` para catálogo activo ordenado por fecha.
-- `events(event_category_id, starts_at)`, `events(event_modality_id, starts_at)`
-  y `events(location_id)` para filtros. La FK hacia
-  `community_organizer_id` cubre el filtro por comunidad mediante JOIN.
-- `registrations(event_id, student_id)` único, y
-  `registrations(event_id, registration_status_id)` para cupos e inscritos.
-- `registrations(student_id, registration_status_id)` para mis inscripciones.
+## Seeds
 
-## Pasos de implementación
+`CommunityReferenceSeeder` crea los roles y estados de membresía. Los seeds de
+demostración crean un usuario con membresía `organizer`, otro con membresía
+`member`, una comunidad, un evento y una inscripción. `AdminSeeder` establece
+`users.is_admin = true` para `admin@espol.edu.ec`.
 
-1. **Acordar decisiones de producto** — Confirmar si una inscripción cancelada
-   puede reactivarse y validar las categorías y lugares semilla.
-2. **Migraciones** — Crear migraciones incrementales en `backend/database/migrations/`:
-   roles y pivote; comunidades y responsables; catálogos; eventos;
-   inscripciones. Agregar claves foráneas e índices; la capacidad positiva se
-   valida de forma portable en Laravel.
-3. **Modelos Eloquent** — Agregar relaciones y casts de fecha a `User`,
-   `Community`, `CommunityOrganizer`, `Event`, `Registration` y modelos de
-   catálogo.
-4. **Seeders** — Insertar roles, catálogos, dos usuarios de prueba, una
-   comunidad, su responsable, un evento e inscripción reproducibles.
-5. **Reglas de aplicación** — Implementar validaciones de rol, propiedad,
-   estado y una transacción de inscripción segura frente a concurrencia.
-6. **Pruebas** — Cubrir FK y unicidad, capacidad, duplicado, cancelación,
-   filtros y cálculo de cupos.
+## Reinicio local
 
-## Archivos afectados
+El esquema no se ha desplegado y no requiere migración de datos. Para recrear
+la base local:
 
-- `backend/database/migrations/` — futura estructura y restricciones.
-- `backend/app/Models/` — futuras relaciones Eloquent.
-- `backend/database/seeders/DatabaseSeeder.php` — datos de desarrollo.
-- `backend/app/Http/` — validaciones y transacciones, después de la base.
-- `backend/tests/` — pruebas de integridad y reglas.
+```bash
+php artisan migrate:fresh --seed
+```
 
-## Riesgos y consideraciones
+El comando es destructivo y debe ejecutarse únicamente sobre la base local de
+PoliLink.
 
-- MySQL no puede imponer fácilmente, solo con FK, que el usuario de una
-  inscripción tenga el rol `student`; esa regla se valida en Laravel y se
-  prueba. La misma condición aplica al responsable de comunidad.
-- El contador de cupos no es una columna: almacenarlo produciría datos
-  redundantes y desincronizables. La transacción es necesaria para evitar
-  sobrepasar la capacidad con solicitudes simultáneas.
-- `locations` comienza como catálogo libre y reutilizable. Si después se
-  requiere dirección, edificio o enlace virtual, se normaliza en tablas
-  adicionales solo con requisitos concretos.
-- No se agregan autenticación institucional, pagos, correo, calendario, QR ni
-  asistencia; están fuera del alcance aprobado.
-
-## Referencias
+## Fuentes
 
 - `docs/CONTEXT/PROJECT_CONTEXT.md`
-- `docs/PLAN_PRIMER_AVANCE.md`
 - `docs/api/API.md`
-- `backend/database/migrations/0001_01_01_000000_create_users_table.php`
+- `backend/database/migrations/`

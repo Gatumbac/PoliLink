@@ -2,7 +2,6 @@
 
 namespace App\Console\Commands;
 
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
@@ -30,7 +29,7 @@ class ProvisionAdminCommand extends Command
 
         if ($existingUser) {
             $this->promote($existingUser);
-            $this->info("Administrator role assigned to {$email}.");
+            $this->info("Administrator access enabled for {$email}.");
 
             return self::SUCCESS;
         }
@@ -63,11 +62,6 @@ class ProvisionAdminCommand extends Command
 
     private function promote(User $user): void
     {
-        $adminRole = Role::query()->firstOrCreate(
-            ['code' => 'admin'],
-            ['name' => 'Administrador'],
-        );
-
-        $user->roles()->syncWithoutDetaching([$adminRole->id]);
+        $user->forceFill(['is_admin' => true])->save();
     }
 }

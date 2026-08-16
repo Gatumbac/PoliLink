@@ -2,7 +2,12 @@ import { type AuthRoute, appRoutes } from '@/app/routes'
 import type { AuthUser, RoleCode } from '@/features/auth/model/auth.schemas'
 
 export function hasRole(user: AuthUser | null, role: RoleCode): boolean {
-  return user?.roles.some((assignedRole) => assignedRole.code === role) ?? false
+  return (
+    user?.community_memberships.some(
+      (membership) =>
+        membership.status.code === 'active' && membership.role.code === role,
+    ) ?? false
+  )
 }
 
 export function getUserDisplayName(user: AuthUser): string {
@@ -10,7 +15,10 @@ export function getUserDisplayName(user: AuthUser): string {
 }
 
 export function getRoleLabel(role: RoleCode): string {
-  return role === 'organizer' ? 'Organizador' : 'Estudiante'
+  if (role === 'organizer') return 'Organizador'
+  if (role === 'tutor') return 'Tutor'
+
+  return 'Miembro'
 }
 
 export function getSafeRedirect(value: string | null | undefined): string {

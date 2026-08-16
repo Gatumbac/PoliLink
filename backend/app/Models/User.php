@@ -7,7 +7,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -29,31 +28,38 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_admin' => 'boolean',
         ];
     }
 
-    public function roles(): BelongsToMany
+    public function memberships(): HasMany
     {
-        return $this->belongsToMany(Role::class)->withTimestamps();
+        return $this->hasMany(CommunityMembership::class);
     }
 
-    public function communityOrganizerAssignments(): HasMany
+    public function managedMemberships(): HasMany
     {
-        return $this->hasMany(CommunityOrganizer::class);
-    }
-
-    public function managedCommunities(): BelongsToMany
-    {
-        return $this->belongsToMany(Community::class, 'community_organizers')->withTimestamps();
+        return $this->memberships()
+            ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
+            ->whereHas('status', fn ($query) => $query->where('code', 'active'));
     }
 
     public function registrations(): HasMany
     {
-        return $this->hasMany(Registration::class, 'student_id');
+        return $this->hasMany(Registration::class);
     }
 
-    public function hasRole(string $code): bool
+    public function isActiveOrganizerOf(int $communityId): bool
     {
-        return $this->roles()->where('code', $code)->exists();
+        return $this->memberships()
+            ->where('community_id', $communityId)
+            ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
+            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+            ->exists();
+    }
+
+    public function isAdmin(): bool
+    {
+        return $this->is_admin;
     }
 }

@@ -17,7 +17,7 @@ class RegistrationFactory extends Factory
     {
         return [
             'event_id' => Event::factory(),
-            'student_id' => User::factory(),
+            'user_id' => User::factory(),
             'registration_status_id' => RegistrationStatus::factory(),
             'registered_at' => now(),
             'cancelled_at' => null,

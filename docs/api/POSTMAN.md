@@ -19,7 +19,8 @@ Importa el archivo `docs/api/PoliLink.postman_collection.json` desde
 
 1. Ejecuta una ruta del grupo Público.
 2. Obtén la cookie CSRF.
-3. Ejecuta Login Gabriel y luego Crear mi comunidad y obtener rol organizador.
+3. Ejecuta Login Gabriel y luego Crear mi comunidad para obtener una membresía
+   `active/organizer`.
    Usa un `newCommunityName` único; la colección guarda su ID en `communityId`.
 4. Ejecuta Mis comunidades, Crear evento, Editar evento creado y Cancelar
    evento creado.

@@ -63,11 +63,21 @@ export function UserMenu() {
             {user.email}
           </p>
           <div className="mt-3 flex flex-wrap gap-1.5">
-            {user.roles.map((role) => (
-              <Badge key={role.code} variant="outline">
-                {getRoleLabel(role.code)}
-              </Badge>
-            ))}
+            {user.is_admin && <Badge variant="outline">Administrador</Badge>}
+            {user.community_memberships
+              .filter((membership) => membership.status.code === 'active')
+              .map((membership) => (
+                <Badge
+                  key={`${membership.community.id}-${membership.role.code}`}
+                  variant="outline"
+                >
+                  {getRoleLabel(membership.role.code)} ·{' '}
+                  {membership.community.name}
+                </Badge>
+              ))}
+            {!user.is_admin && user.community_memberships.length === 0 && (
+              <Badge variant="outline">Miembro</Badge>
+            )}
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />

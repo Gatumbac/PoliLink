@@ -1,7 +1,7 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { http, HttpResponse } from 'msw'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 
 import { AuthProvider, useAuth } from '@/features/auth/auth-context'
@@ -14,7 +14,8 @@ const authenticatedUser = {
   first_name: 'Ana',
   last_name: 'Torres',
   email: 'ana@espol.edu.ec',
-  roles: [{ code: 'student', name: 'Student' }],
+  is_admin: false,
+  community_memberships: [],
 }
 
 function AuthProbe() {
@@ -116,9 +117,7 @@ describe('AuthProvider', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status')).toHaveTextContent('authenticated')
-      expect(screen.getByTestId('email')).toHaveTextContent(
-        'ana@espol.edu.ec',
-      )
+      expect(screen.getByTestId('email')).toHaveTextContent('ana@espol.edu.ec')
     })
   })
 
@@ -128,8 +127,9 @@ describe('AuthProvider', () => {
         HttpResponse.json({ data: authenticatedUser }),
       ),
       csrfHandler(),
-      http.delete(`${backendUrl}/api/auth/logout`, () =>
-        new HttpResponse(null, { status: 204 }),
+      http.delete(
+        `${backendUrl}/api/auth/logout`,
+        () => new HttpResponse(null, { status: 204 }),
       ),
     )
 
@@ -167,9 +167,7 @@ describe('AuthProvider', () => {
 
     await waitFor(() => {
       expect(screen.getByTestId('status')).toHaveTextContent('authenticated')
-      expect(screen.getByTestId('email')).toHaveTextContent(
-        'ana@espol.edu.ec',
-      )
+      expect(screen.getByTestId('email')).toHaveTextContent('ana@espol.edu.ec')
     })
   })
 })

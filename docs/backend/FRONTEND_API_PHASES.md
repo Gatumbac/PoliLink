@@ -43,8 +43,8 @@ añaden aprobación administrativa, autenticación institucional, pagos, correo,
 calendario, códigos QR ni validación de asistencia.
 
 Las tablas internas no generan pantallas CRUD generales. El backend ya expone
-un panel futuro para que el rol `admin` mantenga categorías, modalidades y
-ubicaciones; roles, estados y relaciones de responsabilidad permanecen
+un panel futuro para que `is_admin` mantenga categorías, modalidades y
+ubicaciones; estados, roles comunitarios y relaciones de membresía permanecen
 controlados por el backend. La interfaz de administración se implementará en
 una fase separada.
 
@@ -72,8 +72,9 @@ La navegación hacia las pantallas protegidas de catálogo, organizador e
 inscripciones se completará en las fases de sus respectivos dominios.
 
 La fundación de la SPA cubre la estructura general, navegación, estilos
-compartidos, cliente HTTP, sesión Sanctum, registro/login/logout, roles y
-manejo común de carga, errores y sesión expirada. La verificación de estos
+compartidos, cliente HTTP, sesión Sanctum, registro/login/logout, administración
+global, membresías comunitarias y manejo común de carga, errores y sesión
+expirada. La verificación de estos
 recorridos con los servicios locales queda pendiente.
 
 ### Fase 2 — Descubrimiento público
@@ -105,7 +106,8 @@ El contrato de esta fase está cerrado en `docs/api/API.md`: onboarding de
 comunidades, comunidades administradas, eventos propios paginados, creación
 multipart con imagen opcional, edición parcial, reemplazo/eliminación de
 imagen y cancelación. El backend aplica la relación
-`community_organizers`, acepta únicamente catálogos activos para altas y
+`community_memberships` con rol `organizer`, acepta únicamente catálogos activos
+para altas y
 ediciones, conserva eventos cancelados en el dashboard y devuelve
 `image_url` nullable.
 
@@ -134,7 +136,7 @@ verificación navegador → Laravel.
 - Implementar el onboarding de tres pasos en `/crear-comunidad` para
   `POST /communities`, con validación, confirmación y estado de éxito.
 - Actualizar la sesión y la navegación cuando un estudiante crea su primera
-  comunidad y obtiene el rol `organizer`.
+  comunidad y obtiene una membresía `active/organizer`.
 - Añadir puntos de descubrimiento desde el landing, el catálogo y la
   navegación autenticada.
 - Mostrar la opción de comunidad existente como capacidad futura, sin

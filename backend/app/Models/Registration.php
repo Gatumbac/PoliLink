@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'event_id',
-    'student_id',
+    'user_id',
     'registration_status_id',
     'registered_at',
     'cancelled_at',
@@ -31,9 +31,9 @@ class Registration extends Model
         return $this->belongsTo(Event::class);
     }
 
-    public function student(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'student_id');
+        return $this->belongsTo(User::class);
     }
 
     public function status(): BelongsTo

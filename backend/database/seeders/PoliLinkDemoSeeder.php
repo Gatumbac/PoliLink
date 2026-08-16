@@ -3,15 +3,16 @@
 namespace Database\Seeders;
 
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventCategory;
 use App\Models\EventModality;
 use App\Models\EventStatus;
 use App\Models\Location;
+use App\Models\MembershipStatus;
 use App\Models\Registration;
 use App\Models\RegistrationStatus;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -40,25 +41,45 @@ class PoliLinkDemoSeeder extends Seeder
             ],
         );
 
-        $organizer->roles()->syncWithoutDetaching([
-            Role::query()->where('code', 'organizer')->sole()->id,
-        ]);
-        $student->roles()->syncWithoutDetaching([
-            Role::query()->where('code', 'student')->sole()->id,
-        ]);
-
         $community = Community::query()->updateOrCreate(
             ['name' => 'TAWS'],
             ['description' => 'Comunidad estudiantil de tecnología y desarrollo de software.'],
         );
-        $communityOrganizer = CommunityOrganizer::query()->firstOrCreate([
-            'community_id' => $community->id,
-            'user_id' => $organizer->id,
-        ]);
+
+        $activeStatusId = MembershipStatus::query()->where('code', 'active')->sole()->id;
+        $organizerRoleId = CommunityRole::query()->where('code', 'organizer')->sole()->id;
+        $memberRoleId = CommunityRole::query()->where('code', 'member')->sole()->id;
+
+        CommunityMembership::query()->updateOrCreate(
+            [
+                'community_id' => $community->id,
+                'user_id' => $organizer->id,
+            ],
+            [
+                'community_role_id' => $organizerRoleId,
+                'membership_status_id' => $activeStatusId,
+                'requested_at' => now(),
+                'reviewed_at' => null,
+                'reviewed_by' => null,
+            ],
+        );
+        CommunityMembership::query()->updateOrCreate(
+            [
+                'community_id' => $community->id,
+                'user_id' => $student->id,
+            ],
+            [
+                'community_role_id' => $memberRoleId,
+                'membership_status_id' => $activeStatusId,
+                'requested_at' => now(),
+                'reviewed_at' => now(),
+                'reviewed_by' => $organizer->id,
+            ],
+        );
 
         $event = Event::query()->updateOrCreate(
             [
-                'community_organizer_id' => $communityOrganizer->id,
+                'community_id' => $community->id,
                 'title' => 'Hackathon TAWS',
             ],
             [
@@ -75,7 +96,7 @@ class PoliLinkDemoSeeder extends Seeder
         Registration::query()->updateOrCreate(
             [
                 'event_id' => $event->id,
-                'student_id' => $student->id,
+                'user_id' => $student->id,
             ],
             [
                 'registration_status_id' => RegistrationStatus::query()->where('code', 'active')->sole()->id,

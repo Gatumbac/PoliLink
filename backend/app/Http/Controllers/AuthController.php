@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\LoginRequest;
 use App\Http\Requests\RegisterRequest;
 use App\Http\Resources\UserResource;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -27,17 +26,13 @@ class AuthController extends Controller
                 'password',
             ]));
 
-            $user->roles()->attach(
-                Role::query()->where('code', 'student')->sole(),
-            );
-
             return $user;
         });
 
         Auth::guard('web')->login($user);
         $request->session()->regenerate();
 
-        return (new UserResource($user->load('roles')))
+        return (new UserResource($this->loadUserRelations($user)))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
@@ -65,7 +60,7 @@ class AuthController extends Controller
         RateLimiter::clear($key);
         $request->session()->regenerate();
 
-        return (new UserResource($request->user()->load('roles')))->response();
+        return (new UserResource($this->loadUserRelations($request->user())))->response();
     }
 
     public function logout(Request $request): JsonResponse
@@ -79,7 +74,16 @@ class AuthController extends Controller
 
     public function me(Request $request): UserResource
     {
-        return new UserResource($request->user()->load('roles'));
+        return new UserResource($this->loadUserRelations($request->user()));
+    }
+
+    private function loadUserRelations(User $user): User
+    {
+        return $user->load([
+            'memberships.community',
+            'memberships.role',
+            'memberships.status',
+        ]);
     }
 
     private function throttleKey(LoginRequest $request): string

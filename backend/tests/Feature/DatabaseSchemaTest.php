@@ -12,19 +12,20 @@ class DatabaseSchemaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_domain_tables_and_user_name_columns_are_migrated(): void
+    public function test_domain_tables_and_user_fields_use_the_new_membership_model(): void
     {
-        $this->assertTrue(Schema::hasColumns('users', ['first_name', 'last_name']));
+        $this->assertTrue(Schema::hasColumns('users', ['first_name', 'last_name', 'is_admin']));
         $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
         $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
         $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
-        $this->assertTrue(Schema::hasColumns('events', ['image_path']));
+        $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path']));
+        $this->assertTrue(Schema::hasColumns('registrations', ['user_id']));
 
         foreach ([
-            'roles',
-            'role_user',
             'communities',
-            'community_organizers',
+            'community_roles',
+            'membership_statuses',
+            'community_memberships',
             'event_categories',
             'event_modalities',
             'locations',
@@ -35,58 +36,51 @@ class DatabaseSchemaTest extends TestCase
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table));
         }
+
+        foreach (['roles', 'role_user', 'community_organizers'] as $removedTable) {
+            $this->assertFalse(Schema::hasTable($removedTable));
+        }
     }
 
-    public function test_role_and_community_organizer_relationships_are_unique(): void
+    public function test_membership_is_unique_per_user_and_community(): void
     {
         $userId = $this->createUser();
-        $roleId = DB::table('roles')->insertGetId([
-            'code' => 'organizer',
-            'name' => 'Organizador',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $roleId = $this->createReference('community_roles', 'member', 'Miembro');
+        $statusId = $this->createReference('membership_statuses', 'active', 'Activa');
 
-        DB::table('role_user')->insert([
-            'user_id' => $userId,
-            'role_id' => $roleId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        DB::table('community_organizers')->insert([
+        DB::table('community_memberships')->insert([
             'community_id' => $communityId,
             'user_id' => $userId,
+            'community_role_id' => $roleId,
+            'membership_status_id' => $statusId,
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $this->expectException(QueryException::class);
 
-        DB::table('role_user')->insert([
+        DB::table('community_memberships')->insert([
+            'community_id' => $communityId,
             'user_id' => $userId,
-            'role_id' => $roleId,
+            'community_role_id' => $roleId,
+            'membership_status_id' => $statusId,
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
-    public function test_registration_is_unique_per_event_and_student(): void
+    public function test_registration_is_unique_per_event_and_user(): void
     {
-        $studentId = $this->createUser('student@espol.edu.ec');
-        $organizerId = $this->createUser('organizer@espol.edu.ec');
+        $userId = $this->createUser('member@espol.edu.ec');
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        $communityOrganizerId = DB::table('community_organizers')->insertGetId([
-            'community_id' => $communityId,
-            'user_id' => $organizerId,
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -100,7 +94,7 @@ class DatabaseSchemaTest extends TestCase
         $eventStatusId = $this->createReference('event_statuses', 'published', 'Publicado');
         $registrationStatusId = $this->createReference('registration_statuses', 'active', 'Activa');
         $eventId = DB::table('events')->insertGetId([
-            'community_organizer_id' => $communityOrganizerId,
+            'community_id' => $communityId,
             'event_category_id' => $categoryId,
             'event_modality_id' => $modalityId,
             'location_id' => $locationId,
@@ -115,7 +109,7 @@ class DatabaseSchemaTest extends TestCase
 
         DB::table('registrations')->insert([
             'event_id' => $eventId,
-            'student_id' => $studentId,
+            'user_id' => $userId,
             'registration_status_id' => $registrationStatusId,
             'registered_at' => now(),
             'created_at' => now(),
@@ -126,7 +120,7 @@ class DatabaseSchemaTest extends TestCase
 
         DB::table('registrations')->insert([
             'event_id' => $eventId,
-            'student_id' => $studentId,
+            'user_id' => $userId,
             'registration_status_id' => $registrationStatusId,
             'registered_at' => now(),
             'created_at' => now(),
@@ -134,13 +128,16 @@ class DatabaseSchemaTest extends TestCase
         ]);
     }
 
-    public function test_foreign_keys_reject_unknown_role_assignments(): void
+    public function test_foreign_keys_reject_unknown_membership_references(): void
     {
         $this->expectException(QueryException::class);
 
-        DB::table('role_user')->insert([
+        DB::table('community_memberships')->insert([
+            'community_id' => 999,
             'user_id' => 999,
-            'role_id' => 999,
+            'community_role_id' => 999,
+            'membership_status_id' => 999,
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -153,6 +150,7 @@ class DatabaseSchemaTest extends TestCase
             'last_name' => 'Prueba',
             'email' => $email,
             'password' => 'password',
+            'is_admin' => false,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

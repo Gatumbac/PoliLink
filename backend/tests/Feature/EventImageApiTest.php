@@ -2,9 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventStatus;
-use App\Models\Role;
+use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -87,8 +89,13 @@ class EventImageApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         $organizer = $this->organizer();
-        $otherOrganizer = User::factory()->create();
-        $otherOrganizer->roles()->attach(Role::query()->where('code', 'organizer')->sole());
+        $otherMember = User::factory()->create();
+        CommunityMembership::factory()->create([
+            'community_id' => $event->community_id,
+            'user_id' => $otherMember->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+        ]);
 
         $this->authenticatedMultipartPost($organizer, "/api/events/{$event->id}/image", [
             'image' => UploadedFile::fake()->create('notes.pdf', 100, 'application/pdf'),
@@ -98,7 +105,7 @@ class EventImageApiTest extends TestCase
             'image' => UploadedFile::fake()->create('large.jpg', 5121, 'image/jpeg'),
         ])->assertUnprocessable();
 
-        $this->authenticatedMultipartPost($otherOrganizer, "/api/events/{$event->id}/image", [
+        $this->authenticatedMultipartPost($otherMember, "/api/events/{$event->id}/image", [
             'image' => UploadedFile::fake()->image('cover.jpg'),
         ])->assertForbidden();
 
@@ -129,7 +136,7 @@ class EventImageApiTest extends TestCase
 
     private function seededEvent(): Event
     {
-        return Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
+        return Event::query()->with('community')->where('title', 'Hackathon TAWS')->sole();
     }
 
     private function eventPayload(): array
@@ -137,7 +144,7 @@ class EventImageApiTest extends TestCase
         $event = $this->seededEvent();
 
         return [
-            'community_id' => $event->communityOrganizer->community_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,

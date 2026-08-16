@@ -10,7 +10,7 @@ class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_student_can_register_with_the_student_role(): void
+    public function test_user_can_register_without_a_global_community_role(): void
     {
         $this->seed();
 
@@ -23,11 +23,11 @@ class AuthApiTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('data.email', 'ana@espol.edu.ec')
-            ->assertJsonPath('data.roles.0.code', 'student');
+            ->assertJsonPath('data.is_admin', false)
+            ->assertJsonPath('data.community_memberships', []);
 
         $user = User::query()->where('email', 'ana@espol.edu.ec')->sole();
-        $this->assertTrue($user->roles()->where('code', 'student')->exists());
-        $this->assertFalse($user->roles()->where('code', 'organizer')->exists());
+        $this->assertFalse($user->is_admin);
 
         $this->assertAuthenticatedAs($user, 'web');
     }
@@ -47,7 +47,7 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['email', 'password']);
     }
 
-    public function test_student_can_login_and_an_authenticated_user_can_read_me(): void
+    public function test_user_can_login_and_an_authenticated_user_can_read_me(): void
     {
         $this->seed();
 
@@ -56,7 +56,7 @@ class AuthApiTest extends TestCase
             'password' => 'password',
         ])
             ->assertOk()
-            ->assertJsonPath('data.roles.0.code', 'student');
+            ->assertJsonPath('data.is_admin', false);
 
         $this->assertAuthenticated('web');
 

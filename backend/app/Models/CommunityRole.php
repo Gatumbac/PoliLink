@@ -5,15 +5,15 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable(['code', 'name'])]
-class Role extends Model
+class CommunityRole extends Model
 {
     use HasFactory;
 
-    public function users(): BelongsToMany
+    public function memberships(): HasMany
     {
-        return $this->belongsToMany(User::class)->withTimestamps();
+        return $this->hasMany(CommunityMembership::class);
     }
 }

@@ -18,11 +18,11 @@ class RegistrationResource extends JsonResource
                 'name' => $this->status->name,
             ]),
             'event' => $this->whenLoaded('event', fn () => new EventResource($this->event)),
-            'student' => $this->whenLoaded('student', fn () => [
-                'id' => $this->student->id,
-                'first_name' => $this->student->first_name,
-                'last_name' => $this->student->last_name,
-                'email' => $this->student->email,
+            'user' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user->id,
+                'first_name' => $this->user->first_name,
+                'last_name' => $this->user->last_name,
+                'email' => $this->user->email,
             ]),
         ];
     }

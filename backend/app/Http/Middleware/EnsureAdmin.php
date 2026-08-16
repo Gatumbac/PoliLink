@@ -6,12 +6,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
-class EnsureRole
+class EnsureAdmin
 {
-    public function handle(Request $request, Closure $next, string $role): Response
+    public function handle(Request $request, Closure $next): Response
     {
         abort_unless(
-            $request->user()?->hasRole($role),
+            $request->user()?->isAdmin(),
             Response::HTTP_FORBIDDEN,
             'No tienes permisos para realizar esta acción.',
         );

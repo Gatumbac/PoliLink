@@ -3,9 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventStatus;
+use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -51,11 +53,12 @@ class CommunityOnboardingApiTest extends TestCase
         $student->refresh();
         $community = Community::query()->where('name', 'Club de Robótica')->sole();
 
-        $this->assertTrue($student->roles()->where('code', 'student')->exists());
-        $this->assertTrue($student->roles()->where('code', 'organizer')->exists());
-        $this->assertDatabaseHas('community_organizers', [
+        $this->assertFalse($student->is_admin);
+        $this->assertDatabaseHas('community_memberships', [
             'community_id' => $community->id,
             'user_id' => $student->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
         ]);
 
         $this->authenticatedGet($student, '/api/me/communities')
@@ -87,7 +90,7 @@ class CommunityOnboardingApiTest extends TestCase
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
 
         Event::factory()->create([
-            'community_organizer_id' => $event->community_organizer_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
@@ -97,11 +100,15 @@ class CommunityOnboardingApiTest extends TestCase
         ]);
 
         $otherCommunity = Community::factory()->create();
-        $otherAssignment = CommunityOrganizer::factory()->create([
+        $otherOrganizer = User::factory()->create();
+        CommunityMembership::factory()->create([
             'community_id' => $otherCommunity->id,
+            'user_id' => $otherOrganizer->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
         ]);
         Event::factory()->create([
-            'community_organizer_id' => $otherAssignment->id,
+            'community_id' => $otherCommunity->id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,

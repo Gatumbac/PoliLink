@@ -13,17 +13,21 @@ class DashboardController extends Controller
     public function communities(Request $request)
     {
         return CommunityResource::collection(
-            $request->user()->managedCommunities()->orderBy('name')->get(),
+            $request->user()->managedMemberships()
+                ->with('community')
+                ->get()
+                ->pluck('community')
+                ->sortBy('name')
+                ->values(),
         );
     }
 
     public function events(ListOrganizerEventsRequest $request)
     {
+        $managedCommunityIds = $request->user()->managedMemberships()->pluck('community_id');
+
         $events = Event::query()
-            ->whereHas(
-                'communityOrganizer',
-                fn ($query) => $query->where('user_id', $request->user()->id),
-            )
+            ->whereIn('community_id', $managedCommunityIds)
             ->with($this->eventRelations())
             ->withCount('activeRegistrations')
             ->orderByDesc('starts_at')
@@ -39,7 +43,7 @@ class DashboardController extends Controller
     private function eventRelations(): array
     {
         return [
-            'communityOrganizer.community',
+            'community',
             'category',
             'modality',
             'location',

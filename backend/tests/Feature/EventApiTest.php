@@ -3,10 +3,11 @@
 namespace Tests\Feature;
 
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventStatus;
-use App\Models\Role;
+use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,7 +21,7 @@ class EventApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         Event::factory()->create([
-            'community_organizer_id' => $event->community_organizer_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
@@ -28,7 +29,7 @@ class EventApiTest extends TestCase
             'title' => 'Evento cancelado',
         ]);
 
-        $response = $this->getJson('/api/events?search=Hackathon&date=2026-08-20&category=hackathon&modality=in_person&community_id='.$event->communityOrganizer->community_id);
+        $response = $this->getJson('/api/events?search=Hackathon&date=2026-08-20&category=hackathon&modality=in_person&community_id='.$event->community_id);
 
         $response
             ->assertOk()
@@ -109,6 +110,18 @@ class EventApiTest extends TestCase
 
     }
 
+    public function test_tutor_cannot_create_an_event(): void
+    {
+        $this->seed();
+        $tutor = User::query()->where('email', 'student@espol.edu.ec')->sole();
+        $membership = $tutor->memberships()->firstOrFail();
+        $membership->update([
+            'community_role_id' => CommunityRole::query()->where('code', 'tutor')->sole()->id,
+        ]);
+
+        $this->authenticatedPost($tutor, '/api/events', $this->eventPayload())->assertForbidden();
+    }
+
     public function test_event_writes_require_authentication(): void
     {
         $this->seed();
@@ -125,9 +138,11 @@ class EventApiTest extends TestCase
         $organizer = $this->organizer();
         $event = $this->seededEvent();
         $secondCommunity = Community::factory()->create();
-        CommunityOrganizer::factory()->create([
+        CommunityMembership::factory()->create([
             'community_id' => $secondCommunity->id,
             'user_id' => $organizer->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
         ]);
 
         $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
@@ -143,10 +158,15 @@ class EventApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $otherOrganizer = User::factory()->create();
-        $otherOrganizer->roles()->attach(Role::query()->where('code', 'organizer')->sole());
+        $otherMember = User::factory()->create();
+        CommunityMembership::factory()->create([
+            'community_id' => $event->community_id,
+            'user_id' => $otherMember->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+        ]);
 
-        $this->authenticatedPatch($otherOrganizer, "/api/events/{$event->id}", [
+        $this->authenticatedPatch($otherMember, "/api/events/{$event->id}", [
             'title' => 'Cambio no permitido',
         ])->assertForbidden();
     }
@@ -185,7 +205,7 @@ class EventApiTest extends TestCase
 
     private function seededEvent(): Event
     {
-        return Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
+        return Event::query()->with('community')->where('title', 'Hackathon TAWS')->sole();
     }
 
     private function eventPayload(array $overrides = []): array
@@ -193,7 +213,7 @@ class EventApiTest extends TestCase
         $event = $this->seededEvent();
 
         return [
-            'community_id' => $event->communityOrganizer->community_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,

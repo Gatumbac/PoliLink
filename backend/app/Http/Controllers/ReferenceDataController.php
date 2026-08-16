@@ -38,7 +38,7 @@ class ReferenceDataController extends Controller
     {
         return CommunityResource::collection(
             Community::query()
-                ->whereHas('organizerAssignments.events.status', fn ($query) => $query->where('code', 'published'))
+                ->whereHas('events.status', fn ($query) => $query->where('code', 'published'))
                 ->orderBy('name')
                 ->get(),
         );

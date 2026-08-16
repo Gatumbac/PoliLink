@@ -49,8 +49,9 @@ detalle.
 }
 ```
 
-Requiere sesión Sanctum. El usuario de la sesión debe tener el rol `organizer`
-y administrar la comunidad indicada. El evento se crea con estado `published`.
+Requiere sesión Sanctum. El usuario de la sesión debe tener una membresía
+activa con rol `organizer` en la comunidad indicada. El evento se crea con
+estado `published`.
 El cliente no envía un identificador de organizador.
 
 La solicitud puede enviarse como JSON, sin imagen, o como `multipart/form-data`
@@ -114,7 +115,7 @@ calculan como capacidad menos inscripciones con estado `active`.
 | --- | --- |
 | `422` | Filtros o cuerpo inválidos; por ejemplo, cupo menor que uno o una imagen no compatible. |
 | `401` | No existe una sesión autenticada para crear, editar o cancelar. |
-| `403` | El usuario no tiene rol de organizador o no administra la comunidad/evento. |
+| `403` | El usuario no tiene una membresía activa con rol `organizer` en la comunidad/evento. |
 | `404` | Evento inexistente o cancelado en una consulta pública. |
 | `409` | Intento de editar o cancelar un evento ya cancelado. |
 
@@ -136,9 +137,9 @@ evento con estado `published`, para evitar opciones de filtro sin resultados.
 
 ## Administración de catálogos — implementado
 
-Estas rutas requieren una sesión Sanctum y el rol `admin`. En esta primera
-versión, el rol administra únicamente categorías, modalidades y ubicaciones.
-No puede administrar usuarios, roles, comunidades, eventos, inscripciones ni
+Estas rutas requieren una sesión Sanctum y `users.is_admin = true`. En esta primera
+versión, la cuenta administra únicamente categorías, modalidades y ubicaciones.
+No puede administrar usuarios, membresías, comunidades, eventos, inscripciones ni
 moderación.
 
 | Método | Ruta | Descripción |
@@ -158,12 +159,13 @@ inmutable; únicamente el nombre puede editarse. Las ubicaciones reciben
 `name` y una `description` opcional. No existen rutas `DELETE`: desactivar una
 fila conserva los eventos históricos que la utilizan y la excluye de los
 formularios y filtros públicos. Los catálogos `event_statuses`,
-`registration_statuses` y `roles` permanecen controlados por el sistema.
+`registration_statuses`, `membership_statuses` y `community_roles` permanecen
+controlados por el sistema.
 
 La cuenta demo inicial se crea mediante `php artisan migrate:fresh --seed` con
-`admin@espol.edu.ec` y contraseña `admin`. Para promover otra cuenta se puede
-usar `php artisan polilink:provision-admin correo@espol.edu.ec`; no se puede
-asignar el rol desde el registro público.
+`admin@espol.edu.ec` y contraseña `admin`. Para habilitar otra cuenta se puede
+usar `php artisan polilink:provision-admin correo@espol.edu.ec`; `is_admin` no
+se puede asignar desde el registro público.
 
 ## Autenticación local — implementado
 
@@ -175,16 +177,16 @@ Para una explicación conceptual del flujo, consulta
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | `GET` | `/sanctum/csrf-cookie` | Inicializa las cookies CSRF y de sesión. |
-| `POST` | `/auth/register` | Registra un usuario local con rol `student`. |
+| `POST` | `/auth/register` | Registra una cuenta local sin rol global. |
 | `POST` | `/auth/login` | Inicia la sesión local. |
 | `DELETE` | `/auth/logout` | Cierra la sesión actual. Requiere sesión. |
-| `GET` | `/auth/me` | Devuelve el usuario y sus roles. Requiere sesión. |
+| `GET` | `/auth/me` | Devuelve la cuenta y sus membresías. Requiere sesión. |
 
 Las últimas cuatro rutas usan el prefijo `/api`. El registro recibe
 `first_name`, `last_name`, `email`, `password` y `password_confirmation`. El
 email debe terminar exactamente en `@espol.edu.ec` y la contraseña debe
-coincidir con `password_confirmation`. El servidor asigna exclusivamente el
-rol `student`; no acepta roles enviados por el navegador. Login recibe `email`
+coincidir con `password_confirmation`. El servidor no asigna roles globales ni
+acepta roles enviados por el navegador. Login recibe `email`
 y `password`, exige también el dominio `@espol.edu.ec` y aplica un máximo de
 cinco intentos fallidos por minuto para el mismo email e IP.
 
@@ -197,7 +199,8 @@ cinco intentos fallidos por minuto para el mismo email e IP.
     "first_name": "Estudiante",
     "last_name": "PoliLink",
     "email": "student@espol.edu.ec",
-    "roles": [{ "code": "student", "name": "Estudiante" }]
+    "is_admin": false,
+    "community_memberships": []
   }
 }
 ```
@@ -220,18 +223,19 @@ de intentos `429`.
 ## Experiencia del organizador — implementado
 
 Estas rutas requieren una sesión autenticada mediante Sanctum. La identidad se
-obtiene desde la cookie de sesión; el cliente no envía un usuario ni roles.
+obtiene desde la cookie de sesión; el cliente no envía un usuario ni roles para
+decidir permisos.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `POST` | `/communities` | Crea una comunidad y convierte al usuario actual en organizador. |
+| `POST` | `/communities` | Crea una comunidad y una membresía `active/organizer` para el usuario actual. |
 | `GET` | `/me/communities` | Lista las comunidades administradas por la sesión actual. |
 | `GET` | `/me/events` | Lista sus eventos, incluidos los cancelados. |
 
-La relación de responsabilidad se resuelve mediante `community_organizers`.
-Un organizador solo puede crear, editar, cancelar o administrar imágenes de
-eventos pertenecientes a una comunidad que administra. El backend nunca acepta
-`user_id`, `organizer_id` ni `community_organizer_id` enviados por el cliente.
+La relación de responsabilidad se resuelve mediante una membresía activa con
+rol `organizer`. Solo ese rol puede crear, editar, cancelar o administrar
+imágenes de eventos pertenecientes a una comunidad que administra. El backend nunca acepta
+`user_id` ni `organizer_id` enviados por el cliente.
 
 ### Crear una comunidad: `POST /communities`
 
@@ -244,8 +248,8 @@ eventos pertenecientes a una comunidad que administra. El backend nunca acepta
 }
 ```
 
-El servidor crea la comunidad, conserva el rol `student`, asigna `organizer` y
-crea la relación de responsabilidad dentro de una sola transacción. Devuelve
+El servidor crea la comunidad y una membresía `active/organizer` dentro de una
+sola transacción. Devuelve
 `201`; un nombre repetido o inválido devuelve `422`.
 
 Respuesta:
@@ -289,7 +293,7 @@ no aparecen en el catálogo público.
 | Código | Situación |
 | --- | --- |
 | `401` | No existe una sesión Sanctum. |
-| `403` | Falta el rol `organizer` o el usuario no administra la comunidad/evento. |
+| `403` | No existe una membresía activa con rol `organizer` para la comunidad/evento. |
 | `404` | El recurso solicitado no existe; los detalles públicos cancelados también responden `404`. |
 | `409` | Se intenta editar, cambiar la imagen o cancelar un evento ya cancelado. |
 | `422` | Cuerpo, paginación, catálogo o archivo inválido. |
@@ -302,36 +306,36 @@ responde `201`, y las actualizaciones responden `200`.
 ## Inscripciones autenticadas — implementado
 
 Todas requieren sesión Sanctum; el actor siempre es el usuario de la sesión.
-Ninguna recibe cuerpo ni query string: el estudiante o el organizador se
-obtienen de la cookie de sesión.
+Ninguna recibe cuerpo ni query string para elegir a otra persona: el usuario o
+el organizador se obtienen de la cookie de sesión.
 
 | Método | Ruta | Rol requerido | Descripción |
 | --- | --- | --- | --- |
-| `POST` | `/events/{event}/registrations` | `student` | Crea o reactiva la inscripción propia. |
-| `DELETE` | `/events/{event}/registrations` | `student` | Cancela la inscripción propia activa. |
-| `GET` | `/events/{event}/registrations` | `organizer` responsable | Lista inscritos activos y cupos. |
-| `GET` | `/me/registrations` | `student` | Lista las inscripciones activas de la sesión actual. |
+| `POST` | `/events/{event}/registrations` | Usuario autenticado | Crea o reactiva la inscripción propia. |
+| `DELETE` | `/events/{event}/registrations` | Usuario autenticado | Cancela la inscripción propia activa. |
+| `GET` | `/events/{event}/registrations` | `organizer` activo responsable | Lista inscritos activos y cupos. |
+| `GET` | `/me/registrations` | Usuario autenticado | Lista las inscripciones activas de la sesión actual. |
 
 ### Inscribirse o reactivar: `POST /events/{event}/registrations`
 
-Solo permite eventos con estado `published`. Si el estudiante ya tiene una
+Solo permite eventos con estado `published`. Si el usuario ya tiene una
 inscripción `active` para ese evento, responde `409`. Si el cupo activo
 alcanzó `capacity`, responde `409`. Si existe una inscripción `cancelled`
-previa del mismo estudiante para el evento, la reactiva (`registered_at`
+previa del mismo usuario para el evento, la reactiva (`registered_at`
 actual y `cancelled_at` nulo) y responde `200`; si no existe, crea una nueva
 fila `active` y responde `201`.
 
 ### Cancelar: `DELETE /events/{event}/registrations`
 
-Busca la inscripción `active` del estudiante de la sesión para ese evento. Si
+Busca la inscripción `active` del usuario de la sesión para ese evento. Si
 no existe o ya estaba cancelada, responde `404`. Nunca borra la fila: cambia
 el estado a `cancelled` y registra `cancelled_at`. Responde `200` y libera un
 cupo.
 
 ### Lista de inscritos: `GET /events/{event}/registrations`
 
-Solo el organizador que administra la comunidad del evento (tabla
-`community_organizers`) puede consultarla; en caso contrario responde `403`.
+Solo el `organizer` activo que administra la comunidad del evento puede
+consultarla; en caso contrario responde `403`.
 Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
 
 ```json
@@ -342,7 +346,7 @@ Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
       "registered_at": "2026-08-11T10:00:00.000000Z",
       "cancelled_at": null,
       "status": { "code": "active", "name": "Activa" },
-      "student": {
+      "user": {
         "id": 2,
         "first_name": "Estudiante",
         "last_name": "PoliLink",
@@ -360,7 +364,7 @@ Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
 
 ### Mis inscripciones: `GET /me/registrations`
 
-Requiere rol `student`. Devuelve solo inscripciones `active` del usuario de la
+Requiere sesión autenticada. Devuelve solo inscripciones `active` del usuario de la
 sesión, ordenadas por `registered_at` descendente, paginadas con
 `per_page=12` por defecto (mínimo `1`, máximo `50`). Cada elemento incluye el
 evento completo mediante el recurso de eventos existente; un evento cancelado
@@ -371,7 +375,7 @@ no modifica la inscripción.
 | Código | Situación |
 | --- | --- |
 | `401` | No existe una sesión autenticada. |
-| `403` | El usuario no tiene el rol requerido o el organizador no administra la comunidad del evento. |
+| `403` | El organizador no administra la comunidad del evento. |
 | `404` | Cancelar una inscripción inexistente o ya cancelada. |
 | `409` | Inscripción duplicada, evento cancelado o cupo agotado. |
 

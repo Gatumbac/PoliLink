@@ -26,7 +26,8 @@ const authenticatedUser = {
   first_name: 'Ana',
   last_name: 'Torres',
   email: 'ana@espol.edu.ec',
-  roles: [{ code: 'student' as const, name: 'Student' }],
+  is_admin: false,
+  community_memberships: [],
 }
 
 function createAuthValue(

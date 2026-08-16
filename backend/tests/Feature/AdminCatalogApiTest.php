@@ -121,13 +121,13 @@ class AdminCatalogApiTest extends TestCase
         $this->seed();
         $admin = $this->admin();
         $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
-        $event = Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
+        $event = Event::query()->with('community')->where('title', 'Hackathon TAWS')->sole();
         $activeCategory = EventCategory::query()->where('code', 'workshop')->sole();
 
         EventCategory::query()->where('code', 'hackathon')->update(['is_active' => false]);
 
         $this->authenticatedPost($organizer, '/api/events', [
-            'community_id' => $event->communityOrganizer->community_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
@@ -144,7 +144,7 @@ class AdminCatalogApiTest extends TestCase
             ->assertJsonValidationErrors('event_category_id');
 
         $this->authenticatedPost($admin, '/api/events', [
-            'community_id' => $event->communityOrganizer->community_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $activeCategory->id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
@@ -168,7 +168,7 @@ class AdminCatalogApiTest extends TestCase
 
         $user->refresh();
 
-        $this->assertTrue($user->hasRole('admin'));
+        $this->assertTrue($user->is_admin);
         $this->assertTrue(Hash::check('original-password', $user->password));
     }
 
@@ -183,7 +183,7 @@ class AdminCatalogApiTest extends TestCase
 
         $user = User::query()->where('email', 'new-admin@espol.edu.ec')->sole();
 
-        $this->assertTrue($user->hasRole('admin'));
+        $this->assertTrue($user->is_admin);
         $this->assertTrue(Hash::check('new-password', $user->password));
     }
 

@@ -34,7 +34,8 @@ describe('organize page', () => {
         first_name: 'Ana',
         last_name: 'Torres',
         email: 'ana@espol.edu.ec',
-        roles: [{ code: 'student', name: 'Student' }],
+        is_admin: false,
+        community_memberships: [],
       },
     })
 
@@ -65,7 +66,16 @@ describe('organize page', () => {
         first_name: 'Ana',
         last_name: 'Torres',
         email: 'ana@espol.edu.ec',
-        roles: [{ code: 'organizer', name: 'Organizer' }],
+        is_admin: false,
+        community_memberships: [
+          {
+            community: { id: 1, name: 'TAWS' },
+            role: { code: 'organizer', name: 'Organizer' },
+            status: { code: 'active', name: 'Active' },
+            requested_at: null,
+            reviewed_at: null,
+          },
+        ],
       },
     })
 

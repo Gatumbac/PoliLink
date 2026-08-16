@@ -41,8 +41,9 @@ El registro usa el mismo proceso con `POST /api/auth/register`. Solo se
 aceptan correos que terminen exactamente en `@espol.edu.ec`, tanto al registrar
 como al iniciar sesión. `password_confirmation` debe coincidir con `password`.
 Después del login o registro, `GET /api/auth/me` confirma la sesión y devuelve
-el usuario y sus roles. El backend asigna `student` durante el registro; el
-cliente no envía roles para decidir permisos.
+la cuenta, `is_admin` y sus membresías comunitarias. El registro no asigna un
+rol global; los permisos de eventos se resuelven mediante una membresía activa
+con rol `organizer` en la comunidad correspondiente.
 
 ## Solicitud protegida de ejemplo
 
@@ -54,8 +55,8 @@ Content-Type: application/json
 ```
 
 La cookie identifica al usuario. El token CSRF protege la solicitud contra
-peticiones falsificadas. Después, el backend verifica que el usuario tenga el
-rol `organizer` y administre la comunidad del evento.
+peticiones falsificadas. Después, el backend verifica que el usuario tenga una
+membresía activa con rol `organizer` en la comunidad del evento.
 
 ## Logout y respuestas comunes
 

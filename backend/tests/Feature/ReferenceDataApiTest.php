@@ -3,9 +3,12 @@
 namespace Tests\Feature;
 
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventStatus;
+use App\Models\MembershipStatus;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -41,14 +44,16 @@ class ReferenceDataApiTest extends TestCase
         $this->seed();
         $hiddenCommunity = Community::factory()->create(['name' => 'Comunidad sin publicación']);
         $organizer = $this->organizer();
-        $assignment = CommunityOrganizer::factory()->create([
+        CommunityMembership::factory()->create([
             'community_id' => $hiddenCommunity->id,
             'user_id' => $organizer->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
         ]);
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
 
         Event::factory()->create([
-            'community_organizer_id' => $assignment->id,
+            'community_id' => $hiddenCommunity->id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
@@ -64,6 +69,6 @@ class ReferenceDataApiTest extends TestCase
 
     private function organizer()
     {
-        return \App\Models\User::query()->where('email', 'organizer@espol.edu.ec')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 }

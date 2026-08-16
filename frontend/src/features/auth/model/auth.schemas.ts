@@ -1,10 +1,26 @@
 import { z } from 'zod'
 
-export const roleCodeSchema = z.enum(['student', 'organizer'])
+export const roleCodeSchema = z.enum(['member', 'organizer', 'tutor'])
 
 const roleSchema = z.object({
   code: roleCodeSchema,
   name: z.string(),
+})
+
+const membershipStatusSchema = z.object({
+  code: z.enum(['pending', 'active', 'rejected', 'left']),
+  name: z.string(),
+})
+
+const communityMembershipSchema = z.object({
+  community: z.object({
+    id: z.number(),
+    name: z.string(),
+  }),
+  role: roleSchema,
+  status: membershipStatusSchema,
+  requested_at: z.string().nullable(),
+  reviewed_at: z.string().nullable(),
 })
 
 export const authUserSchema = z.object({
@@ -12,7 +28,8 @@ export const authUserSchema = z.object({
   first_name: z.string(),
   last_name: z.string(),
   email: z.email(),
-  roles: z.array(roleSchema),
+  is_admin: z.boolean(),
+  community_memberships: z.array(communityMembershipSchema),
 })
 
 export const authEnvelopeSchema = z.object({

@@ -40,7 +40,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/registrations', [RegistrationController::class, 'myRegistrations']);
 });
 
-Route::middleware(['auth:sanctum', 'role:admin'])
+Route::middleware(['auth:sanctum', 'admin'])
     ->prefix('admin/catalog')
     ->group(function () {
         Route::get('/event-categories', [CatalogAdminController::class, 'categories']);

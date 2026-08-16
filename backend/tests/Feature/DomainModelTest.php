@@ -27,19 +27,19 @@ class DomainModelTest extends TestCase
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
         $registration = Registration::query()->sole();
 
-        $this->assertTrue($organizer->roles->contains('code', 'organizer'));
-        $this->assertTrue($student->roles->contains('code', 'student'));
-        $this->assertTrue($admin->roles->contains('code', 'admin'));
+        $this->assertFalse($organizer->is_admin);
+        $this->assertFalse($student->is_admin);
+        $this->assertTrue($admin->is_admin);
         $this->assertTrue(Hash::check('admin', $admin->password));
-        $this->assertSame('Administrador', $admin->roles->firstWhere('code', 'admin')->name);
-        $this->assertTrue($organizer->managedCommunities->contains($community));
-        $this->assertTrue($community->organizers->contains($organizer));
-        $this->assertSame('TAWS', $event->communityOrganizer->community->name);
+        $this->assertTrue($organizer->managedMemberships->first()->community->is($community));
+        $this->assertSame('organizer', $organizer->managedMemberships->first()->role->code);
+        $this->assertSame('member', $student->memberships->first()->role->code);
+        $this->assertSame('TAWS', $event->community->name);
         $this->assertSame('Hackatón', $event->category->name);
         $this->assertSame('Presencial', $event->modality->name);
         $this->assertSame('Campus Gustavo Galindo', $event->location->name);
         $this->assertSame('Publicado', $event->status->name);
-        $this->assertTrue($registration->student->is($student));
+        $this->assertTrue($registration->user->is($student));
         $this->assertTrue($registration->event->is($event));
         $this->assertSame('Activa', $registration->status->name);
     }
@@ -49,7 +49,8 @@ class DomainModelTest extends TestCase
         $this->seed();
         $this->seed();
 
-        $this->assertDatabaseCount('roles', 3);
+        $this->assertDatabaseCount('community_roles', 3);
+        $this->assertDatabaseCount('membership_statuses', 4);
         $this->assertDatabaseCount('event_categories', 6);
         $this->assertDatabaseCount('event_modalities', 3);
         $this->assertDatabaseCount('locations', 4);
@@ -57,7 +58,7 @@ class DomainModelTest extends TestCase
         $this->assertDatabaseCount('registration_statuses', 2);
         $this->assertDatabaseCount('users', 3);
         $this->assertDatabaseCount('communities', 1);
-        $this->assertDatabaseCount('community_organizers', 1);
+        $this->assertDatabaseCount('community_memberships', 2);
         $this->assertDatabaseCount('events', 1);
         $this->assertDatabaseCount('registrations', 1);
 
@@ -97,13 +98,13 @@ class DomainModelTest extends TestCase
         $event = Event::factory()->create();
         $registration = Registration::factory()->for($event)->create();
 
-        $this->assertNotNull($event->communityOrganizer);
+        $this->assertNotNull($event->community);
         $this->assertNotNull($event->category);
         $this->assertNotNull($event->modality);
         $this->assertNotNull($event->location);
         $this->assertNotNull($event->status);
         $this->assertTrue($registration->event->is($event));
-        $this->assertNotNull($registration->student);
+        $this->assertNotNull($registration->user);
         $this->assertNotNull($registration->status);
     }
 }

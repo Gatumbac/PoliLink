@@ -34,11 +34,11 @@ class EventResource extends JsonResource
                 'description' => $this->location->description,
             ]),
             'community' => $this->when(
-                $this->relationLoaded('communityOrganizer') && $this->communityOrganizer->relationLoaded('community'),
+                $this->relationLoaded('community'),
                 fn () => [
-                    'id' => $this->communityOrganizer->community->id,
-                    'name' => $this->communityOrganizer->community->name,
-                    'description' => $this->communityOrganizer->community->description,
+                    'id' => $this->community->id,
+                    'name' => $this->community->name,
+                    'description' => $this->community->description,
                 ],
             ),
             'status' => $this->whenLoaded('status', fn () => [

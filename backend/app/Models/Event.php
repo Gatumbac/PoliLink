@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'community_organizer_id',
+    'community_id',
     'event_category_id',
     'event_modality_id',
     'location_id',
@@ -32,9 +32,9 @@ class Event extends Model
         ];
     }
 
-    public function communityOrganizer(): BelongsTo
+    public function community(): BelongsTo
     {
-        return $this->belongsTo(CommunityOrganizer::class);
+        return $this->belongsTo(Community::class);
     }
 
     public function category(): BelongsTo

@@ -8,10 +8,9 @@ use App\Http\Requests\StoreEventImageRequest;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
-use App\Models\CommunityOrganizer;
+use App\Models\Community;
 use App\Models\Event;
 use App\Models\EventStatus;
-use App\Models\User;
 use App\Services\EventImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -49,8 +48,8 @@ class EventController extends Controller
                 fn ($query) => $query->where('code', $modality),
             ))
             ->when($filters['community_id'] ?? null, fn ($query, int $communityId) => $query->whereHas(
-                'communityOrganizer',
-                fn ($query) => $query->where('community_id', $communityId),
+                'community',
+                fn ($query) => $query->whereKey($communityId),
             ))
             ->with($this->eventRelations())
             ->withCount('activeRegistrations')
@@ -73,9 +72,8 @@ class EventController extends Controller
         $data = $request->validated();
         $organizer = $request->user();
 
-        Gate::forUser($organizer)->authorize('create', Event::class);
-
-        $communityOrganizer = $this->communityOrganizer($organizer, $data['community_id']);
+        $community = Community::query()->findOrFail($data['community_id']);
+        Gate::forUser($organizer)->authorize('create', [Event::class, $community]);
         $publishedStatus = EventStatus::query()->where('code', 'published')->sole();
         $image = $data['image'] ?? null;
         $imagePath = $image ? $this->eventImageService->store($image) : null;
@@ -83,7 +81,7 @@ class EventController extends Controller
         try {
             $event = Event::query()->create([
                 ...Arr::except($data, ['community_id', 'image']),
-                'community_organizer_id' => $communityOrganizer->id,
+                'community_id' => $community->id,
                 'event_status_id' => $publishedStatus->id,
                 'image_path' => $imagePath,
             ]);
@@ -106,12 +104,12 @@ class EventController extends Controller
         Gate::forUser($organizer)->authorize('update', $event);
         $this->ensureNotCancelled($event);
 
-        $event->loadMissing('communityOrganizer');
-        $communityId = $data['community_id'] ?? $event->communityOrganizer->community_id;
-        $communityOrganizer = $this->communityOrganizer($organizer, $communityId);
+        $communityId = $data['community_id'] ?? $event->community_id;
+        $community = Community::query()->findOrFail($communityId);
+        Gate::forUser($organizer)->authorize('create', [Event::class, $community]);
 
         $event->fill(Arr::except($data, ['community_id']));
-        $event->community_organizer_id = $communityOrganizer->id;
+        $event->community_id = $community->id;
         $event->save();
 
         return new EventResource($this->loadEvent($event));
@@ -168,22 +166,6 @@ class EventController extends Controller
         return new EventResource($this->loadEvent($event));
     }
 
-    private function communityOrganizer(User $organizer, int $communityId): CommunityOrganizer
-    {
-        $assignment = CommunityOrganizer::query()
-            ->where('community_id', $communityId)
-            ->where('user_id', $organizer->id)
-            ->first();
-
-        abort_unless(
-            $assignment,
-            Response::HTTP_FORBIDDEN,
-            'El organizador no administra la comunidad indicada.',
-        );
-
-        return $assignment;
-    }
-
     private function ensureNotCancelled(Event $event): void
     {
         abort_if(
@@ -204,7 +186,7 @@ class EventController extends Controller
     private function eventRelations(): array
     {
         return [
-            'communityOrganizer.community',
+            'community',
             'category',
             'modality',
             'location',
