@@ -9,6 +9,8 @@ import { RequireAnonymous } from '@/features/auth/route-guards'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
+import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
+import { LandingPage } from '@/features/events/landing/pages/LandingPage'
 
 export const router = createBrowserRouter([
   {
@@ -36,7 +38,9 @@ export const router = createBrowserRouter([
     path: '/',
     element: <AppLayout />,
     children: [
-      { index: true, element: <EventCatalogPage /> },
+      { index: true, element: <LandingPage /> },
+      { path: 'events', element: <EventCatalogPage /> },
+      { path: 'events/:eventId', element: <EventDetailPage /> },
       { path: 'ui-preview', element: <UiPreviewPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],

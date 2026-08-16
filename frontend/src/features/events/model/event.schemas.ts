@@ -1,24 +1,26 @@
 import { z } from 'zod'
 
-const eventCategorySchema = z.object({
+export const eventCategorySchema = z.object({
   id: z.number(),
   code: z.string(),
   name: z.string(),
 })
 
-const eventLocationSchema = z.object({
+export const eventModalitySchema = eventCategorySchema
+
+export const eventLocationSchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().nullable(),
 })
 
-const eventCommunitySchema = z.object({
+export const eventCommunitySchema = z.object({
   id: z.number(),
   name: z.string(),
   description: z.string().nullable(),
 })
 
-const eventStatusSchema = z.object({
+export const eventStatusSchema = z.object({
   code: z.string(),
   name: z.string(),
 })
@@ -31,7 +33,7 @@ export const eventSchema = z.object({
   capacity: z.number().int().nonnegative(),
   available_capacity: z.number().int().nonnegative(),
   category: eventCategorySchema.optional(),
-  modality: eventCategorySchema.optional(),
+  modality: eventModalitySchema.optional(),
   location: eventLocationSchema.optional(),
   community: eventCommunitySchema.nullable().optional(),
   status: eventStatusSchema.optional(),
@@ -51,5 +53,29 @@ export const eventPageSchema = z.object({
   meta: paginationMetaSchema,
 })
 
+export const eventEnvelopeSchema = z.object({
+  data: eventSchema,
+})
+
+export const eventCategoryCollectionSchema = z.object({
+  data: z.array(eventCategorySchema),
+})
+
+export const eventModalityCollectionSchema = z.object({
+  data: z.array(eventModalitySchema),
+})
+
+export const eventLocationCollectionSchema = z.object({
+  data: z.array(eventLocationSchema),
+})
+
+export const eventCommunityCollectionSchema = z.object({
+  data: z.array(eventCommunitySchema),
+})
+
 export type Event = z.infer<typeof eventSchema>
+export type EventCategory = z.infer<typeof eventCategorySchema>
+export type EventModality = z.infer<typeof eventModalitySchema>
+export type EventLocation = z.infer<typeof eventLocationSchema>
+export type EventCommunity = z.infer<typeof eventCommunitySchema>
 export type EventPage = z.infer<typeof eventPageSchema>

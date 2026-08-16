@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateEventRequest extends FormRequest
 {
@@ -15,9 +16,24 @@ class UpdateEventRequest extends FormRequest
     {
         return [
             'community_id' => ['sometimes', 'required', 'integer', 'exists:communities,id'],
-            'event_category_id' => ['sometimes', 'required', 'integer', 'exists:event_categories,id'],
-            'event_modality_id' => ['sometimes', 'required', 'integer', 'exists:event_modalities,id'],
-            'location_id' => ['sometimes', 'required', 'integer', 'exists:locations,id'],
+            'event_category_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::exists('event_categories', 'id')->where('is_active', true),
+            ],
+            'event_modality_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::exists('event_modalities', 'id')->where('is_active', true),
+            ],
+            'location_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::exists('locations', 'id')->where('is_active', true),
+            ],
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'description' => ['sometimes', 'required', 'string'],
             'starts_at' => ['sometimes', 'required', 'date', 'after:now'],

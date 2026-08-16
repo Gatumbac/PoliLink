@@ -65,7 +65,8 @@ backend/
 
 Las tablas principales son:
 
-- users: usuarios locales con rol student u organizer.
+- users: usuarios locales con rol student, organizer o admin.
+- roles: permisos de usuario (`student`, `organizer` y `admin`).
 - communities: clubes u organizaciones responsables de eventos.
 - events: información, capacidad, modalidad y estado de cada evento.
 - registrations: relación entre estudiantes y eventos, con restricción de inscripción duplicada.
@@ -74,7 +75,9 @@ Para recrear la base local con datos de prueba:
 
     php artisan migrate:fresh --seed
 
-El seeder crea los usuarios organizer@espol.edu.ec y student@espol.edu.ec, una comunidad, un evento y una inscripción.
+El seeder crea los usuarios organizer@espol.edu.ec, student@espol.edu.ec y
+admin@espol.edu.ec, una comunidad, un evento y una inscripción. La cuenta demo
+de administración usa la contraseña `admin`.
 
 ## Estado
 
@@ -83,7 +86,24 @@ panel temporal y autenticado de organizador, onboarding de comunidades y
 autenticación local con Laravel Sanctum. También están implementadas las
 inscripciones autenticadas: registrar, cancelar y reactivar una inscripción,
 validar cupos y duplicados, consultar inscritos como organizador responsable y
-consultar las inscripciones activas del estudiante.
+consultar las inscripciones activas del estudiante. El rol `admin` puede
+administrar categorías, modalidades y ubicaciones mediante las rutas protegidas
+de catálogo; los estados del sistema no se editan desde la API.
+
+## Provisión adicional del administrador
+
+La cuenta demo inicial se crea automáticamente con `migrate:fresh --seed`:
+
+    admin@espol.edu.ec / admin
+
+Para promover otra cuenta ESPOL sin cambiar su contraseña, se puede usar:
+
+    php artisan polilink:provision-admin admin@espol.edu.ec
+
+El comando solicita la contraseña solo cuando debe crear una cuenta nueva. La
+contraseña `admin` es únicamente para la demo académica; no debe reutilizarse
+en producción. No se asigna `admin` desde el registro público y el rol no
+otorga permisos de organizador automáticamente.
 
 Consultar `../docs/api/API.md` para el contrato completo y
 `../docs/api/POSTMAN.md` para el recorrido manual con cookies de Sanctum.

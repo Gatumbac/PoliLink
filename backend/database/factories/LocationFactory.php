@@ -15,6 +15,7 @@ class LocationFactory extends Factory
         return [
             'name' => fake()->unique()->streetAddress(),
             'description' => fake()->sentence(),
+            'is_active' => true,
         ];
     }
 }

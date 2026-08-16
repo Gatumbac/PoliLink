@@ -10,8 +10,9 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            'student' => 'Student',
-            'organizer' => 'Organizer',
+            'student' => 'Estudiante',
+            'organizer' => 'Organizador',
+            'admin' => 'Administrador',
         ] as $code => $name) {
             Role::query()->updateOrCreate(['code' => $code], ['name' => $name]);
         }

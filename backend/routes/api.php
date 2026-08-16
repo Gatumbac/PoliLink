@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\CatalogAdminController;
 use App\Http\Controllers\CommunityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
@@ -36,6 +37,22 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/events/{event}/registrations', [RegistrationController::class, 'index']);
     Route::get('/me/registrations', [RegistrationController::class, 'myRegistrations']);
 });
+
+Route::middleware(['auth:sanctum', 'role:admin'])
+    ->prefix('admin/catalog')
+    ->group(function () {
+        Route::get('/event-categories', [CatalogAdminController::class, 'categories']);
+        Route::post('/event-categories', [CatalogAdminController::class, 'storeCategory']);
+        Route::patch('/event-categories/{eventCategory}', [CatalogAdminController::class, 'updateCategory']);
+
+        Route::get('/event-modalities', [CatalogAdminController::class, 'modalities']);
+        Route::post('/event-modalities', [CatalogAdminController::class, 'storeModality']);
+        Route::patch('/event-modalities/{eventModality}', [CatalogAdminController::class, 'updateModality']);
+
+        Route::get('/locations', [CatalogAdminController::class, 'locations']);
+        Route::post('/locations', [CatalogAdminController::class, 'storeLocation']);
+        Route::patch('/locations/{location}', [CatalogAdminController::class, 'updateLocation']);
+    });
 
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);

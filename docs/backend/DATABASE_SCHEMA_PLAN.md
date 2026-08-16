@@ -1,7 +1,7 @@
 # Plan: Esquema relacional normalizado para PoliLink
 
 **Fecha:** 2026-08-10  
-**Estado:** En progreso  
+**Estado:** Implementado en el backend; este documento conserva el diseño relacional.
 **Contexto:** El backend Laravel conserva únicamente sus tablas base. Se debe
 definir primero un modelo relacional para eventos e inscripciones, sin JSON ni
 tipos `ENUM`, antes de crear migraciones.
@@ -22,7 +22,7 @@ tipos `ENUM`, antes de crear migraciones.
 | Tabla | Columnas principales | Restricciones |
 | --- | --- | --- |
 | `users` | `id`, `first_name`, `last_name`, `email`, `password`, marcas de tiempo de Laravel | `email` único. Se reutiliza la tabla base; no se agrega una columna `role`. |
-| `roles` | `id`, `code`, `name` | `code` y `name` únicos. Semillas: `student`, `organizer`. |
+| `roles` | `id`, `code`, `name` | `code` y `name` únicos. Semillas: `student`, `organizer`, `admin`. |
 | `role_user` | `user_id`, `role_id` | PK compuesta (`user_id`, `role_id`); ambas columnas son FK. Representa una relación N:M. |
 
 ### Comunidades y responsables
@@ -39,9 +39,9 @@ la comunidad y el organizador se obtienen de una única relación responsable.
 
 | Tabla | Columnas principales | Semillas iniciales |
 | --- | --- | --- |
-| `event_categories` | `id`, `code`, `name` | `workshop`, `talk`, `hackathon`, `fair`, `cultural`, `sports`. |
-| `event_modalities` | `id`, `code`, `name` | `in_person`, `virtual`, `hybrid`. |
-| `locations` | `id`, `name`, `description` | Lugares reutilizables, por ejemplo `Aula X`, `Auditorio`, `Google Meet`. |
+| `event_categories` | `id`, `code`, `name`, `is_active` | `code` estable; categorías activas se ofrecen en formularios y filtros. |
+| `event_modalities` | `id`, `code`, `name`, `is_active` | `code` estable; modalidades activas se ofrecen en formularios y filtros. |
+| `locations` | `id`, `name`, `description`, `is_active` | Lugares reutilizables; los inactivos se conservan para eventos históricos. |
 | `event_statuses` | `id`, `code`, `name` | `published`, `cancelled`. |
 | `registration_statuses` | `id`, `code`, `name` | `active`, `cancelled`. |
 
@@ -85,6 +85,8 @@ registrations ──> registration_statuses
    crear o reactivar la inscripción.
 4. El catálogo muestra solo eventos `published`; sus cupos disponibles se
    calculan, no se almacenan: `capacity - COUNT(registrations activas)`.
+   Las categorías, modalidades y ubicaciones inactivas no se ofrecen para
+   nuevos eventos ni filtros públicos.
 5. No se permite registrar a un estudiante en un evento cancelado, ni editar o
    cancelar un evento de otro organizador.
 6. Las FK protegen catálogos y hechos históricos con `RESTRICT`; no se usan

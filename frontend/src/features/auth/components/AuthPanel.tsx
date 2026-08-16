@@ -25,7 +25,7 @@ export function AuthPanel({
   return (
     <Card className="border-border/80 bg-card/90">
       <CardHeader className="gap-2 pb-2">
-        <CardTitle className="text-2xl tracking-[-0.03em]">{title}</CardTitle>
+        <CardTitle className="text-xl tracking-[-0.03em]">{title}</CardTitle>
         <CardDescription className="text-base leading-relaxed">
           {description}
         </CardDescription>

@@ -4,9 +4,12 @@ namespace Tests\Feature;
 
 use App\Models\Community;
 use App\Models\Event;
+use App\Models\EventCategory;
+use App\Models\EventModality;
 use App\Models\Registration;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class DomainModelTest extends TestCase
@@ -19,22 +22,26 @@ class DomainModelTest extends TestCase
 
         $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
         $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
+        $admin = User::query()->where('email', 'admin@espol.edu.ec')->sole();
         $community = Community::query()->where('name', 'TAWS')->sole();
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
         $registration = Registration::query()->sole();
 
         $this->assertTrue($organizer->roles->contains('code', 'organizer'));
         $this->assertTrue($student->roles->contains('code', 'student'));
+        $this->assertTrue($admin->roles->contains('code', 'admin'));
+        $this->assertTrue(Hash::check('admin', $admin->password));
+        $this->assertSame('Administrador', $admin->roles->firstWhere('code', 'admin')->name);
         $this->assertTrue($organizer->managedCommunities->contains($community));
         $this->assertTrue($community->organizers->contains($organizer));
         $this->assertSame('TAWS', $event->communityOrganizer->community->name);
-        $this->assertSame('Hackathon', $event->category->name);
-        $this->assertSame('In person', $event->modality->name);
+        $this->assertSame('Hackatón', $event->category->name);
+        $this->assertSame('Presencial', $event->modality->name);
         $this->assertSame('Campus Gustavo Galindo', $event->location->name);
-        $this->assertSame('Published', $event->status->name);
+        $this->assertSame('Publicado', $event->status->name);
         $this->assertTrue($registration->student->is($student));
         $this->assertTrue($registration->event->is($event));
-        $this->assertSame('Active', $registration->status->name);
+        $this->assertSame('Activa', $registration->status->name);
     }
 
     public function test_seeders_are_idempotent_and_available_capacity_uses_active_count(): void
@@ -42,13 +49,13 @@ class DomainModelTest extends TestCase
         $this->seed();
         $this->seed();
 
-        $this->assertDatabaseCount('roles', 2);
+        $this->assertDatabaseCount('roles', 3);
         $this->assertDatabaseCount('event_categories', 6);
         $this->assertDatabaseCount('event_modalities', 3);
         $this->assertDatabaseCount('locations', 4);
         $this->assertDatabaseCount('event_statuses', 2);
         $this->assertDatabaseCount('registration_statuses', 2);
-        $this->assertDatabaseCount('users', 2);
+        $this->assertDatabaseCount('users', 3);
         $this->assertDatabaseCount('communities', 1);
         $this->assertDatabaseCount('community_organizers', 1);
         $this->assertDatabaseCount('events', 1);
@@ -59,6 +66,30 @@ class DomainModelTest extends TestCase
         $this->assertSame(1, $event->active_registrations_count);
         $this->assertSame(49, $event->available_capacity);
         $this->assertSame(49, Event::query()->sole()->available_capacity);
+    }
+
+    public function test_seeders_translate_legacy_catalog_labels_without_overwriting_custom_labels(): void
+    {
+        $this->seed();
+
+        EventCategory::query()->where('code', 'hackathon')->update(['name' => 'Hackathon']);
+        EventCategory::query()->where('code', 'workshop')->update(['name' => 'Mi taller']);
+        EventModality::query()->where('code', 'hybrid')->update(['name' => 'Hybrid']);
+
+        $this->seed();
+
+        $this->assertSame(
+            'Hackatón',
+            EventCategory::query()->where('code', 'hackathon')->value('name'),
+        );
+        $this->assertSame(
+            'Mi taller',
+            EventCategory::query()->where('code', 'workshop')->value('name'),
+        );
+        $this->assertSame(
+            'Híbrida',
+            EventModality::query()->where('code', 'hybrid')->value('name'),
+        );
     }
 
     public function test_factories_create_a_valid_event_and_registration_graph(): void

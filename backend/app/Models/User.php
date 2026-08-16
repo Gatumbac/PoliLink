@@ -51,4 +51,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Registration::class, 'student_id');
     }
+
+    public function hasRole(string $code): bool
+    {
+        return $this->roles()->where('code', $code)->exists();
+    }
 }

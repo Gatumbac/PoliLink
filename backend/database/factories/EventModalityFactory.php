@@ -15,6 +15,7 @@ class EventModalityFactory extends Factory
         return [
             'code' => fake()->unique()->bothify('modality-###'),
             'name' => fake()->unique()->words(2, true),
+            'is_active' => true,
         ];
     }
 }

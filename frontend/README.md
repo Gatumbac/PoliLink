@@ -56,5 +56,7 @@ seguras, validación de correos `@espol.edu.ec`, confirmación de contraseña,
 errores de validación, logout y menú de usuario en el encabezado.
 
 La verificación navegador → Laravel todavía debe ejecutarse con los servicios
-locales. El catálogo completo, detalle de evento, panel del organizador,
-inscripciones y sus recorridos responsive continúan pendientes.
+locales. La Fase 2 ya tiene integración de código para el catálogo público,
+los filtros, la paginación y el detalle de eventos en `/events` y
+`/events/:eventId`; el panel del organizador, las inscripciones y sus
+recorridos responsive continúan pendientes.

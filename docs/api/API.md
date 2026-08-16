@@ -74,11 +74,11 @@ registro ni permite una segunda cancelación.
     "starts_at": "2026-08-20T14:00:00.000000Z",
     "capacity": 50,
     "available_capacity": 49,
-    "category": { "id": 3, "code": "hackathon", "name": "Hackathon" },
-    "modality": { "id": 1, "code": "in_person", "name": "In person" },
+    "category": { "id": 3, "code": "hackathon", "name": "Hackatón" },
+    "modality": { "id": 1, "code": "in_person", "name": "Presencial" },
     "location": { "id": 1, "name": "Campus Gustavo Galindo", "description": null },
     "community": { "id": 1, "name": "TAWS", "description": "..." },
-    "status": { "code": "published", "name": "Published" }
+    "status": { "code": "published", "name": "Publicado" }
   }
 }
 ```
@@ -112,6 +112,37 @@ Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
 `GET /communities` devuelve únicamente comunidades que poseen al menos un
 evento con estado `published`, para evitar opciones de filtro sin resultados.
 
+## Administración de catálogos — implementado
+
+Estas rutas requieren una sesión Sanctum y el rol `admin`. En esta primera
+versión, el rol administra únicamente categorías, modalidades y ubicaciones.
+No puede administrar usuarios, roles, comunidades, eventos, inscripciones ni
+moderación.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/admin/catalog/event-categories` | Lista categorías activas e inactivas. |
+| `POST` | `/admin/catalog/event-categories` | Crea una categoría activa. |
+| `PATCH` | `/admin/catalog/event-categories/{eventCategory}` | Edita el nombre o activa/desactiva una categoría. |
+| `GET` | `/admin/catalog/event-modalities` | Lista modalidades activas e inactivas. |
+| `POST` | `/admin/catalog/event-modalities` | Crea una modalidad activa. |
+| `PATCH` | `/admin/catalog/event-modalities/{eventModality}` | Edita el nombre o activa/desactiva una modalidad. |
+| `GET` | `/admin/catalog/locations` | Lista ubicaciones activas e inactivas. |
+| `POST` | `/admin/catalog/locations` | Crea una ubicación activa. |
+| `PATCH` | `/admin/catalog/locations/{location}` | Edita la ubicación o activa/desactiva una ubicación. |
+
+Las categorías y modalidades reciben `code` y `name` al crearse. El `code` es
+inmutable; únicamente el nombre puede editarse. Las ubicaciones reciben
+`name` y una `description` opcional. No existen rutas `DELETE`: desactivar una
+fila conserva los eventos históricos que la utilizan y la excluye de los
+formularios y filtros públicos. Los catálogos `event_statuses`,
+`registration_statuses` y `roles` permanecen controlados por el sistema.
+
+La cuenta demo inicial se crea mediante `php artisan migrate:fresh --seed` con
+`admin@espol.edu.ec` y contraseña `admin`. Para promover otra cuenta se puede
+usar `php artisan polilink:provision-admin correo@espol.edu.ec`; no se puede
+asignar el rol desde el registro público.
+
 ## Autenticación local — implementado
 
 La SPA usa Laravel Sanctum con cookies de sesión y CSRF. No se emiten tokens
@@ -144,7 +175,7 @@ cinco intentos fallidos por minuto para el mismo email e IP.
     "first_name": "Estudiante",
     "last_name": "PoliLink",
     "email": "student@espol.edu.ec",
-    "roles": [{ "code": "student", "name": "Student" }]
+    "roles": [{ "code": "student", "name": "Estudiante" }]
   }
 }
 ```
@@ -235,7 +266,7 @@ Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
       "id": 5,
       "registered_at": "2026-08-11T10:00:00.000000Z",
       "cancelled_at": null,
-      "status": { "code": "active", "name": "Active" },
+      "status": { "code": "active", "name": "Activa" },
       "student": {
         "id": 2,
         "first_name": "Estudiante",

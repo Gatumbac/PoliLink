@@ -16,21 +16,21 @@ class ReferenceDataController extends Controller
     public function categories()
     {
         return EventCategoryResource::collection(
-            EventCategory::query()->orderBy('name')->get(),
+            EventCategory::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 
     public function modalities()
     {
         return EventModalityResource::collection(
-            EventModality::query()->orderBy('name')->get(),
+            EventModality::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 
     public function locations()
     {
         return LocationResource::collection(
-            Location::query()->orderBy('name')->get(),
+            Location::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 

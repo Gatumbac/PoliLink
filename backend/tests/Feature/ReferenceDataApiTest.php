@@ -21,13 +21,13 @@ class ReferenceDataApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(6, 'data')
             ->assertJsonStructure(['data' => [['id', 'code', 'name']]])
-            ->assertJsonPath('data.0.name', 'Cultural');
+            ->assertJsonPath('data.0.name', 'Charla');
 
         $this->getJson('/api/event-modalities')
             ->assertOk()
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure(['data' => [['id', 'code', 'name']]])
-            ->assertJsonPath('data.0.name', 'Hybrid');
+            ->assertJsonPath('data.0.name', 'Híbrida');
 
         $this->getJson('/api/locations')
             ->assertOk()

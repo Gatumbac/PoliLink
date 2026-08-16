@@ -15,6 +15,9 @@ class DatabaseSchemaTest extends TestCase
     public function test_domain_tables_and_user_name_columns_are_migrated(): void
     {
         $this->assertTrue(Schema::hasColumns('users', ['first_name', 'last_name']));
+        $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
 
         foreach ([
             'roles',
@@ -38,7 +41,7 @@ class DatabaseSchemaTest extends TestCase
         $userId = $this->createUser();
         $roleId = DB::table('roles')->insertGetId([
             'code' => 'organizer',
-            'name' => 'Organizer',
+            'name' => 'Organizador',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -86,15 +89,15 @@ class DatabaseSchemaTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $categoryId = $this->createReference('event_categories', 'hackathon', 'Hackathon');
-        $modalityId = $this->createReference('event_modalities', 'in_person', 'In person');
+        $categoryId = $this->createReference('event_categories', 'hackathon', 'Hackatón');
+        $modalityId = $this->createReference('event_modalities', 'in_person', 'Presencial');
         $locationId = DB::table('locations')->insertGetId([
             'name' => 'Campus Gustavo Galindo',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $eventStatusId = $this->createReference('event_statuses', 'published', 'Published');
-        $registrationStatusId = $this->createReference('registration_statuses', 'active', 'Active');
+        $eventStatusId = $this->createReference('event_statuses', 'published', 'Publicado');
+        $registrationStatusId = $this->createReference('registration_statuses', 'active', 'Activa');
         $eventId = DB::table('events')->insertGetId([
             'community_organizer_id' => $communityOrganizerId,
             'event_category_id' => $categoryId,

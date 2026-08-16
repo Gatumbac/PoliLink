@@ -49,7 +49,7 @@ solicitudes siguientes usan ese valor.
 
 - Usuario de la colección: gatumbac@espol.edu.ec y password.
 - La comunidad creada obtiene su ID automáticamente; no depende de TAWS ni del ID 1.
-- Categoría Hackathon: ID 3.
+- Categoría Hackatón: ID 3.
 - Modalidad presencial: ID 1.
 - Ubicación Campus Gustavo Galindo: ID 1.
 - Usuarios semilla de inscripciones: student@espol.edu.ec y

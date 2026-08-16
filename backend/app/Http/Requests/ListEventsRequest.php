@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class ListEventsRequest extends FormRequest
 {
@@ -16,8 +17,16 @@ class ListEventsRequest extends FormRequest
         return [
             'search' => ['nullable', 'string', 'max:255'],
             'date' => ['nullable', 'date_format:Y-m-d'],
-            'category' => ['nullable', 'string', 'exists:event_categories,code'],
-            'modality' => ['nullable', 'string', 'exists:event_modalities,code'],
+            'category' => [
+                'nullable',
+                'string',
+                Rule::exists('event_categories', 'code')->where('is_active', true),
+            ],
+            'modality' => [
+                'nullable',
+                'string',
+                Rule::exists('event_modalities', 'code')->where('is_active', true),
+            ],
             'community_id' => ['nullable', 'integer', 'exists:communities,id'],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],

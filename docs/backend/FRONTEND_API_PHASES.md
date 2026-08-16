@@ -1,7 +1,7 @@
 # Fases de integración del frontend de PoliLink
 
-**Estado:** integración incremental; la Fase 1 de autenticación visual está
-implementada en código, pero aún requiere verificación con servicios locales.  
+**Estado:** integración incremental; las Fases 1 y 2 están implementadas en
+código, pero aún requieren verificación con servicios locales.
 **Documento canónico:** este archivo describe el trabajo pendiente para
 conectar React con la API Laravel. Los detalles exactos de cuerpos, respuestas
 y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
@@ -15,8 +15,11 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 - Existen las rutas `/login` y `/register`, formularios con React Hook Form y
   Zod, redirecciones internas seguras, manejo de errores de Laravel, logout y
   menú de usuario según sesión/rol.
-- Todavía no existe una integración completa del catálogo, detalle,
-  organizador, inscripciones ni de todos los estados de sus recorridos.
+- La Fase 2 ya integra en código el catálogo público, búsqueda con debounce,
+  filtros URL-backed, datos de referencia, paginación numerada y detalle de
+  evento en `/events` y `/events/:eventId`. La ruta `/` conserva la landing.
+- Todavía no existe una integración completa del organizador, inscripciones ni
+  de todos los estados de sus recorridos.
 - La verificación en ambiente real con MySQL, Laravel y Vite debe registrarse
   por separado; la existencia de código o documentación no la reemplaza.
 - Por lo tanto, las fases restantes de integración frontend permanecen
@@ -37,9 +40,11 @@ Cada integrante debe cubrir su flujo tanto en frontend como en backend. No se
 añaden aprobación administrativa, autenticación institucional, pagos, correo,
 calendario, códigos QR ni validación de asistencia.
 
-Las tablas internas no generan pantallas CRUD. Roles, estados y relaciones de
-responsabilidad se administran desde el backend; la interfaz solo expone las
-acciones necesarias para la experiencia de estudiantes y organizadores.
+Las tablas internas no generan pantallas CRUD generales. El backend ya expone
+un panel futuro para que el rol `admin` mantenga categorías, modalidades y
+ubicaciones; roles, estados y relaciones de responsabilidad permanecen
+controlados por el backend. La interfaz de administración se implementará en
+una fase separada.
 
 ## Fases generales
 
@@ -71,8 +76,24 @@ recorridos con los servicios locales queda pendiente.
 
 ### Fase 2 — Descubrimiento público
 
-Integrar catálogo, búsqueda, filtros, paginación, datos de referencia, detalle
-de evento, cupos visibles, estados vacío/error y comportamiento responsive.
+**Estado actual:** `Implemented` en código; `Verified` queda pendiente de
+ejecutar React → Laravel con los servicios locales.
+
+La landing se conserva en `/` y el catálogo público se encuentra en `/events`.
+La integración consume el contrato existente de `GET /events`,
+`GET /events/{event}`, categorías, modalidades y comunidades. Incluye búsqueda
+con debounce de 300 ms, filtros por fecha/categoría/modalidad/comunidad
+persistidos en la URL, paginación numerada, tarjetas enlazadas al detalle,
+formateo local de fechas `es-EC`, cupos visibles y estados de carga, error y
+catálogo vacío. En móvil los filtros se muestran en un Sheet de shadcn; en
+escritorio se muestran como controles inline.
+
+Esta fase es deliberadamente de solo lectura. La inscripción, cancelación de
+inscripciones y publicación de eventos quedan para las fases 3 y 4. No fueron
+necesarios cambios funcionales adicionales en el backend para implementar este
+alcance;
+debe verificarse que el contrato y los datos sembrados estén disponibles en el
+ambiente local.
 
 ### Fase 3 — Experiencia del organizador
 

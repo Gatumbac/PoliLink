@@ -24,7 +24,7 @@ export function AppLayout() {
           >
             <Link
               className="mr-2 hidden transition-colors hover:text-foreground sm:inline"
-              to="/"
+              to="/events"
             >
               Eventos
             </Link>
