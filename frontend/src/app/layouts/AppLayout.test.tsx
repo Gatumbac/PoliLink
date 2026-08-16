@@ -38,7 +38,7 @@ describe('application layout community navigation', () => {
         is_admin: false,
         community_memberships: [
           {
-            community: { id: 1, name: 'TAWS' },
+            community: { id: 1, name: 'TAWS', slug: 'taws' },
             role: { code: 'organizer', name: 'Organizer' },
             status: { code: 'active', name: 'Active' },
             requested_at: null,

@@ -1,4 +1,4 @@
-import { http, HttpResponse } from 'msw'
+import { HttpResponse, http } from 'msw'
 import { describe, expect, it } from 'vitest'
 
 import {
@@ -21,7 +21,12 @@ const event = {
   category: { id: 3, code: 'hackathon', name: 'Hackathon' },
   modality: { id: 1, code: 'in_person', name: 'Presencial' },
   location: { id: 1, name: 'Campus', description: null },
-  community: { id: 4, name: 'TAWS', description: null },
+  community: {
+    id: 4,
+    name: 'TAWS',
+    slug: 'taws',
+    description: null,
+  },
   status: { code: 'published', name: 'Publicado' },
   created_at: '2026-08-01T15:00:00.000000Z',
   updated_at: '2026-08-01T15:00:00.000000Z',
@@ -71,9 +76,7 @@ describe('public events API', () => {
 
   it('parses event details and public reference data', async () => {
     server.use(
-      http.get(`${apiUrl}/events/7`, () =>
-        HttpResponse.json({ data: event }),
-      ),
+      http.get(`${apiUrl}/events/7`, () => HttpResponse.json({ data: event })),
       http.get(`${apiUrl}/event-categories`, () =>
         HttpResponse.json({ data: [event.category] }),
       ),
@@ -126,8 +129,7 @@ describe('organizer events API', () => {
           {
             data: {
               ...event,
-              image_url:
-                'http://localhost:8000/storage/events/cover.webp',
+              image_url: 'http://localhost:8000/storage/events/cover.webp',
             },
           },
           { status: 201 },

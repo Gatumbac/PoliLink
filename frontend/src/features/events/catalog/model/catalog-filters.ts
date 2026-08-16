@@ -31,7 +31,9 @@ function parseCommunityId(value: string | null): number | null {
   return parsedValue > 0 ? parsedValue : null
 }
 
-export function parseCatalogFilters(searchParams: URLSearchParams): CatalogFilters {
+export function parseCatalogFilters(
+  searchParams: URLSearchParams,
+): CatalogFilters {
   const date = searchParams.get('date') ?? ''
 
   return {
@@ -52,7 +54,9 @@ export function toPublicEventFilters(
     date: filters.date,
     category: filters.category,
     modality: filters.modality,
-    communityId: filters.communityId ?? undefined,
+    ...(filters.communityId === null
+      ? {}
+      : { communityId: filters.communityId }),
     page: filters.page,
     perPage: DEFAULT_EVENT_PAGE_SIZE,
   }

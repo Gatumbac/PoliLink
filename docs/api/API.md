@@ -293,16 +293,20 @@ imágenes de eventos pertenecientes a una comunidad que administra. El backend n
 
 ### Proponer una comunidad: `POST /community-creation-requests`
 
-`POST /api/community-creation-requests` recibe JSON o `multipart/form-data`.
-Además de `name` y `description`, el formulario puede incluir una imagen:
+`POST /api/community-creation-requests` recibe JSON cuando no hay imagen o
+`multipart/form-data` cuando se adjunta un archivo. Además de `name` y
+`description`, el formulario multipart puede incluir una imagen:
 
-```text
-{
-  "name": "Club de Robótica",
-  "description": "Comunidad de robótica de ESPOL.",
-  "image": "logo.png"
-}
+```ts
+const formData = new FormData()
+formData.append('name', 'Club de Robótica')
+formData.append('description', 'Comunidad de robótica de ESPOL.')
+formData.append('image', selectedFile)
 ```
+
+Al enviar `FormData`, el cliente no debe fijar manualmente el header
+`Content-Type`; el navegador agrega el boundary multipart. Sin imagen, el
+payload JSON es `{ "name": "Club de Robótica", "description": "..." }`.
 
 El servidor crea una `community_creation_request` con estado `pending`; todavía
 no crea la comunidad ni la membresía. `name` es obligatorio y `description` es

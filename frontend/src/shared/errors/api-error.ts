@@ -1,7 +1,16 @@
 export type ApiFieldErrors = Record<string, string[]>
 
+type ApiErrorPayload = {
+  message?: unknown
+  errors?: unknown
+}
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value)
+}
+
+function isApiErrorPayload(value: unknown): value is ApiErrorPayload {
+  return isRecord(value)
 }
 
 function readMessage(payload: unknown, status: number): string {
@@ -9,7 +18,7 @@ function readMessage(payload: unknown, status: number): string {
     return payload
   }
 
-  if (isRecord(payload) && typeof payload.message === 'string') {
+  if (isApiErrorPayload(payload) && typeof payload.message === 'string') {
     return payload.message
   }
 
@@ -17,9 +26,13 @@ function readMessage(payload: unknown, status: number): string {
 }
 
 function readFieldErrors(payload: unknown): ApiFieldErrors {
-  if (!isRecord(payload) || !isRecord(payload.errors)) return {}
+  if (!isApiErrorPayload(payload)) return {}
 
-  return Object.entries(payload.errors).reduce<ApiFieldErrors>(
+  const errors = payload.errors
+
+  if (!isRecord(errors)) return {}
+
+  return Object.entries(errors).reduce<ApiFieldErrors>(
     (fieldErrors, [field, value]) => {
       if (typeof value === 'string') {
         fieldErrors[field] = [value]

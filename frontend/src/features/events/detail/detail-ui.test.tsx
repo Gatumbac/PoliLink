@@ -26,7 +26,12 @@ describe('public event detail', () => {
             category: { id: 3, code: 'hackathon', name: 'Hackathon' },
             modality: { id: 1, code: 'in_person', name: 'Presencial' },
             location: { id: 1, name: 'Campus', description: null },
-            community: { id: 4, name: 'TAWS', description: null },
+            community: {
+              id: 4,
+              name: 'TAWS',
+              slug: 'taws',
+              description: null,
+            },
             status: { code: 'published', name: 'Publicado' },
             created_at: '2026-08-01T15:00:00.000000Z',
             updated_at: '2026-08-01T15:00:00.000000Z',

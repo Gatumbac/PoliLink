@@ -13,7 +13,9 @@ const apiUrl = 'http://localhost:8000/api'
 const community = {
   id: 4,
   name: 'Club de Robótica',
+  slug: 'club-de-robotica',
   description: 'Comunidad de robótica de ESPOL.',
+  image_url: null,
 }
 
 function renderSection() {

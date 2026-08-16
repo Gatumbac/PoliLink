@@ -59,13 +59,30 @@ Para crear una comunidad, el frontend debe reemplazar cualquier uso del
 endpoint antiguo `POST /communities` por
 `POST /community-creation-requests`. El cuerpo acepta `name`,
 `description` e `image` opcional; no se envían `slug`, `status`, `requested_by`
-ni roles. El backend genera el slug y responde con una propuesta `pending`:
+ni roles. El backend genera el slug y responde con una propuesta `pending`.
+Sin imagen se puede enviar JSON; cuando se adjunta un archivo real, el
+frontend debe usar `multipart/form-data` y no serializar el `File` como JSON:
+
+```ts
+const formData = new FormData()
+formData.append('name', 'Club de Robótica')
+formData.append('description', 'Comunidad de robótica de ESPOL.')
+formData.append('image', selectedFile)
+
+await request('/community-creation-requests', {
+  method: 'POST',
+  body: formData,
+})
+```
+
+El cliente HTTP no debe fijar manualmente `Content-Type` al enviar
+`FormData`; el navegador agrega el boundary multipart. Si no se selecciona
+imagen, el payload JSON equivalente es:
 
 ```json
 {
   "name": "Club de Robótica",
-  "description": "Comunidad de robótica de ESPOL.",
-  "image": "logo.png"
+  "description": "Comunidad de robótica de ESPOL."
 }
 ```
 

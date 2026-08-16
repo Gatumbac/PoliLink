@@ -16,6 +16,7 @@ const communityMembershipSchema = z.object({
   community: z.object({
     id: z.number(),
     name: z.string(),
+    slug: z.string(),
   }),
   role: roleSchema,
   status: membershipStatusSchema,

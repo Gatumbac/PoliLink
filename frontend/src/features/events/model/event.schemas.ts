@@ -17,6 +17,7 @@ export const eventLocationSchema = z.object({
 export const eventCommunitySchema = z.object({
   id: z.number(),
   name: z.string(),
+  slug: z.string(),
   description: z.string().nullable(),
 })
 

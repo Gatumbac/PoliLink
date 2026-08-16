@@ -20,7 +20,13 @@ const apiUrl = 'http://localhost:8000/api'
 const community = {
   id: 4,
   name: 'Club de Robótica',
+  slug: 'club-de-robotica',
   description: 'Comunidad de robótica de ESPOL.',
+  image_url: null,
+  status: { code: 'pending', name: 'Pendiente' },
+  requested_at: '2026-08-16T20:00:00.000000Z',
+  reviewed_at: null,
+  rejection_reason: null,
 }
 
 function createAuthValue(
@@ -99,14 +105,17 @@ describe('community onboarding page', () => {
     document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
 
     server.use(
-      http.post(`${apiUrl}/communities`, async ({ request }) => {
-        createRequests += 1
-        expect(await request.json()).toEqual({
-          description: 'Comunidad de robótica de ESPOL.',
-          name: 'Club de Robótica',
-        })
-        return HttpResponse.json({ data: community }, { status: 201 })
-      }),
+      http.post(
+        `${apiUrl}/community-creation-requests`,
+        async ({ request }) => {
+          createRequests += 1
+          expect(await request.json()).toEqual({
+            description: 'Comunidad de robótica de ESPOL.',
+            name: 'Club de Robótica',
+          })
+          return HttpResponse.json({ data: community }, { status: 201 })
+        },
+      ),
     )
 
     const user = userEvent.setup()
@@ -169,7 +178,7 @@ describe('community onboarding page', () => {
     document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
 
     server.use(
-      http.post(`${apiUrl}/communities`, () =>
+      http.post(`${apiUrl}/community-creation-requests`, () =>
         HttpResponse.json(
           { errors: { name: ['Esta comunidad ya existe.'] } },
           { status: 422 },
