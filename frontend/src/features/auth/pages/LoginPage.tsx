@@ -3,8 +3,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { useAuth } from '@/features/auth/auth-context'
 import { AuthPanel } from '@/features/auth/components/AuthPanel'
+import {
+  type LoginPayload,
+  loginPayloadSchema,
+} from '@/features/auth/model/auth.schemas'
 import {
   applyApiFieldErrors,
   getAuthErrorMessage,
@@ -13,18 +18,9 @@ import {
   buildAuthPath,
   getSafeRedirect,
 } from '@/features/auth/model/auth-helpers'
-import {
-  loginPayloadSchema,
-  type LoginPayload,
-} from '@/features/auth/model/auth.schemas'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/shared/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 
 export function LoginPage() {
@@ -50,7 +46,10 @@ export function LoginPage() {
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
       setFormError(
-        getAuthErrorMessage(error, 'No pudimos iniciar sesión. Intenta nuevamente.'),
+        getAuthErrorMessage(
+          error,
+          'No pudimos iniciar sesión. Intenta nuevamente.',
+        ),
       )
     }
   }
@@ -63,7 +62,7 @@ export function LoginPage() {
           ¿Todavía no tienes una cuenta?{' '}
           <Link
             className="font-medium text-foreground underline underline-offset-4"
-            to={buildAuthPath('/register', redirect)}
+            to={buildAuthPath(appRoutes.register, redirect)}
           >
             Regístrate
           </Link>

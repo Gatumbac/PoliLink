@@ -65,6 +65,24 @@ class EventApiTest extends TestCase
 
         $response
             ->assertCreated()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'title',
+                    'description',
+                    'image_url',
+                    'starts_at',
+                    'capacity',
+                    'available_capacity',
+                    'category',
+                    'modality',
+                    'location',
+                    'community',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ],
+            ])
             ->assertJsonPath('data.status.code', 'published')
             ->assertJsonPath('data.community.name', 'TAWS')
             ->assertJsonPath('data.image_url', null);
@@ -144,6 +162,20 @@ class EventApiTest extends TestCase
             ->assertJsonPath('data.status.code', 'cancelled');
 
         $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")->assertConflict();
+    }
+
+    public function test_cancelled_events_reject_organizer_updates(): void
+    {
+        $this->seed();
+        $event = $this->seededEvent();
+        $organizer = $this->organizer();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")
+            ->assertOk();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
+            'title' => 'Cambio no permitido',
+        ])->assertConflict();
     }
 
     private function organizer(): User

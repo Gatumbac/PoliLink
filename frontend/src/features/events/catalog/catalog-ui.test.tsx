@@ -1,10 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { http, HttpResponse } from 'msw'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { HttpResponse, http } from 'msw'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
+import { appRoutes } from '@/app/routes'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { server } from '@/test/server'
 
@@ -38,7 +39,7 @@ function LocationProbe() {
   )
 }
 
-function renderCatalog(initialEntry = '/events') {
+function renderCatalog(initialEntry = appRoutes.events) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -54,7 +55,7 @@ function renderCatalog(initialEntry = '/events') {
                 <LocationProbe />
               </>
             }
-            path="/events"
+            path={appRoutes.events}
           />
         </Routes>
       </MemoryRouter>
@@ -116,7 +117,7 @@ describe('public event catalog', () => {
     await waitFor(() => {
       expect(requestedSearches).toContain('laravel')
       expect(screen.getByTestId('location')).toHaveTextContent(
-        '/events?search=laravel',
+        `${appRoutes.events}?search=laravel`,
       )
     })
   })

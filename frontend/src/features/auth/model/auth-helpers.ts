@@ -1,3 +1,4 @@
+import { type AuthRoute, appRoutes } from '@/app/routes'
 import type { AuthUser, RoleCode } from '@/features/auth/model/auth.schemas'
 
 export function hasRole(user: AuthUser | null, role: RoleCode): boolean {
@@ -13,15 +14,15 @@ export function getRoleLabel(role: RoleCode): string {
 }
 
 export function getSafeRedirect(value: string | null | undefined): string {
-  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/'
+  if (!value?.startsWith('/') || value.startsWith('//')) return '/'
 
   try {
     const candidate = new URL(value, 'http://polilink.local')
 
     if (
       candidate.origin !== 'http://polilink.local' ||
-      candidate.pathname === '/login' ||
-      candidate.pathname === '/register'
+      candidate.pathname === appRoutes.login ||
+      candidate.pathname === appRoutes.register
     ) {
       return '/'
     }
@@ -33,7 +34,7 @@ export function getSafeRedirect(value: string | null | undefined): string {
 }
 
 export function buildAuthPath(
-  path: '/login' | '/register',
+  path: AuthRoute,
   redirect: string | null | undefined,
 ): string {
   const safeRedirect = getSafeRedirect(redirect)

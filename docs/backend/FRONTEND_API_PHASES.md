@@ -12,12 +12,12 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
   catálogo, gestión de eventos e inscripciones.
 - El frontend ya tiene router, shell visual, cliente HTTP, estado de sesión y
   una primera experiencia de autenticación en `frontend/src/features/auth/`.
-- Existen las rutas `/login` y `/register`, formularios con React Hook Form y
+- Existen las rutas `/iniciar-sesion` y `/registrarse`, formularios con React Hook Form y
   Zod, redirecciones internas seguras, manejo de errores de Laravel, logout y
   menú de usuario según sesión/rol.
 - La Fase 2 ya integra en código el catálogo público, búsqueda con debounce,
   filtros URL-backed, datos de referencia, paginación numerada y detalle de
-  evento en `/events` y `/events/:eventId`. La ruta `/` conserva la landing.
+  evento en `/eventos` y `/eventos/:eventId`. La ruta `/` conserva la landing.
 - Todavía no existe una integración completa del organizador, inscripciones ni
   de todos los estados de sus recorridos.
 - La verificación en ambiente real con MySQL, Laravel y Vite debe registrarse
@@ -25,6 +25,8 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 - Por lo tanto, las fases restantes de integración frontend permanecen
   pendientes hasta que sus pantallas y recorridos funcionen; una API marcada
   como implementada no significa que la experiencia React esté terminada.
+- Las rutas visibles del navegador usan español; los nombres de código se
+  mantienen en inglés. Los endpoints `/api/...` conservan el contrato backend.
 
 ## Responsabilidades
 
@@ -61,7 +63,7 @@ terminada una API cuando aún no existe una pantalla integrada.
 
 Ya están implementados el cliente con cookies y CSRF, errores tipados, estado de
 sesión, mutaciones de login/registro/logout, guards reutilizables, las pantallas
-`/login` y `/register`, validación de correos `@espol.edu.ec`, confirmación de
+`/iniciar-sesion` y `/registrarse`, validación de correos `@espol.edu.ec`, confirmación de
 contraseña, redirecciones internas seguras y el menú de sesión del encabezado.
 La prueba con MySQL, Laravel y Vite debe registrarse por separado;
 la existencia de estos componentes no la reemplaza.
@@ -79,7 +81,7 @@ recorridos con los servicios locales queda pendiente.
 **Estado actual:** `Implemented` en código; `Verified` queda pendiente de
 ejecutar React → Laravel con los servicios locales.
 
-La landing se conserva en `/` y el catálogo público se encuentra en `/events`.
+La landing se conserva en `/` y el catálogo público se encuentra en `/eventos`.
 La integración consume el contrato existente de `GET /events`,
 `GET /events/{event}`, categorías, modalidades y comunidades. Incluye búsqueda
 con debounce de 300 ms, filtros por fecha/categoría/modalidad/comunidad
@@ -97,8 +99,91 @@ ambiente local.
 
 ### Fase 3 — Experiencia del organizador
 
-Integrar onboarding de comunidad, panel de comunidades/eventos y los flujos de
-crear, editar y cancelar eventos, respetando propiedad y estados del backend.
+**Contrato backend:** `Implemented`; **integración frontend:** `Planned`.
+
+El contrato de esta fase está cerrado en `docs/api/API.md`: onboarding de
+comunidades, comunidades administradas, eventos propios paginados, creación
+multipart con imagen opcional, edición parcial, reemplazo/eliminación de
+imagen y cancelación. El backend aplica la relación
+`community_organizers`, acepta únicamente catálogos activos para altas y
+ediciones, conserva eventos cancelados en el dashboard y devuelve
+`image_url` nullable.
+
+La implementación frontend se dividirá en subfases verticales. Cada una debe
+dejar un recorrido pequeño y verificable antes de iniciar la siguiente; no se
+añaden endpoints nuevos ni un panel administrativo en esta fase.
+
+#### Fase 3.1 — Fundación del organizador
+
+- Crear la ruta protegida `/organizador`, guard de sesión y layout de la
+  experiencia.
+- Añadir el cliente API de comunidades, claves de consulta y estados comunes
+  de carga, sesión expirada y error.
+
+**Salida:** el usuario autenticado puede entrar al área correcta del
+organizador.
+
+#### Fase 3.2 — Comunidades
+
+**Estado:** `Implemented` en código; `Verified` queda pendiente de la
+verificación navegador → Laravel.
+
+- Consumir `GET /me/communities` y mostrar las comunidades administradas.
+- Implementar estado vacío y formulario para `POST /communities`.
+- Actualizar la sesión y la navegación cuando un estudiante crea su primera
+  comunidad y obtiene el rol `organizer`.
+- Permitir el acceso autenticado de estudiantes al onboarding y mostrar el
+  formulario inline sin comunidades; usar un `Dialog` para comunidades
+  adicionales.
+
+**Salida:** un usuario autenticado puede convertirse en organizador desde la
+interfaz y el dashboard refleja la comunidad creada.
+
+#### Fase 3.3 — Panel de eventos
+
+- Consumir `GET /me/events` con paginación.
+- Mostrar eventos propios, estados `published`/`cancelled`, cupos, comunidad e
+  imagen.
+- Cubrir estados de carga, vacío, error y paginación.
+
+**Salida:** el organizador puede revisar su historial de eventos.
+
+#### Fase 3.4 — Crear evento
+
+- Crear el formulario con React Hook Form y Zod.
+- Cargar categorías, modalidades, ubicaciones y comunidades administradas.
+- Enviar `multipart/form-data` con imagen opcional y mostrar errores `422`.
+- Invalidar o actualizar la lista después de publicar.
+
+**Salida:** el organizador puede publicar un evento completo.
+
+#### Fase 3.5 — Editar evento
+
+- Reutilizar el formulario para editar mediante `PATCH /events/{event}`.
+- Permitir cambios de comunidad únicamente entre comunidades administradas.
+- Bloquear visualmente eventos cancelados y manejar respuestas `409`.
+
+**Salida:** el organizador puede corregir eventos activos.
+
+#### Fase 3.6 — Gestión de imágenes
+
+- Añadir preview local, estado de subida y errores.
+- Implementar reemplazo y eliminación mediante los endpoints de imagen.
+- Manejar correctamente `image_url` nullable y refrescar las consultas.
+
+**Salida:** el organizador puede administrar la portada sin afectar el resto
+del formulario.
+
+#### Fase 3.7 — Cancelación y estabilización
+
+- Añadir confirmación antes de `PATCH /events/{event}/cancel`.
+- Reflejar el estado cancelado sin eliminar el evento.
+- Verificar permisos `403`, conflictos `409`, validaciones `422` y el recorrido
+  navegador → Laravel → MySQL.
+- Registrar evidencia y actualizar README, API y bitácora.
+
+**Salida:** la experiencia del organizador queda verificada y lista para la
+fase de inscripciones del estudiante.
 
 ### Fase 4 — Experiencia del estudiante
 

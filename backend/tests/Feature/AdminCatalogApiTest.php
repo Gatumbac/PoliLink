@@ -137,6 +137,12 @@ class AdminCatalogApiTest extends TestCase
             'capacity' => 10,
         ])->assertUnprocessable();
 
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
+            'event_category_id' => $event->event_category_id,
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('event_category_id');
+
         $this->authenticatedPost($admin, '/api/events', [
             'community_id' => $event->communityOrganizer->community_id,
             'event_category_id' => $activeCategory->id,

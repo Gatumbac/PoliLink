@@ -10,11 +10,11 @@ import {
   usePublicEventCatalog,
 } from '@/features/events/catalog/hooks/use-event-queries'
 import {
+  type CatalogFilterChanges,
   countActiveCatalogFilters,
   parseCatalogFilters,
   updateCatalogPage,
   updateCatalogSearchParams,
-  type CatalogFilterChanges,
 } from '@/features/events/catalog/model/catalog-filters'
 import { ApiError } from '@/shared/errors/api-error'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
@@ -173,10 +173,7 @@ export function EventCatalogPage() {
         )}
 
         {catalogQuery.isSuccess && eventPage && eventPage.data.length > 0 && (
-          <section
-            aria-busy={catalogQuery.isFetching}
-            className="space-y-6"
-          >
+          <section aria-busy={catalogQuery.isFetching} className="space-y-6">
             <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
               <p>
                 {eventPage.meta.total === 1

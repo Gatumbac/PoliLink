@@ -1,12 +1,16 @@
 import { Link, Outlet } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { useAuth } from '@/features/auth/auth-context'
 import { UserMenu } from '@/features/auth/components/UserMenu'
+import { hasRole } from '@/features/auth/model/auth-helpers'
 import { Button } from '@/shared/ui/button'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function AppLayout() {
-  const { status } = useAuth()
+  const { status, user } = useAuth()
+  const isAuthenticated = status === 'authenticated'
+  const isOrganizer = isAuthenticated && hasRole(user, 'organizer')
 
   return (
     <div className="min-h-screen bg-background">
@@ -24,17 +28,25 @@ export function AppLayout() {
           >
             <Link
               className="mr-2 hidden transition-colors hover:text-foreground sm:inline"
-              to="/events"
+              to={appRoutes.events}
             >
               Eventos
             </Link>
+            {isAuthenticated && (
+              <Link
+                className="mr-2 transition-colors hover:text-foreground"
+                to={appRoutes.organizer}
+              >
+                {isOrganizer ? 'Organizar' : 'Crear comunidad'}
+              </Link>
+            )}
             {(status === 'anonymous' || status === 'error') && (
               <>
                 <Button asChild size="sm" variant="outline">
-                  <Link to="/login">Iniciar sesión</Link>
+                  <Link to={appRoutes.login}>Iniciar sesión</Link>
                 </Button>
                 <Button asChild size="sm">
-                  <Link to="/register">Crear cuenta</Link>
+                  <Link to={appRoutes.register}>Crear cuenta</Link>
                 </Button>
               </>
             )}

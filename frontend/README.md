@@ -51,12 +51,16 @@ flujo CSRF del backend.
 La base de la aplicación está configurada con React Router, React Query,
 validación Zod, formularios React Hook Form y una política TypeScript estricta.
 La fase de autenticación tiene integración de sesión con Laravel Sanctum y una
-primera interfaz funcional: `/login`, `/register`, redirecciones internas
+primera interfaz funcional: `/iniciar-sesion`, `/registrarse`, redirecciones internas
 seguras, validación de correos `@espol.edu.ec`, confirmación de contraseña,
 errores de validación, logout y menú de usuario en el encabezado.
 
 La verificación navegador → Laravel todavía debe ejecutarse con los servicios
 locales. La Fase 2 ya tiene integración de código para el catálogo público,
-los filtros, la paginación y el detalle de eventos en `/events` y
-`/events/:eventId`; el panel del organizador, las inscripciones y sus
+los filtros, la paginación y el detalle de eventos en `/eventos` y
+`/eventos/:eventId`; el panel del organizador, las inscripciones y sus
 recorridos responsive continúan pendientes.
+
+Las rutas visibles del navegador usan español; los nombres de componentes,
+variables, hooks y servicios permanecen en inglés. Los endpoints `/api/...`
+conservan los nombres definidos por el contrato backend.

@@ -3,8 +3,13 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate, useSearchParams } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { useAuth } from '@/features/auth/auth-context'
 import { AuthPanel } from '@/features/auth/components/AuthPanel'
+import {
+  type RegisterPayload,
+  registerPayloadSchema,
+} from '@/features/auth/model/auth.schemas'
 import {
   applyApiFieldErrors,
   getAuthErrorMessage,
@@ -13,18 +18,9 @@ import {
   buildAuthPath,
   getSafeRedirect,
 } from '@/features/auth/model/auth-helpers'
-import {
-  registerPayloadSchema,
-  type RegisterPayload,
-} from '@/features/auth/model/auth.schemas'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
-import {
-  Field,
-  FieldError,
-  FieldGroup,
-  FieldLabel,
-} from '@/shared/ui/field'
+import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
 
 export function RegisterPage() {
@@ -53,7 +49,10 @@ export function RegisterPage() {
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
       setFormError(
-        getAuthErrorMessage(error, 'No pudimos crear tu cuenta. Intenta nuevamente.'),
+        getAuthErrorMessage(
+          error,
+          'No pudimos crear tu cuenta. Intenta nuevamente.',
+        ),
       )
     }
   }
@@ -66,7 +65,7 @@ export function RegisterPage() {
           ¿Ya tienes una cuenta?{' '}
           <Link
             className="font-medium text-foreground underline underline-offset-4"
-            to={buildAuthPath('/login', redirect)}
+            to={buildAuthPath(appRoutes.login, redirect)}
           >
             Inicia sesión
           </Link>

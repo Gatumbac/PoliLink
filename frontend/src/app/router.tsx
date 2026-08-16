@@ -3,21 +3,24 @@ import { createBrowserRouter } from 'react-router'
 import { AppLayout } from '@/app/layouts/AppLayout'
 import { NotFoundPage } from '@/app/pages/NotFoundPage'
 import { UiPreviewPage } from '@/app/pages/UiPreviewPage'
+import { appRoutePatterns, appRoutes } from '@/app/routes'
 import { AuthLoadingState } from '@/features/auth/components/AuthLoadingState'
+import { AuthRouteError } from '@/features/auth/components/AuthRouteError'
 import { AuthLayout } from '@/features/auth/layouts/AuthLayout'
-import { RequireAnonymous } from '@/features/auth/route-guards'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
+import { RequireAnonymous, RequireAuth } from '@/features/auth/route-guards'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
+import { OrganizerPage } from '@/features/organizer/pages/OrganizerPage'
 
 export const router = createBrowserRouter([
   {
     element: <AuthLayout />,
     children: [
       {
-        path: 'login',
+        path: appRoutes.login.slice(1),
         element: (
           <RequireAnonymous loadingFallback={<AuthLoadingState />}>
             <LoginPage />
@@ -25,7 +28,7 @@ export const router = createBrowserRouter([
         ),
       },
       {
-        path: 'register',
+        path: appRoutes.register.slice(1),
         element: (
           <RequireAnonymous loadingFallback={<AuthLoadingState />}>
             <RegisterPage />
@@ -39,9 +42,23 @@ export const router = createBrowserRouter([
     element: <AppLayout />,
     children: [
       { index: true, element: <LandingPage /> },
-      { path: 'events', element: <EventCatalogPage /> },
-      { path: 'events/:eventId', element: <EventDetailPage /> },
-      { path: 'ui-preview', element: <UiPreviewPage /> },
+      { path: appRoutes.events.slice(1), element: <EventCatalogPage /> },
+      {
+        path: appRoutePatterns.eventDetail,
+        element: <EventDetailPage />,
+      },
+      {
+        path: appRoutes.organizer.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <OrganizerPage />
+          </RequireAuth>
+        ),
+      },
+      { path: appRoutes.uiPreview.slice(1), element: <UiPreviewPage /> },
       { path: '*', element: <NotFoundPage /> },
     ],
   },

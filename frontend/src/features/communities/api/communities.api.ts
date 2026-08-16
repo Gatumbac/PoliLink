@@ -1,11 +1,11 @@
-import { request } from '@/shared/api/client'
 import {
+  type Community,
+  type CommunityCreatePayload,
   communityCreatePayloadSchema,
   communityEnvelopeSchema,
   communityListEnvelopeSchema,
-  type Community,
-  type CommunityCreatePayload,
 } from '@/features/communities/model/community.schemas'
+import { request } from '@/shared/api/client'
 
 export const communityApi = {
   create: async (payload: CommunityCreatePayload): Promise<Community> => {

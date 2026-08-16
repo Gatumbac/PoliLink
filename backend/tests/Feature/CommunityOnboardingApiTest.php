@@ -45,6 +45,7 @@ class CommunityOnboardingApiTest extends TestCase
             'description' => 'Comunidad de robótica de ESPOL.',
         ])
             ->assertCreated()
+            ->assertJsonStructure(['data' => ['id', 'name', 'description']])
             ->assertJsonPath('data.name', 'Club de Robótica');
 
         $student->refresh();
@@ -59,6 +60,7 @@ class CommunityOnboardingApiTest extends TestCase
 
         $this->authenticatedGet($student, '/api/me/communities')
             ->assertOk()
+            ->assertJsonStructure(['data' => [['id', 'name', 'description']]])
             ->assertJsonPath('data.0.id', $community->id);
     }
 
@@ -109,10 +111,40 @@ class CommunityOnboardingApiTest extends TestCase
 
         $this->authenticatedGet($organizer, '/api/me/events?per_page=1')
             ->assertOk()
+            ->assertJsonStructure([
+                'data' => [[
+                    'id',
+                    'title',
+                    'description',
+                    'image_url',
+                    'starts_at',
+                    'capacity',
+                    'available_capacity',
+                    'category',
+                    'modality',
+                    'location',
+                    'community',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ]],
+                'links',
+                'meta',
+            ])
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('meta.total', 2)
             ->assertJsonFragment(['code' => 'cancelled'])
             ->assertJsonMissing(['title' => 'Evento ajeno']);
+    }
+
+    public function test_organizer_event_dashboard_rejects_invalid_pagination(): void
+    {
+        $this->seed();
+        $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
+
+        $this->authenticatedGet($organizer, '/api/me/events?per_page=51')
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('per_page');
     }
 
     private function student(): User

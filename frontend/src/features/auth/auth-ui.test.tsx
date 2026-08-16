@@ -1,12 +1,11 @@
-import type { ReactNode } from 'react'
-
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactNode } from 'react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-
 import { AppLayout } from '@/app/layouts/AppLayout'
-import { useAuth, type AuthContextValue } from '@/features/auth/auth-context'
+import { appRoutes } from '@/app/routes'
+import { type AuthContextValue, useAuth } from '@/features/auth/auth-context'
 import { UserMenu } from '@/features/auth/components/UserMenu'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
@@ -64,8 +63,8 @@ function renderAuthPage(page: ReactNode, initialEntry: string) {
   return render(
     <MemoryRouter initialEntries={[initialEntry]}>
       <Routes>
-        <Route path="/login" element={page} />
-        <Route path="/register" element={<RegisterPage />} />
+        <Route path={appRoutes.login} element={page} />
+        <Route path={appRoutes.register} element={<RegisterPage />} />
         <Route path="*" element={<LocationProbe />} />
       </Routes>
     </MemoryRouter>,
@@ -85,7 +84,7 @@ describe('authentication UI', () => {
     const user = userEvent.setup()
     renderAuthPage(
       <LoginPage />,
-      '/login?redirect=%2Fevents%2F7%3Fview%3Ddetails%23registration',
+      `${appRoutes.login}?redirect=${encodeURIComponent(`${appRoutes.eventDetail(7)}?view=details#registration`)}`,
     )
 
     await user.type(
@@ -102,7 +101,7 @@ describe('authentication UI', () => {
       })
     })
     expect(await screen.findByTestId('location')).toHaveTextContent(
-      '/events/7?view=details#registration',
+      `${appRoutes.eventDetail(7)}?view=details#registration`,
     )
   })
 
@@ -111,7 +110,7 @@ describe('authentication UI', () => {
     mockedUseAuth.mockReturnValue(createAuthValue({ login }))
 
     const user = userEvent.setup()
-    renderAuthPage(<LoginPage />, '/login')
+    renderAuthPage(<LoginPage />, appRoutes.login)
 
     await user.type(
       screen.getByLabelText('Correo electrónico'),
@@ -136,7 +135,7 @@ describe('authentication UI', () => {
     mockedUseAuth.mockReturnValue(createAuthValue({ login }))
 
     const user = userEvent.setup()
-    renderAuthPage(<LoginPage />, '/login')
+    renderAuthPage(<LoginPage />, appRoutes.login)
 
     await user.type(
       screen.getByLabelText('Correo electrónico'),
@@ -156,7 +155,7 @@ describe('authentication UI', () => {
     mockedUseAuth.mockReturnValue(createAuthValue({ register }))
 
     const user = userEvent.setup()
-    renderAuthPage(<RegisterPage />, '/register')
+    renderAuthPage(<RegisterPage />, appRoutes.register)
 
     await user.type(screen.getByLabelText('Nombres'), 'Ana')
     await user.type(screen.getByLabelText('Apellidos'), 'Torres')
@@ -230,9 +229,11 @@ describe('authenticated navigation', () => {
   })
 
   it('keeps logout errors visible in the user menu', async () => {
-    const logout = vi.fn().mockRejectedValue(
-      new ApiError(500, { message: 'El servidor no responde.' }),
-    )
+    const logout = vi
+      .fn()
+      .mockRejectedValue(
+        new ApiError(500, { message: 'El servidor no responde.' }),
+      )
     mockedUseAuth.mockReturnValue(
       createAuthValue({
         logout,

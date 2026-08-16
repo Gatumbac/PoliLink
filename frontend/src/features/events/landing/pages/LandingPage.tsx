@@ -1,6 +1,7 @@
 import { ArrowRight, CalendarDays, Search } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
@@ -26,7 +27,7 @@ export function LandingPage() {
           </p>
           <div className="flex flex-wrap gap-3">
             <Button asChild>
-              <Link to="/events">
+              <Link to={appRoutes.events}>
                 Explorar eventos
                 <ArrowRight />
               </Link>
@@ -57,7 +58,7 @@ export function LandingPage() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button asChild className="w-full" variant="secondary">
-              <Link to="/events">
+              <Link to={appRoutes.events}>
                 <Search />
                 Buscar por categoría, fecha o modalidad
               </Link>

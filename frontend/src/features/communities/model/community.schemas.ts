@@ -3,7 +3,7 @@ import { z } from 'zod'
 export const communitySchema = z.object({
   id: z.number(),
   name: z.string(),
-  description: z.string().nullable(),
+  description: z.string().trim().nullable(),
 })
 
 export const communityEnvelopeSchema = z.object({
@@ -15,8 +15,12 @@ export const communityListEnvelopeSchema = z.object({
 })
 
 export const communityCreatePayloadSchema = z.object({
-  name: z.string().min(1),
-  description: z.string().nullable(),
+  name: z
+    .string()
+    .trim()
+    .min(1, 'Ingresa el nombre de la comunidad.')
+    .max(255, 'El nombre no puede superar los 255 caracteres.'),
+  description: z.string().trim().nullable().optional(),
 })
 
 export type Community = z.infer<typeof communitySchema>

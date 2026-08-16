@@ -1,14 +1,14 @@
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { render, screen } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
-
+import { appRoutes } from '@/app/routes'
+import { type AuthContextValue, useAuth } from '@/features/auth/auth-context'
 import {
+  buildLoginRedirect,
   RequireAnonymous,
   RequireAuth,
   RequireRole,
-  buildLoginRedirect,
 } from '@/features/auth/route-guards'
-import { useAuth, type AuthContextValue } from '@/features/auth/auth-context'
 
 vi.mock('@/features/auth/auth-context', () => ({
   useAuth: vi.fn(),
@@ -44,12 +44,12 @@ describe('auth route guards', () => {
   it('builds a login redirect preserving the current location', () => {
     expect(
       buildLoginRedirect({
-        pathname: '/events/7',
+        pathname: appRoutes.eventDetail(7),
         search: '?view=details',
         hash: '#registration',
       }),
     ).toBe(
-      '/login?redirect=%2Fevents%2F7%3Fview%3Ddetails%23registration',
+      `${appRoutes.login}?redirect=%2Feventos%2F7%3Fview%3Ddetails%23registration`,
     )
   })
 
@@ -67,13 +67,13 @@ describe('auth route guards', () => {
               </RequireAuth>
             }
           />
-          <Route path="/login" element={<LocationProbe />} />
+          <Route path={appRoutes.login} element={<LocationProbe />} />
         </Routes>
       </MemoryRouter>,
     )
 
     expect(screen.getByTestId('location')).toHaveTextContent(
-      '/login?redirect=%2Fprivate%3Ftab%3Devents',
+      `${appRoutes.login}?redirect=%2Fprivate%3Ftab%3Devents`,
     )
   })
 
@@ -91,10 +91,10 @@ describe('auth route guards', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={['/login']}>
+      <MemoryRouter initialEntries={[appRoutes.login]}>
         <Routes>
           <Route
-            path="/login"
+            path={appRoutes.login}
             element={
               <RequireAnonymous>
                 <div>login content</div>
@@ -123,12 +123,12 @@ describe('auth route guards', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={['/organizer']}>
+      <MemoryRouter initialEntries={[appRoutes.organizer]}>
         <Routes>
           <Route
-            path="/organizer"
+            path={appRoutes.organizer}
             element={
-              <RequireRole role="organizer">
+              <RequireRole requiredRole="organizer">
                 <div>organizer content</div>
               </RequireRole>
             }
@@ -139,5 +139,60 @@ describe('auth route guards', () => {
     )
 
     expect(screen.getByText('home content')).toBeInTheDocument()
+  })
+
+  it('redirects anonymous users from organizer routes to login', () => {
+    mockedUseAuth.mockReturnValue({ ...defaultAuthValue, status: 'anonymous' })
+
+    render(
+      <MemoryRouter initialEntries={[appRoutes.organizer]}>
+        <Routes>
+          <Route
+            path={appRoutes.organizer}
+            element={
+              <RequireRole requiredRole="organizer">
+                <div>organizer content</div>
+              </RequireRole>
+            }
+          />
+          <Route path={appRoutes.login} element={<LocationProbe />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByTestId('location')).toHaveTextContent(
+      `${appRoutes.login}?redirect=%2Forganizador`,
+    )
+  })
+
+  it('allows organizers to access organizer routes', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 7,
+        first_name: 'Ana',
+        last_name: 'Torres',
+        email: 'ana@espol.edu.ec',
+        roles: [{ code: 'organizer', name: 'Organizer' }],
+      },
+    })
+
+    render(
+      <MemoryRouter initialEntries={[appRoutes.organizer]}>
+        <Routes>
+          <Route
+            path={appRoutes.organizer}
+            element={
+              <RequireRole requiredRole="organizer">
+                <div>organizer content</div>
+              </RequireRole>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('organizer content')).toBeInTheDocument()
   })
 })

@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react'
 import { Navigate, useLocation } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { useAuth } from '@/features/auth/auth-context'
-import { hasRole } from '@/features/auth/model/auth-helpers'
 import type { RoleCode } from '@/features/auth/model/auth.schemas'
+import { hasRole } from '@/features/auth/model/auth-helpers'
 
 type GuardProps = {
   children: ReactNode
@@ -21,7 +22,7 @@ export function buildLoginRedirect(location: RedirectLocation): string {
   const redirect = `${location.pathname}${location.search}${location.hash}`
   const search = new URLSearchParams({ redirect }).toString()
 
-  return `/login?${search}`
+  return `${appRoutes.login}?${search}`
 }
 
 export function RequireAuth({
@@ -61,10 +62,10 @@ export function RequireAnonymous({
 
 export function RequireRole({
   children,
-  role,
+  requiredRole,
   loadingFallback = null,
   errorFallback = null,
-}: GuardProps & { role: RoleCode }) {
+}: GuardProps & { requiredRole: RoleCode }) {
   const { status, user } = useAuth()
   const location = useLocation()
 
@@ -75,7 +76,7 @@ export function RequireRole({
     return <Navigate replace to={buildLoginRedirect(location)} />
   }
 
-  if (!hasRole(user, role)) return <Navigate replace to="/" />
+  if (!hasRole(user, requiredRole)) return <Navigate replace to="/" />
 
   return <>{children}</>
 }

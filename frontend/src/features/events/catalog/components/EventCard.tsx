@@ -1,11 +1,12 @@
 import { ArrowUpRight, CalendarDays, MapPin, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
+import type { Event } from '@/features/events/model/event.schemas'
 import {
   formatEventCapacity,
   formatEventDate,
 } from '@/features/events/model/event-formatters'
-import type { Event } from '@/features/events/model/event.schemas'
 import { Badge } from '@/shared/ui/badge'
 import {
   Card,
@@ -24,7 +25,7 @@ export function EventCard({ event }: EventCardProps) {
     <Link
       aria-label={`Ver detalles de ${event.title}`}
       className="group block h-full rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-      to={`/events/${event.id}`}
+      to={appRoutes.eventDetail(event.id)}
     >
       <Card className="h-full transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:ring-foreground/20">
         <CardHeader className="gap-3">
@@ -42,9 +43,7 @@ export function EventCard({ event }: EventCardProps) {
               className="size-4 shrink-0 text-muted-foreground transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
             />
           </div>
-          <CardTitle className="line-clamp-2 text-lg">
-            {event.title}
-          </CardTitle>
+          <CardTitle className="line-clamp-2 text-lg">{event.title}</CardTitle>
           <CardDescription className="line-clamp-3 min-h-[3.75rem]">
             {event.description ?? 'Consulta los detalles de esta actividad.'}
           </CardDescription>

@@ -1,9 +1,10 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { http, HttpResponse } from 'msw'
 import { render, screen } from '@testing-library/react'
+import { HttpResponse, http } from 'msw'
 import { MemoryRouter, Route, Routes } from 'react-router'
 import { describe, expect, it } from 'vitest'
 
+import { appRoutePatterns, appRoutes } from '@/app/routes'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { server } from '@/test/server'
 
@@ -40,9 +41,12 @@ describe('public event detail', () => {
 
     render(
       <QueryClientProvider client={queryClient}>
-        <MemoryRouter initialEntries={['/events/7']}>
+        <MemoryRouter initialEntries={[appRoutes.eventDetail(7)]}>
           <Routes>
-            <Route element={<EventDetailPage />} path="/events/:eventId" />
+            <Route
+              element={<EventDetailPage />}
+              path={`/${appRoutePatterns.eventDetail}`}
+            />
           </Routes>
         </MemoryRouter>
       </QueryClientProvider>,

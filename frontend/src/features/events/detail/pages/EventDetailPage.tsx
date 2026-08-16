@@ -1,12 +1,8 @@
-import {
-  ArrowLeft,
-  CalendarDays,
-  MapPin,
-  Users,
-} from 'lucide-react'
+import { ArrowLeft, CalendarDays, MapPin, Users } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { usePublicEventDetail } from '@/features/events/catalog/hooks/use-event-queries'
 import {
   formatEventCapacity,
@@ -161,9 +157,7 @@ export function EventDetailPage() {
               <div className="space-y-4 border-t pt-6 text-sm text-muted-foreground">
                 {event.location?.description && (
                   <p>
-                    <span className="font-medium text-foreground">
-                      Lugar:{' '}
-                    </span>
+                    <span className="font-medium text-foreground">Lugar: </span>
                     {event.location.description}
                   </p>
                 )}
@@ -210,7 +204,7 @@ export function EventDetailPage() {
 function BackToCatalog() {
   return (
     <Button asChild className="-ml-2" variant="ghost">
-      <Link to="/events">
+      <Link to={appRoutes.events}>
         <ArrowLeft />
         Volver a eventos
       </Link>
@@ -231,7 +225,7 @@ function EventNotFound() {
             El evento no existe o ya no está publicado.
           </p>
           <Button asChild className="mt-5">
-            <Link to="/events">Explorar eventos</Link>
+            <Link to={appRoutes.events}>Explorar eventos</Link>
           </Button>
         </section>
       </div>

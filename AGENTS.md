@@ -34,6 +34,16 @@ React components use PascalCase; helpers and variables use camelCase.
 Name PHPUnit methods `test_<behavior>`. Add feature coverage for changed API
 rules and authorization paths; no formal frontend coverage threshold is set.
 
+## Language and URL Conventions
+
+Keep source-code identifiers, filenames, comments, and API client methods in
+English. Write user-facing labels, messages, documentation examples shown to
+users, and browser routes in Spanish. For example, use `/eventos` and
+`/iniciar-sesion` for frontend navigation while keeping names such as
+`EventCatalogPage`, `useAuth`, and `eventDetail` in English. Backend API paths
+such as `/api/auth/login` and `/api/events` remain unchanged because they are
+part of the existing contract.
+
 ## Scope, Security, and Documentation
 
 Organizers publish, edit, and cancel events directly; students register and

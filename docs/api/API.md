@@ -217,7 +217,7 @@ de intentos `429`.
 4. Ejecutar register o login, luego `GET /api/auth/me`, `DELETE /api/auth/logout`
    y nuevamente `GET /api/auth/me` para evidenciar el `401` final.
 
-## Onboarding de comunidades — implementado
+## Experiencia del organizador — implementado
 
 Estas rutas requieren una sesión autenticada mediante Sanctum. La identidad se
 obtiene desde la cookie de sesión; el cliente no envía un usuario ni roles.
@@ -227,6 +227,13 @@ obtiene desde la cookie de sesión; el cliente no envía un usuario ni roles.
 | `POST` | `/communities` | Crea una comunidad y convierte al usuario actual en organizador. |
 | `GET` | `/me/communities` | Lista las comunidades administradas por la sesión actual. |
 | `GET` | `/me/events` | Lista sus eventos, incluidos los cancelados. |
+
+La relación de responsabilidad se resuelve mediante `community_organizers`.
+Un organizador solo puede crear, editar, cancelar o administrar imágenes de
+eventos pertenecientes a una comunidad que administra. El backend nunca acepta
+`user_id`, `organizer_id` ni `community_organizer_id` enviados por el cliente.
+
+### Crear una comunidad: `POST /communities`
 
 `POST /api/communities` recibe:
 
@@ -241,10 +248,56 @@ El servidor crea la comunidad, conserva el rol `student`, asigna `organizer` y
 crea la relación de responsabilidad dentro de una sola transacción. Devuelve
 `201`; un nombre repetido o inválido devuelve `422`.
 
+Respuesta:
+
+```json
+{
+  "data": {
+    "id": 2,
+    "name": "Club de Robótica",
+    "description": "Comunidad de robótica de ESPOL."
+  }
+}
+```
+
+### Listar comunidades administradas: `GET /me/communities`
+
+Devuelve un arreglo sin paginación, ordenado por `name` ascendente. Cada
+elemento contiene `id`, `name` y `description`. Si no hay comunidades, la
+respuesta es:
+
+```json
+{ "data": [] }
+```
+
+### Listar eventos administrados: `GET /me/events`
+
 Las rutas `/api/me/communities` y `/api/me/events` devuelven listas vacías si
 el usuario aún no administra ninguna comunidad. Los eventos se ordenan por
 fecha descendente y usan paginación con `per_page=12` por defecto y máximo
-`50`.
+`50`. Acepta `page` y `per_page`; un valor inválido devuelve `422` con errores
+por campo.
+
+La respuesta reutiliza `EventResource`: incluye `image_url` nullable, comunidad,
+catálogo, estado, capacidad y `available_capacity`. Incluye además la metadata
+estándar de paginación (`links` y `meta`) de Laravel. Los eventos `cancelled`
+se conservan para que el organizador pueda distinguir historial y estado, pero
+no aparecen en el catálogo público.
+
+### Estados y errores del flujo del organizador
+
+| Código | Situación |
+| --- | --- |
+| `401` | No existe una sesión Sanctum. |
+| `403` | Falta el rol `organizer` o el usuario no administra la comunidad/evento. |
+| `404` | El recurso solicitado no existe; los detalles públicos cancelados también responden `404`. |
+| `409` | Se intenta editar, cambiar la imagen o cancelar un evento ya cancelado. |
+| `422` | Cuerpo, paginación, catálogo o archivo inválido. |
+
+Los errores `422` mantienen el formato de validación de Laravel con un objeto
+`errors` indexado por nombre de campo. Las operaciones de escritura devuelven
+el recurso actualizado dentro de `data`; la creación de comunidad y evento
+responde `201`, y las actualizaciones responden `200`.
 
 ## Inscripciones autenticadas — implementado
 
