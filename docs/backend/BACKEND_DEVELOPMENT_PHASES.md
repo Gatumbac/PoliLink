@@ -41,11 +41,15 @@ del alcance.
 
 - `GET /communities/discover` busca por nombre y devuelve todas las comunidades
   con paginación.
-- `GET /communities/{community}` devuelve únicamente la información pública de
-  la comunidad.
+- `GET /communities/{community:slug}` devuelve únicamente la información
+  pública de la comunidad y resuelve el perfil mediante `slug`.
 - Los eventos del perfil se cargan con `GET /events?community_id={id}`.
 - `GET /communities` conserva su propósito de alimentar filtros con
   comunidades que tienen eventos publicados.
+
+Los recursos de comunidad incluyen `id`, `name`, `slug`, `description` e
+`image_url`. El frontend usa `slug` para la URL pública y conserva el `id` para
+`community_id`, membresías y administración de imágenes.
 
 ### Fase B — Solicitudes de membresía
 
@@ -75,10 +79,11 @@ de organizador con los contratos backend aprobados.
 **Estado:** implementada en backend.
 
 - `POST /community-creation-requests` recibe nombre, descripción e imagen
-  opcional y deja la propuesta en `pending`.
+  opcional, genera el `slug` y deja la propuesta en `pending`. El cliente no
+  envía el slug.
 - `admin` lista, aprueba o rechaza propuestas; el rechazo exige razón.
 - La aprobación crea una comunidad activa y una membresía `active/organizer`
-  para el solicitante.
+  para el solicitante, conservando el slug de la solicitud.
 - La imagen temporal se mueve de `community-requests/` a `communities/`.
 - No existe todavía un endpoint para desactivar comunidades ni validación
   institucional de pertenencia.

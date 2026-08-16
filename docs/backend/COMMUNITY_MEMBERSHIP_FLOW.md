@@ -12,8 +12,9 @@ comunidades y tener un rol principal distinto en cada una.
 
 - `users` contiene identidad, credenciales e `is_admin`. No existen roles
   globales `student` u `organizer`.
-- `communities` representa clubes y organizaciones; `is_active` controla su
-  visibilidad pública e `image_path` guarda el logo opcional.
+- `communities` representa clubes y organizaciones; `slug` identifica el
+  perfil público, `is_active` controla su visibilidad e `image_path` guarda el
+  logo opcional.
 - `community_creation_requests` conserva las propuestas antes de su aprobación
   y usa el enum `CommunityCreationRequestStatus` con `pending`, `approved` y
   `rejected`. Sus etiquetas en español provienen de `lang/es/statuses.php`.
@@ -41,8 +42,8 @@ El backend ofrece un directorio separado del catálogo de filtros:
 
 - `GET /communities/discover` permite buscar por nombre y pagina comunidades
   activas, incluidas las que aún no tienen eventos.
-- `GET /communities/{community}` devuelve `id`, `name`, `description` e
-  `image_url` sin exponer membresías, usuarios ni roles.
+- `GET /communities/{community:slug}` devuelve `id`, `name`, `slug`,
+  `description` e `image_url` sin exponer membresías, usuarios ni roles.
 - `GET /events?community_id={id}` se reutiliza para cargar los eventos
   publicados del perfil.
 
@@ -83,7 +84,9 @@ membresía agrega contexto y personalización.
 
 ### 2. Revisar el perfil
 
-`/comunidades/:communityId` muestra nombre, descripción y eventos publicados.
+`/comunidades/:slug` muestra nombre, descripción y eventos publicados. El
+frontend debe usar el `slug` recibido en el directorio; el `id` numérico se
+reserva para cargar eventos, solicitar membresía o administrar el logo.
 El CTA depende del estado:
 
 | Estado | Acción visible |
@@ -128,7 +131,8 @@ del contrato actual.
 | `PATCH` | `/admin/community-creation-requests/{request}/approve` | Admin | Crear la comunidad y asignar `active/organizer` al solicitante. |
 | `PATCH` | `/admin/community-creation-requests/{request}/reject` | Admin | Rechazar con una razón. |
 
-La propuesta acepta una imagen opcional. El archivo se guarda temporalmente en
+La propuesta acepta una imagen opcional. El backend genera y devuelve un `slug`
+a partir del nombre; el frontend no lo envía. El archivo se guarda temporalmente en
 `community-requests/`; al aprobarse se mueve a `communities/`. Al aprobar, la
 comunidad se crea activa y el solicitante queda como su organizador. Una
 solicitud procesada no puede revisarse nuevamente. El admin no tiene en esta

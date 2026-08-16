@@ -8,9 +8,11 @@ must not send user, role, or ownership identifiers.
 
 The organizer dashboard now consumes:
 
-- `POST /communities` to create a community. It accepts `name` and an optional
-  `description`, returns `201`, and promotes the authenticated user to
-  organizer in the same transaction.
+- `POST /community-creation-requests` to propose a community. It accepts
+  `name`, an optional `description`, and an optional `image`; it returns `201`
+  with a `pending` request. The backend generates `slug`, so the frontend must
+  not send it. The authenticated user becomes `organizer` only after an admin
+  approves the proposal.
 - `GET /me/communities` to load managed communities. It returns `{ data: [] }`
   when the user has none.
 - `GET /me/events?page=1&per_page=12` to load the organizer’s events. It is
@@ -23,9 +25,11 @@ are `422` with Laravel’s field-level `errors` object.
 
 Authenticated students discover the organization experience from
 `/organizar`, then use the three-step onboarding at `/crear-comunidad` to
-register a new community. Existing organizers use `/mis-comunidades` to see
-their managed communities and start the next management flows. The legacy
-`/organizador` route redirects to `/organizar`.
+submit a pending community proposal. Existing organizers use
+`/mis-comunidades` to see their managed communities and start the next
+management flows. Public community links must use `slug`, while membership,
+image, event filters, and `community_id` operations continue to use numeric
+`id`. The legacy `/organizador` route redirects to `/organizar`.
 
 The option to connect an existing community is shown as a future capability;
 the current frontend does not simulate a membership or representation request.

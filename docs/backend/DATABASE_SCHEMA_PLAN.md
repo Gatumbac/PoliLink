@@ -12,12 +12,61 @@ pertenecen a una membresía concreta.
 | Tabla | Propósito y restricciones |
 | --- | --- |
 | `users` | Identidad, credenciales e `is_admin BOOLEAN NOT NULL DEFAULT FALSE`. `email` es único. |
-| `communities` | Comunidades con `name` único, descripción opcional, `is_active` e `image_path` nullable. |
+| `communities` | Comunidades con `name` y `slug` únicos, descripción opcional, `is_active` e `image_path` nullable. |
 | `community_roles` | Catálogo fijo: `member`, `organizer`, `tutor`; `code` y `name` únicos. |
 | `community_memberships` | Relación única usuario-comunidad con `community_role_id`, `status`, fechas de solicitud/revisión y `reviewed_by`. |
-| `community_creation_requests` | Propuestas de comunidad, imagen temporal/definitiva, solicitante, revisor, estado, razón y comunidad creada. |
+| `community_creation_requests` | Propuestas con `name` y `slug`, imagen temporal/definitiva, solicitante, revisor, estado, razón y comunidad creada. |
 | `events` | Evento relacionado directamente con `community_id`, catálogos, estado, imagen opcional, fecha y capacidad. |
 | `registrations` | Relación `event_id`–`user_id`, estado y fechas; `UNIQUE (event_id, user_id)`. |
+
+### Identificación de comunidades y consumo desde el frontend
+
+Las tablas de comunidades tienen estos campos relevantes:
+
+```text
+communities:
+id, name, slug, description, is_active, image_path, created_at, updated_at
+
+community_creation_requests:
+id, name, slug, description, image_path, requested_by, status,
+reviewed_by, reviewed_at, rejection_reason, community_id, created_at, updated_at
+```
+
+`slug` es un identificador público generado por el backend a partir de
+`name` mediante normalización tipo URL. Es obligatorio, único en
+`communities` y permanece estable aunque después cambie el nombre visible. En
+las solicitudes pendientes también se impide reutilizar el mismo slug; una
+solicitud rechazada no reserva indefinidamente ese identificador.
+
+El frontend debe aplicar estas reglas:
+
+- Usar `slug` para enlaces y perfiles públicos: `GET /api/communities/{slug}`.
+  En la declaración Laravel la ruta aparece como
+  `GET /communities/{community:slug}`; `{community:slug}` no es un texto que
+  se envía literalmente, sino un binding por la columna `slug`.
+- Conservar `id` para operaciones autenticadas y filtros que usan
+  `community_id`: solicitudes de membresía, imágenes de comunidad, creación o
+  edición de eventos y `GET /api/events?community_id={id}`.
+- Esperar `id`, `name`, `slug`, `description` e `image_url` en cada recurso de
+  comunidad. `image_path` es interno del backend y nunca debe construirse en
+  la interfaz.
+- Enviar a `POST /api/community-creation-requests` solamente `name`,
+  `description` e `image` opcional. El cliente no envía `slug`, `status`,
+  `requested_by` ni `community_id`; la respuesta sí incluye el `slug`
+  generado y el estado de la propuesta.
+
+Ejemplo del objeto que puede reutilizarse en tipos, formularios de lectura y
+tarjetas del frontend:
+
+```json
+{
+  "id": 1,
+  "name": "Club de Robótica",
+  "slug": "club-de-robotica",
+  "description": "Comunidad de robótica de ESPOL.",
+  "image_url": null
+}
+```
 
 Los estados inmutables se guardan como enums en la base de datos y se castean a
 enums PHP. Sus nombres visibles en español viven en

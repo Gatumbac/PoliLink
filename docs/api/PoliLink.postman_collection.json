@@ -18,7 +18,9 @@
     { "key": "adminPassword", "value": "admin" },
     { "key": "communityCreationRequestId", "value": "" },
     { "key": "communityId", "value": "1" },
+    { "key": "communitySlug", "value": "taws" },
     { "key": "membershipCommunityId", "value": "1" },
+    { "key": "membershipCommunitySlug", "value": "taws" },
     { "key": "eventCategoryId", "value": "3" },
     { "key": "eventModalityId", "value": "1" },
     { "key": "locationId", "value": "1" },
@@ -61,7 +63,7 @@
             "header": [
               { "key": "Accept", "value": "application/json" }
             ],
-            "url": "{{baseUrl}}/api/communities/{{membershipCommunityId}}"
+            "url": "{{baseUrl}}/api/communities/{{membershipCommunitySlug}}"
           }
         },
         {
@@ -268,7 +270,8 @@
                 "type": "text/javascript",
                 "exec": [
                   "const community = pm.response.json().data?.community;",
-                  "if (community?.id) pm.collectionVariables.set('communityId', String(community.id));"
+                  "if (community?.id) pm.collectionVariables.set('communityId', String(community.id));",
+                  "if (community?.slug) { pm.collectionVariables.set('communitySlug', community.slug); pm.collectionVariables.set('membershipCommunitySlug', community.slug); }"
                 ]
               }
             }

@@ -28,6 +28,53 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 - Las rutas visibles del navegador usan español; los nombres de código se
   mantienen en inglés. Los endpoints `/api/...` conservan el contrato backend.
 
+## Contrato de comunidades para el frontend
+
+El backend devuelve `id` y `slug` en todos los recursos de comunidad. No son
+intercambiables: el `slug` identifica perfiles públicos y el `id` continúa
+identificando relaciones y operaciones autenticadas.
+
+| Caso de uso | Endpoint | Identificador |
+| --- | --- | --- |
+| Listado para filtros del catálogo | `GET /communities` | La respuesta incluye `id` y `slug`. |
+| Directorio y búsqueda | `GET /communities/discover?search=...` | La respuesta incluye `id` y `slug`. |
+| Perfil público | `GET /communities/{slug}` | Sustituir `{slug}` por el valor recibido; la declaración backend es `{community:slug}`. |
+| Eventos de una comunidad | `GET /events?community_id={id}` | Usar el `id` numérico. |
+| Solicitud de membresía | `/communities/{id}/membership-requests` | Usar el `id` numérico. |
+| Logo de una comunidad | `/communities/{id}/image` | Usar el `id` numérico. |
+
+El recurso público de comunidad tiene esta forma:
+
+```ts
+type Community = {
+  id: number
+  name: string
+  slug: string
+  description: string | null
+  image_url: string | null
+}
+```
+
+Para crear una comunidad, el frontend debe reemplazar cualquier uso del
+endpoint antiguo `POST /communities` por
+`POST /community-creation-requests`. El cuerpo acepta `name`,
+`description` e `image` opcional; no se envían `slug`, `status`, `requested_by`
+ni roles. El backend genera el slug y responde con una propuesta `pending`:
+
+```json
+{
+  "name": "Club de Robótica",
+  "description": "Comunidad de robótica de ESPOL.",
+  "image": "logo.png"
+}
+```
+
+La respuesta contiene `id`, `name`, `slug`, `description`, `image_url` y
+`status`. En las consultas de propuestas procesadas, el objeto anidado
+`community` contiene el mismo `slug` que debe usarse para el perfil público.
+El frontend debe actualizar sus esquemas Zod, tipos, mocks, enlaces y claves
+de caché para conservar ambos identificadores.
+
 ## Responsabilidades
 
 | Área | Responsable principal |
@@ -133,8 +180,9 @@ organizador.
 
 #### Fase 3.2 — Comunidades
 
-**Estado:** `Implemented` en código; `Verified` queda pendiente de la
-verificación navegador → Laravel.
+**Estado:** contrato backend implementado; la integración frontend requiere
+actualizarse al flujo de solicitudes y al campo `slug`. `Verified` queda
+pendiente de la verificación navegador → Laravel.
 
 - Consumir `GET /me/communities` y mostrar las comunidades administradas.
 - Implementar el panel separado en `/mis-comunidades` con estado vacío y
@@ -142,6 +190,10 @@ verificación navegador → Laravel.
 - Implementar el onboarding de tres pasos en `/crear-comunidad` para
   `POST /community-creation-requests`, con validación, imagen opcional,
   confirmación y estado `pending`.
+- Mostrar `slug` en el modelo de comunidad y construir los enlaces públicos
+  con `/comunidades/:slug`; no usar el `id` en la URL pública.
+- Mantener el `id` numérico para membresías, imágenes, filtros y
+  `community_id` de eventos.
 - Mostrar el estado de la propuesta y actualizar la navegación únicamente
   después de que un administrador la apruebe; en ese momento el solicitante
   obtiene una membresía `active/organizer`.
