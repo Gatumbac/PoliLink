@@ -129,9 +129,11 @@ Para una explicación conceptual del flujo, consulta
 
 Las últimas cuatro rutas usan el prefijo `/api`. El registro recibe
 `first_name`, `last_name`, `email`, `password` y `password_confirmation`. El
-servidor asigna exclusivamente el rol `student`; no acepta roles enviados por
-el navegador. Login recibe `email` y `password` y aplica un máximo de cinco
-intentos fallidos por minuto para el mismo email e IP.
+email debe terminar exactamente en `@espol.edu.ec` y la contraseña debe
+coincidir con `password_confirmation`. El servidor asigna exclusivamente el
+rol `student`; no acepta roles enviados por el navegador. Login recibe `email`
+y `password`, exige también el dominio `@espol.edu.ec` y aplica un máximo de
+cinco intentos fallidos por minuto para el mismo email e IP.
 
 `GET /auth/me`, `POST /auth/login` y `POST /auth/register` responden:
 
@@ -141,7 +143,7 @@ intentos fallidos por minuto para el mismo email e IP.
     "id": 2,
     "first_name": "Estudiante",
     "last_name": "PoliLink",
-    "email": "student@polilink.test",
+    "email": "student@espol.edu.ec",
     "roles": [{ "code": "student", "name": "Student" }]
   }
 }
@@ -238,7 +240,7 @@ Devuelve únicamente inscripciones `active`, ordenadas por `registered_at`:
         "id": 2,
         "first_name": "Estudiante",
         "last_name": "PoliLink",
-        "email": "student@polilink.test"
+        "email": "student@espol.edu.ec"
       }
     }
   ],

@@ -17,8 +17,8 @@ class DomainModelTest extends TestCase
     {
         $this->seed();
 
-        $organizer = User::query()->where('email', 'organizer@polilink.test')->sole();
-        $student = User::query()->where('email', 'student@polilink.test')->sole();
+        $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
+        $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
         $community = Community::query()->where('name', 'TAWS')->sole();
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
         $registration = Registration::query()->sole();

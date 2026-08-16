@@ -14,8 +14,20 @@ class LoginRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'email' => ['required', 'string', 'email'],
+            'email' => [
+                'required',
+                'string',
+                'email',
+                'regex:/^[^@\s]+@espol\.edu\.ec$/i',
+            ],
             'password' => ['required', 'string'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.regex' => 'Debes usar un correo terminado en @espol.edu.ec.',
         ];
     }
 }

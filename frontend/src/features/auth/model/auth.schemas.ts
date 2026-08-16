@@ -19,13 +19,23 @@ export const authEnvelopeSchema = z.object({
   data: authUserSchema,
 })
 
+export const espolEmailSchema = z
+  .email('Ingresa un correo electrónico válido.')
+  .refine((email) => /^[^@\s]+@espol\.edu\.ec$/i.test(email), {
+    message: 'Debes usar un correo terminado en @espol.edu.ec.',
+  })
+
 export const registerPayloadSchema = z
   .object({
-    first_name: z.string().min(1),
-    last_name: z.string().min(1),
-    email: z.email(),
-    password: z.string().min(8),
-    password_confirmation: z.string().min(8),
+    first_name: z.string().min(1, 'Ingresa tus nombres.'),
+    last_name: z.string().min(1, 'Ingresa tus apellidos.'),
+    email: espolEmailSchema,
+    password: z
+      .string()
+      .min(8, 'La contraseña debe tener al menos 8 caracteres.'),
+    password_confirmation: z
+      .string()
+      .min(8, 'La confirmación debe tener al menos 8 caracteres.'),
   })
   .refine((payload) => payload.password === payload.password_confirmation, {
     message: 'Las contraseñas no coinciden.',
@@ -33,8 +43,8 @@ export const registerPayloadSchema = z
   })
 
 export const loginPayloadSchema = z.object({
-  email: z.email(),
-  password: z.string().min(1),
+  email: espolEmailSchema,
+  password: z.string().min(1, 'Ingresa tu contraseña.'),
 })
 
 export type AuthUser = z.infer<typeof authUserSchema>

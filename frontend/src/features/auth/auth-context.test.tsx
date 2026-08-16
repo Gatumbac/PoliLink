@@ -13,7 +13,7 @@ const authenticatedUser = {
   id: 7,
   first_name: 'Ana',
   last_name: 'Torres',
-  email: 'ana@example.test',
+  email: 'ana@espol.edu.ec',
   roles: [{ code: 'student', name: 'Student' }],
 }
 
@@ -39,7 +39,7 @@ function AuthProbe() {
       <button
         type="button"
         onClick={() =>
-          void login({ email: 'ana@example.test', password: 'password123' })
+          void login({ email: 'ana@espol.edu.ec', password: 'password123' })
         }
       >
         Login
@@ -48,7 +48,7 @@ function AuthProbe() {
         type="button"
         onClick={() =>
           void register({
-            email: 'ana@example.test',
+            email: 'ana@espol.edu.ec',
             first_name: 'Ana',
             last_name: 'Torres',
             password: 'password123',
@@ -117,7 +117,7 @@ describe('AuthProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('status')).toHaveTextContent('authenticated')
       expect(screen.getByTestId('email')).toHaveTextContent(
-        'ana@example.test',
+        'ana@espol.edu.ec',
       )
     })
   })
@@ -168,7 +168,7 @@ describe('AuthProvider', () => {
     await waitFor(() => {
       expect(screen.getByTestId('status')).toHaveTextContent('authenticated')
       expect(screen.getByTestId('email')).toHaveTextContent(
-        'ana@example.test',
+        'ana@espol.edu.ec',
       )
     })
   })

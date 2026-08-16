@@ -52,8 +52,8 @@ solicitudes siguientes usan ese valor.
 - Categoría Hackathon: ID 3.
 - Modalidad presencial: ID 1.
 - Ubicación Campus Gustavo Galindo: ID 1.
-- Usuarios semilla de inscripciones: student@polilink.test y
-  organizer@polilink.test, ambos con password. El estudiante semilla ya tiene
+- Usuarios semilla de inscripciones: student@espol.edu.ec y
+  organizer@espol.edu.ec, ambos con password. El estudiante semilla ya tiene
   una inscripción activa en Hackathon TAWS, por lo que el recorrido de Darwin
   usa un estudiante nuevo para capturar la inscripción `201`.
 

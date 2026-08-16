@@ -74,7 +74,7 @@ Para recrear la base local con datos de prueba:
 
     php artisan migrate:fresh --seed
 
-El seeder crea los usuarios organizer@polilink.test y student@polilink.test, una comunidad, un evento y una inscripción.
+El seeder crea los usuarios organizer@espol.edu.ec y student@espol.edu.ec, una comunidad, un evento y una inscripción.
 
 ## Estado
 

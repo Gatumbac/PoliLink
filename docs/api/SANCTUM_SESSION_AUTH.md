@@ -37,10 +37,12 @@ POST /api/auth/login       { email, password }
 GET  /api/auth/me
 ```
 
-El registro usa el mismo proceso con `POST /api/auth/register`. Después del
-login o registro, `GET /api/auth/me` confirma la sesión y devuelve el usuario
-y sus roles. El backend asigna `student` durante el registro; el cliente no
-envía roles para decidir permisos.
+El registro usa el mismo proceso con `POST /api/auth/register`. Solo se
+aceptan correos que terminen exactamente en `@espol.edu.ec`, tanto al registrar
+como al iniciar sesión. `password_confirmation` debe coincidir con `password`.
+Después del login o registro, `GET /api/auth/me` confirma la sesión y devuelve
+el usuario y sus roles. El backend asigna `student` durante el registro; el
+cliente no envía roles para decidir permisos.
 
 ## Solicitud protegida de ejemplo
 

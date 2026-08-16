@@ -81,7 +81,7 @@ class CommunityOnboardingApiTest extends TestCase
     public function test_dashboard_lists_only_own_events_including_cancelled_events(): void
     {
         $this->seed();
-        $organizer = User::query()->where('email', 'organizer@polilink.test')->sole();
+        $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
 
         Event::factory()->create([
@@ -117,7 +117,7 @@ class CommunityOnboardingApiTest extends TestCase
 
     private function student(): User
     {
-        return User::query()->where('email', 'student@polilink.test')->sole();
+        return User::query()->where('email', 'student@espol.edu.ec')->sole();
     }
 
     private function authenticatedGet(User $user, string $uri)

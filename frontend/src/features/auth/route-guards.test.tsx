@@ -85,7 +85,7 @@ describe('auth route guards', () => {
         id: 7,
         first_name: 'Ana',
         last_name: 'Torres',
-        email: 'ana@example.test',
+        email: 'ana@espol.edu.ec',
         roles: [{ code: 'student', name: 'Student' }],
       },
     })
@@ -117,7 +117,7 @@ describe('auth route guards', () => {
         id: 7,
         first_name: 'Ana',
         last_name: 'Torres',
-        email: 'ana@example.test',
+        email: 'ana@espol.edu.ec',
         roles: [{ code: 'student', name: 'Student' }],
       },
     })

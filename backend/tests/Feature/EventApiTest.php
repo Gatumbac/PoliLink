@@ -74,7 +74,7 @@ class EventApiTest extends TestCase
     public function test_event_creation_requires_authentication_and_a_managed_community(): void
     {
         $this->seed();
-        $student = User::query()->where('email', 'student@polilink.test')->sole();
+        $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
         $organizer = $this->organizer();
         $unmanagedCommunity = Community::factory()->create();
 
@@ -147,7 +147,7 @@ class EventApiTest extends TestCase
 
     private function organizer(): User
     {
-        return User::query()->where('email', 'organizer@polilink.test')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 
     private function seededEvent(): Event

@@ -40,7 +40,7 @@ class RegistrationApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $newStudent = $this->createStudent('new-student@polilink.test');
+        $newStudent = $this->createStudent('new-student@espol.edu.ec');
 
         $response = $this->authenticatedPost($newStudent, "/api/events/{$event->id}/registrations");
 
@@ -70,7 +70,7 @@ class RegistrationApiTest extends TestCase
         $event->update([
             'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
         ]);
-        $newStudent = $this->createStudent('late-student@polilink.test');
+        $newStudent = $this->createStudent('late-student@espol.edu.ec');
 
         $this->authenticatedPost($newStudent, "/api/events/{$event->id}/registrations")->assertConflict();
     }
@@ -80,7 +80,7 @@ class RegistrationApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         $event->update(['capacity' => 1]);
-        $secondStudent = $this->createStudent('second-student@polilink.test');
+        $secondStudent = $this->createStudent('second-student@espol.edu.ec');
 
         $this->authenticatedPost($secondStudent, "/api/events/{$event->id}/registrations")->assertConflict();
     }
@@ -108,7 +108,7 @@ class RegistrationApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $newStudent = $this->createStudent('unregistered-student@polilink.test');
+        $newStudent = $this->createStudent('unregistered-student@espol.edu.ec');
 
         $this->authenticatedDelete($newStudent, "/api/events/{$event->id}/registrations")->assertNotFound();
     }
@@ -144,7 +144,7 @@ class RegistrationApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.student.email', 'student@polilink.test')
+            ->assertJsonPath('data.0.student.email', 'student@espol.edu.ec')
             ->assertJsonPath('summary.capacity', 50)
             ->assertJsonPath('summary.active_registrations', 1)
             ->assertJsonPath('summary.available_capacity', 49);
@@ -178,12 +178,12 @@ class RegistrationApiTest extends TestCase
 
     private function organizer(): User
     {
-        return User::query()->where('email', 'organizer@polilink.test')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 
     private function student(): User
     {
-        return User::query()->where('email', 'student@polilink.test')->sole();
+        return User::query()->where('email', 'student@espol.edu.ec')->sole();
     }
 
     private function seededEvent(): Event

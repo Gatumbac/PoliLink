@@ -3,3 +3,42 @@ import type { AuthUser, RoleCode } from '@/features/auth/model/auth.schemas'
 export function hasRole(user: AuthUser | null, role: RoleCode): boolean {
   return user?.roles.some((assignedRole) => assignedRole.code === role) ?? false
 }
+
+export function getUserDisplayName(user: AuthUser): string {
+  return `${user.first_name} ${user.last_name}`.trim()
+}
+
+export function getRoleLabel(role: RoleCode): string {
+  return role === 'organizer' ? 'Organizador' : 'Estudiante'
+}
+
+export function getSafeRedirect(value: string | null | undefined): string {
+  if (!value || !value.startsWith('/') || value.startsWith('//')) return '/'
+
+  try {
+    const candidate = new URL(value, 'http://polilink.local')
+
+    if (
+      candidate.origin !== 'http://polilink.local' ||
+      candidate.pathname === '/login' ||
+      candidate.pathname === '/register'
+    ) {
+      return '/'
+    }
+
+    return `${candidate.pathname}${candidate.search}${candidate.hash}`
+  } catch {
+    return '/'
+  }
+}
+
+export function buildAuthPath(
+  path: '/login' | '/register',
+  redirect: string | null | undefined,
+): string {
+  const safeRedirect = getSafeRedirect(redirect)
+
+  if (safeRedirect === '/') return path
+
+  return `${path}?${new URLSearchParams({ redirect: safeRedirect }).toString()}`
+}

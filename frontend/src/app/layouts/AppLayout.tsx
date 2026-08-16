@@ -1,8 +1,13 @@
 import { Link, Outlet } from 'react-router'
 
+import { useAuth } from '@/features/auth/auth-context'
+import { UserMenu } from '@/features/auth/components/UserMenu'
+import { Button } from '@/shared/ui/button'
 import { ThemeToggle } from '@/shared/ui/theme-toggle'
 
 export function AppLayout() {
+  const { status } = useAuth()
+
   return (
     <div className="min-h-screen bg-background">
       <header className="border-b border-border/80 bg-background/95">
@@ -15,11 +20,25 @@ export function AppLayout() {
           </Link>
           <nav
             aria-label="Navegación principal"
-            className="flex items-center gap-6 text-sm text-muted-foreground"
+            className="flex items-center gap-2 text-sm text-muted-foreground sm:gap-4"
           >
-            <Link className="transition-colors hover:text-foreground" to="/">
+            <Link
+              className="mr-2 hidden transition-colors hover:text-foreground sm:inline"
+              to="/"
+            >
               Eventos
             </Link>
+            {(status === 'anonymous' || status === 'error') && (
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link to="/login">Iniciar sesión</Link>
+                </Button>
+                <Button asChild size="sm">
+                  <Link to="/register">Crear cuenta</Link>
+                </Button>
+              </>
+            )}
+            {status === 'authenticated' && <UserMenu />}
             <ThemeToggle />
           </nav>
         </div>

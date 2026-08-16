@@ -73,8 +73,8 @@ class DatabaseSchemaTest extends TestCase
 
     public function test_registration_is_unique_per_event_and_student(): void
     {
-        $studentId = $this->createUser('student@polilink.test');
-        $organizerId = $this->createUser('organizer@polilink.test');
+        $studentId = $this->createUser('student@espol.edu.ec');
+        $organizerId = $this->createUser('organizer@espol.edu.ec');
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
             'created_at' => now(),
@@ -142,7 +142,7 @@ class DatabaseSchemaTest extends TestCase
         ]);
     }
 
-    private function createUser(string $email = 'user@polilink.test'): int
+    private function createUser(string $email = 'user@espol.edu.ec'): int
     {
         return DB::table('users')->insertGetId([
             'first_name' => 'Usuario',

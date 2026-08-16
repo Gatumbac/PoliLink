@@ -22,7 +22,7 @@ class PoliLinkDemoSeeder extends Seeder
     public function run(): void
     {
         $organizer = User::query()->updateOrCreate(
-            ['email' => 'organizer@polilink.test'],
+            ['email' => 'organizer@espol.edu.ec'],
             [
                 'first_name' => 'Organizador',
                 'last_name' => 'PoliLink',
@@ -31,7 +31,7 @@ class PoliLinkDemoSeeder extends Seeder
             ],
         );
         $student = User::query()->updateOrCreate(
-            ['email' => 'student@polilink.test'],
+            ['email' => 'student@espol.edu.ec'],
             [
                 'first_name' => 'Estudiante',
                 'last_name' => 'PoliLink',

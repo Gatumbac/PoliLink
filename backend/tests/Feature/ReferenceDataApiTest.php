@@ -64,6 +64,6 @@ class ReferenceDataApiTest extends TestCase
 
     private function organizer()
     {
-        return \App\Models\User::query()->where('email', 'organizer@polilink.test')->sole();
+        return \App\Models\User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 }

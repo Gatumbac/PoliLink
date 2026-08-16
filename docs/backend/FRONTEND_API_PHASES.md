@@ -1,6 +1,7 @@
 # Fases de integración del frontend de PoliLink
 
-**Estado:** hoja de ruta de integración.  
+**Estado:** integración incremental; la Fase 1 de autenticación visual está
+implementada en código, pero aún requiere verificación con servicios locales.  
 **Documento canónico:** este archivo describe el trabajo pendiente para
 conectar React con la API Laravel. Los detalles exactos de cuerpos, respuestas
 y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
@@ -9,16 +10,18 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 
 - El backend tiene en código autenticación local con Sanctum, comunidades,
   catálogo, gestión de eventos e inscripciones.
-- El frontend es un scaffold inicial: `frontend/src/App.tsx` muestra una
-  pantalla estática y `frontend/src/lib/api.ts` contiene solo helpers parciales
-  de autenticación, comunidades y dashboard.
-- Todavía no existe una integración completa de pantallas, navegación, estados
-  de carga/error ni recorridos de usuario en React.
+- El frontend ya tiene router, shell visual, cliente HTTP, estado de sesión y
+  una primera experiencia de autenticación en `frontend/src/features/auth/`.
+- Existen las rutas `/login` y `/register`, formularios con React Hook Form y
+  Zod, redirecciones internas seguras, manejo de errores de Laravel, logout y
+  menú de usuario según sesión/rol.
+- Todavía no existe una integración completa del catálogo, detalle,
+  organizador, inscripciones ni de todos los estados de sus recorridos.
 - La verificación en ambiente real con MySQL, Laravel y Vite debe registrarse
   por separado; la existencia de código o documentación no la reemplaza.
-- Por lo tanto, las fases de integración frontend permanecen pendientes hasta
-  que sus pantallas y recorridos funcionen; una API marcada como implementada
-  no significa que la experiencia React esté terminada.
+- Por lo tanto, las fases restantes de integración frontend permanecen
+  pendientes hasta que sus pantallas y recorridos funcionen; una API marcada
+  como implementada no significa que la experiencia React esté terminada.
 
 ## Responsabilidades
 
@@ -48,15 +51,23 @@ terminada una API cuando aún no existe una pantalla integrada.
 
 ### Fase 1 — Fundación compartida y sesión
 
-**Estado actual:** `In progress`. La integración no visual con Laravel Sanctum
-ya está preparada en React: cliente con cookies y CSRF, errores tipados, estado
-de sesión, mutaciones de autenticación y guards reutilizables. Las pantallas de
-login/registro, el menú de sesión y la verificación navegador → Laravel quedan
-para el siguiente trabajo de interfaz.
+**Estado actual:** `Implemented` para la interfaz y la integración preparada;
+`Verified` queda pendiente para la ejecución navegador → Laravel.
 
-Definir la estructura general de la SPA, navegación, estilos compartidos,
-cliente HTTP, sesión Sanctum, registro/login/logout, roles y manejo común de
-carga, errores y sesión expirada.
+Ya están implementados el cliente con cookies y CSRF, errores tipados, estado de
+sesión, mutaciones de login/registro/logout, guards reutilizables, las pantallas
+`/login` y `/register`, validación de correos `@espol.edu.ec`, confirmación de
+contraseña, redirecciones internas seguras y el menú de sesión del encabezado.
+La prueba con MySQL, Laravel y Vite debe registrarse por separado;
+la existencia de estos componentes no la reemplaza.
+
+La navegación hacia las pantallas protegidas de catálogo, organizador e
+inscripciones se completará en las fases de sus respectivos dominios.
+
+La fundación de la SPA cubre la estructura general, navegación, estilos
+compartidos, cliente HTTP, sesión Sanctum, registro/login/logout, roles y
+manejo común de carga, errores y sesión expirada. La verificación de estos
+recorridos con los servicios locales queda pendiente.
 
 ### Fase 2 — Descubrimiento público
 

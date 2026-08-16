@@ -11,7 +11,7 @@
     { "key": "email", "value": "gatumbac@espol.edu.ec" },
     { "key": "firstName", "value": "Gabriel" },
     { "key": "lastName", "value": "Tumbaco" },
-    { "key": "newStudentEmail", "value": "cambia-este-correo@example.test" },
+    { "key": "newStudentEmail", "value": "cambia-este-correo@espol.edu.ec" },
     { "key": "newCommunityName", "value": "Comunidad Gabriel Agosto" },
     { "key": "password", "value": "password" },
     { "key": "communityId", "value": "1" },
@@ -19,7 +19,7 @@
     { "key": "eventModalityId", "value": "1" },
     { "key": "locationId", "value": "1" },
     { "key": "eventId", "value": "1" },
-    { "key": "organizerEmail", "value": "organizer@polilink.test" },
+    { "key": "organizerEmail", "value": "organizer@espol.edu.ec" },
     { "key": "registrationEventId", "value": "" }
   ],
   "event": [],
