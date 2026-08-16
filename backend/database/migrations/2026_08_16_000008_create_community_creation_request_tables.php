@@ -11,6 +11,7 @@ return new class extends Migration
         Schema::create('community_creation_requests', function (Blueprint $table): void {
             $table->id();
             $table->string('name');
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->string('image_path')->nullable();
             $table->foreignId('requested_by')->constrained('users')->restrictOnDelete();

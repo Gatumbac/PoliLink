@@ -18,4 +18,3 @@ class HealthTest extends TestCase
             ]);
     }
 }
-
