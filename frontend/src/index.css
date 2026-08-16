@@ -9,8 +9,9 @@
   font-family:
     "Camera Plain Variable", "Inter Variable", ui-sans-serif, system-ui,
     -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  color: #1c1c1c;
-  background: #f7f4ed;
+  color: var(--foreground);
+  background: var(--background);
+  color-scheme: light;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   --background: #f7f4ed;
@@ -105,37 +106,39 @@ body {
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 10%);
-  --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.87 0 0);
-  --chart-2: oklch(0.556 0 0);
-  --chart-3: oklch(0.439 0 0);
-  --chart-4: oklch(0.371 0 0);
-  --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  color-scheme: dark;
+  --background: #1c1c1c;
+  --foreground: #f7f4ed;
+  --card: #242422;
+  --card-foreground: #f7f4ed;
+  --popover: #292826;
+  --popover-foreground: #f7f4ed;
+  --primary: #f7f4ed;
+  --primary-foreground: #1c1c1c;
+  --secondary: #33322f;
+  --secondary-foreground: #f7f4ed;
+  --muted: rgba(247, 244, 237, 0.08);
+  --muted-foreground: #c4c0b7;
+  --accent: rgba(247, 244, 237, 0.08);
+  --accent-foreground: #f7f4ed;
+  --destructive: #ef8f83;
+  --destructive-foreground: #1c1c1c;
+  --border: rgba(247, 244, 237, 0.14);
+  --input: rgba(247, 244, 237, 0.18);
+  --ring: rgba(96, 165, 250, 0.65);
+  --chart-1: #f7f4ed;
+  --chart-2: #c4c0b7;
+  --chart-3: rgba(247, 244, 237, 0.4);
+  --chart-4: rgba(247, 244, 237, 0.2);
+  --chart-5: rgba(247, 244, 237, 0.08);
+  --sidebar: #242422;
+  --sidebar-foreground: #f7f4ed;
+  --sidebar-primary: #f7f4ed;
+  --sidebar-primary-foreground: #1c1c1c;
+  --sidebar-accent: rgba(247, 244, 237, 0.08);
+  --sidebar-accent-foreground: #f7f4ed;
+  --sidebar-border: rgba(247, 244, 237, 0.14);
+  --sidebar-ring: rgba(96, 165, 250, 0.65);
 }
 
 @layer base {

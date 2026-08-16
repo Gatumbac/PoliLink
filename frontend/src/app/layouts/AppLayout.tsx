@@ -1,5 +1,7 @@
 import { Link, Outlet } from 'react-router'
 
+import { ThemeToggle } from '@/shared/ui/theme-toggle'
+
 export function AppLayout() {
   return (
     <div className="min-h-screen bg-background">
@@ -18,6 +20,7 @@ export function AppLayout() {
             <Link className="transition-colors hover:text-foreground" to="/">
               Eventos
             </Link>
+            <ThemeToggle />
           </nav>
         </div>
       </header>
