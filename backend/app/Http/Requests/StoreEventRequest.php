@@ -15,7 +15,11 @@ class StoreEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'community_id' => ['required', 'integer', 'exists:communities,id'],
+            'community_id' => [
+                'required',
+                'integer',
+                Rule::exists('communities', 'id')->where('is_active', true),
+            ],
             'event_category_id' => [
                 'required',
                 'integer',

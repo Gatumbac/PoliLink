@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\PublicImageStorageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +14,7 @@ class CommunityResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'description' => $this->description,
+            'image_url' => app(PublicImageStorageService::class)->url($this->image_path),
         ];
     }
 }

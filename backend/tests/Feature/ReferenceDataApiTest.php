@@ -42,7 +42,10 @@ class ReferenceDataApiTest extends TestCase
     public function test_communities_endpoint_includes_only_communities_with_published_events(): void
     {
         $this->seed();
-        $hiddenCommunity = Community::factory()->create(['name' => 'Comunidad sin publicación']);
+        $hiddenCommunity = Community::factory()->create([
+            'name' => 'Comunidad inactiva',
+            'is_active' => false,
+        ]);
         $organizer = $this->organizer();
         CommunityMembership::factory()->create([
             'community_id' => $hiddenCommunity->id,
@@ -57,14 +60,14 @@ class ReferenceDataApiTest extends TestCase
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'event_status_id' => EventStatus::query()->where('code', 'published')->sole()->id,
         ]);
 
         $this->getJson('/api/communities')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'TAWS')
-            ->assertJsonStructure(['data' => [['id', 'name', 'description']]]);
+            ->assertJsonStructure(['data' => [['id', 'name', 'description', 'image_url']]]);
     }
 
     private function organizer()

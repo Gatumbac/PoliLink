@@ -1,6 +1,7 @@
 # Flujo de comunidades y membresías
 
-**Estado:** esquema base implementado; endpoints y pantallas de membresías
+**Estado:** esquema base, directorio público, membresías propias y aprobación
+administrativa de comunidades implementados; las pantallas frontend siguen
 pendientes.
 
 Este flujo separa la cuenta global, la administración del sistema y la
@@ -11,7 +12,11 @@ comunidades y tener un rol principal distinto en cada una.
 
 - `users` contiene identidad, credenciales e `is_admin`. No existen roles
   globales `student` u `organizer`.
-- `communities` representa clubes y organizaciones.
+- `communities` representa clubes y organizaciones; `is_active` controla su
+  visibilidad pública e `image_path` guarda el logo opcional.
+- `community_creation_requests` conserva las propuestas antes de su aprobación
+  y `community_creation_request_statuses` usa `pending`, `approved` y
+  `rejected`.
 - `community_memberships` relaciona de forma única a un usuario con una
   comunidad y conserva su rol y estado.
 - Los roles comunitarios son `member`, `organizer` y `tutor`.
@@ -25,8 +30,46 @@ cancelar y administrar imágenes de eventos de esa comunidad. `tutor` es una
 etiqueta para identificar al profesor tutor y no concede permisos de escritura.
 Los profesores de apoyo pueden permanecer como `member`.
 
-`is_admin` solo concede administración global de catálogos. No convierte a una
-persona en organizador de ninguna comunidad automáticamente.
+`is_admin` concede administración global de catálogos y revisión de propuestas
+de creación. No convierte a una persona en organizador de ninguna comunidad
+automáticamente.
+
+## Directorio público — implementado
+
+El backend ofrece un directorio separado del catálogo de filtros:
+
+- `GET /communities/discover` permite buscar por nombre y pagina comunidades
+  activas, incluidas las que aún no tienen eventos.
+- `GET /communities/{community}` devuelve `id`, `name`, `description` e
+  `image_url` sin exponer membresías, usuarios ni roles.
+- `GET /events?community_id={id}` se reutiliza para cargar los eventos
+  publicados del perfil.
+
+`GET /communities` conserva su contrato anterior y solo devuelve comunidades
+  con eventos publicados para los filtros del catálogo.
+
+## Solicitudes propias — implementado
+
+El usuario autenticado puede solicitar una membresía sin enviar su identidad,
+rol ni estado. El backend siempre crea o reactiva una relación `pending/member`.
+
+| Estado actual | Resultado de `POST` |
+| --- | --- |
+| Sin fila | Crea `pending/member` y responde `201`. |
+| `pending` | Rechaza la duplicación con `409`. |
+| `active` | Rechaza la duplicación con `409`, sin importar el rol. |
+| `rejected` o `left` | Reutiliza la fila como `pending/member` y responde `200`. |
+
+La reactivación actualiza `requested_at` y limpia la información de revisión.
+
+`DELETE /communities/{community}/membership-requests` cambia a `left` una
+solicitud `pending` o una membresía activa `member`/`tutor`. No borra datos.
+Un `organizer` activo no puede abandonar todavía porque aún no existe la
+transferencia de responsabilidad.
+
+`GET /me/memberships` devuelve todas las membresías del usuario actual,
+incluidos `pending`, `active`, `rejected` y `left`, ordenadas por nombre de
+comunidad y paginadas.
 
 ## Experiencia propuesta
 
@@ -71,42 +114,50 @@ comunidades administradas debe permanecer en `/organizar` o
 para comunidades administradas; la migración de esa pantalla pertenece a la
 integración frontend de esta fase.
 
-## Contrato API futuro
+## Aprobación administrativa de comunidades — implementada
 
-Estos endpoints siguen pendientes; la migración de base no los implementa.
-Los paths del backend conservan el idioma inglés del contrato actual.
+La creación ya no es directa. Los paths del backend conservan el idioma inglés
+del contrato actual.
 
-| Método | Endpoint propuesto | Actor | Propósito |
+| Método | Endpoint | Actor | Propósito |
 | --- | --- | --- | --- |
-| `GET` | `/communities/discover?search=ciap` | Público | Buscar comunidades existentes. |
-| `GET` | `/communities/{community}` | Público | Consultar el perfil y eventos publicados. |
-| `POST` | `/communities/{community}/membership-requests` | Usuario autenticado | Crear o reactivar una solicitud propia. |
-| `DELETE` | `/communities/{community}/membership-requests` | Usuario autenticado | Cancelar solicitud o abandonar la comunidad. |
-| `GET` | `/communities/{community}/membership-requests` | Organizer activo | Listar solicitudes pendientes. |
-| `PATCH` | `/communities/{community}/membership-requests/{membership}` | Organizer activo | Aprobar, rechazar o asignar el rol permitido. |
-| `GET` | `/me/memberships` | Usuario autenticado | Listar membresías propias. |
+| `POST` | `/community-creation-requests` | Usuario autenticado | Crear una propuesta `pending`. |
+| `GET` | `/me/community-creation-requests` | Usuario autenticado | Consultar sus propuestas. |
+| `GET` | `/admin/community-creation-requests` | Admin | Listar propuestas para revisión. |
+| `PATCH` | `/admin/community-creation-requests/{request}/approve` | Admin | Crear la comunidad y asignar `active/organizer` al solicitante. |
+| `PATCH` | `/admin/community-creation-requests/{request}/reject` | Admin | Rechazar con una razón. |
+
+La propuesta acepta una imagen opcional. El archivo se guarda temporalmente en
+`community-requests/`; al aprobarse se mueve a `communities/`. Al aprobar, la
+comunidad se crea activa y el solicitante queda como su organizador. Una
+solicitud procesada no puede revisarse nuevamente. El admin no tiene en esta
+fase un endpoint para desactivar comunidades.
+
+El organizador activo puede reemplazar o quitar el logo de su comunidad con:
+
+- `POST /communities/{community}/image`
+- `DELETE /communities/{community}/image`
+
+Ambos endpoints usan el disco público del backend y exponen `image_url`. Las
+imágenes aceptan JPEG, PNG o WebP de máximo 5 MB.
 
 El endpoint existente `GET /communities` conserva su propósito de alimentar los
 filtros con comunidades que tienen eventos publicados.
 
 ## Creación de comunidades
 
-La creación directa actual permite a un usuario autenticado crear una
-comunidad y recibir una membresía `active/organizer`. Esto no prueba que la
-persona represente oficialmente a una organización.
-
-Una futura `community_creation_request` requeriría decidir quién revisa la
-propuesta. Esa tabla y su aprobación permanecen fuera de esta implementación;
-no existe integración institucional para verificar pertenencia a CIAP u otra
-comunidad.
+Un usuario autenticado propone una comunidad, pero no obtiene permisos ni crea
+un registro público hasta que un administrador la aprueba. Este control no
+pretende validar pertenencia institucional: la plataforma todavía no tiene una
+fuente autorizada para verificar CIAP u otra organización.
 
 ## Fases siguientes
 
-1. Directorio y perfiles públicos.
-2. Solicitudes y estados de membresía.
-3. Bandeja de aprobación para organizadores.
+1. Integración frontend del directorio, perfiles y logos.
+2. Integración frontend de solicitudes y estados de membresía.
+3. Panel frontend para revisar propuestas administrativas.
 4. Asignación de `tutor` por un organizador y espacio de membresías.
-5. Política separada para proponer nuevas comunidades.
+5. Moderación futura de comunidades, si se aprueba ese alcance.
 
 La base actual ya soporta la relación normalizada; las fases pendientes deben
 agregar sus APIs y policies sin volver a crear `community_organizers` ni roles

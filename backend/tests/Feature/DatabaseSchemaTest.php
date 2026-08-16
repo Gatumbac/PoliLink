@@ -18,6 +18,7 @@ class DatabaseSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
         $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
         $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('communities', ['is_active', 'image_path']));
         $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path']));
         $this->assertTrue(Schema::hasColumns('registrations', ['user_id']));
 
@@ -26,6 +27,8 @@ class DatabaseSchemaTest extends TestCase
             'community_roles',
             'membership_statuses',
             'community_memberships',
+            'community_creation_request_statuses',
+            'community_creation_requests',
             'event_categories',
             'event_modalities',
             'locations',

@@ -15,6 +15,8 @@ class CommunityFactory extends Factory
         return [
             'name' => fake()->unique()->company(),
             'description' => fake()->paragraph(),
+            'is_active' => true,
+            'image_path' => null,
         ];
     }
 }

@@ -7,10 +7,17 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
-#[Fillable(['name', 'description'])]
+#[Fillable(['name', 'description', 'is_active', 'image_path'])]
 class Community extends Model
 {
     use HasFactory;
+
+    protected function casts(): array
+    {
+        return [
+            'is_active' => 'boolean',
+        ];
+    }
 
     public function memberships(): HasMany
     {
@@ -20,5 +27,10 @@ class Community extends Model
     public function events(): HasMany
     {
         return $this->hasMany(Event::class);
+    }
+
+    public function creationRequests(): HasMany
+    {
+        return $this->hasMany(CommunityCreationRequest::class);
     }
 }

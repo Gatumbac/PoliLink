@@ -32,6 +32,7 @@ class EventController extends Controller
 
         $events = Event::query()
             ->whereHas('status', fn ($query) => $query->where('code', 'published'))
+            ->whereHas('community', fn ($query) => $query->where('is_active', true))
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($query) use ($search) {
                     $query->where('title', 'like', "%{$search}%")
@@ -49,7 +50,7 @@ class EventController extends Controller
             ))
             ->when($filters['community_id'] ?? null, fn ($query, int $communityId) => $query->whereHas(
                 'community',
-                fn ($query) => $query->whereKey($communityId),
+                fn ($query) => $query->whereKey($communityId)->where('is_active', true),
             ))
             ->with($this->eventRelations())
             ->withCount('activeRegistrations')
@@ -63,6 +64,7 @@ class EventController extends Controller
     public function show(Event $event): EventResource
     {
         abort_unless($event->status()->where('code', 'published')->exists(), Response::HTTP_NOT_FOUND);
+        abort_unless($event->community()->where('is_active', true)->exists(), Response::HTTP_NOT_FOUND);
 
         return new EventResource($this->loadEvent($event));
     }

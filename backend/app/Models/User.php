@@ -37,6 +37,11 @@ class User extends Authenticatable
         return $this->hasMany(CommunityMembership::class);
     }
 
+    public function communityCreationRequests(): HasMany
+    {
+        return $this->hasMany(CommunityCreationRequest::class, 'requested_by');
+    }
+
     public function managedMemberships(): HasMany
     {
         return $this->memberships()

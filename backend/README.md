@@ -67,7 +67,10 @@ backend/
 Las tablas principales son:
 
 - users: cuentas locales con el indicador global `is_admin`.
-- communities: clubes u organizaciones responsables de eventos.
+- communities: clubes u organizaciones responsables de eventos, con estado
+  `is_active` y logo opcional.
+- community_creation_requests: propuestas pendientes de aprobación de un
+  administrador; al aprobarse crean la comunidad y el organizer inicial.
 - community_memberships: relación única entre un usuario y una comunidad, con
   rol `member`, `organizer` o `tutor` y estado de membresía.
 - events: información, capacidad, modalidad, estado e imagen de portada
@@ -81,13 +84,14 @@ Para recrear la base local con datos de prueba:
 
 El seeder crea los usuarios organizer@espol.edu.ec, student@espol.edu.ec y
 admin@espol.edu.ec, asigna una membresía de organizador y otra de miembro,
-además de una comunidad, un evento y una inscripción. La cuenta demo de
-administración usa la contraseña `admin`.
+además de una comunidad, una propuesta pendiente, un evento y una inscripción.
+La cuenta demo de administración usa la contraseña `admin`.
 
 ## Estado
 
 Están implementados los modelos, migraciones, catálogos, gestión de eventos,
-panel temporal y autenticado de organizador, onboarding de comunidades y
+panel temporal y autenticado de organizador, propuestas y aprobación
+administrativa de comunidades, imágenes de comunidades y
 autenticación local con Laravel Sanctum. También están implementadas las
 inscripciones autenticadas: registrar, cancelar y reactivar una inscripción,
 validar cupos y duplicados, consultar inscritos como organizador responsable y

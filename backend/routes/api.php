@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\CatalogAdminController;
-use App\Http\Controllers\CommunityController;
+use App\Http\Controllers\CommunityCreationRequestController;
+use App\Http\Controllers\CommunityDirectoryController;
+use App\Http\Controllers\CommunityImageController;
+use App\Http\Controllers\CommunityMembershipController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\EventController;
 use App\Http\Controllers\ReferenceDataController;
@@ -26,7 +29,13 @@ Route::prefix('auth')->group(function () {
 });
 
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('/communities', [CommunityController::class, 'store']);
+    Route::post('/community-creation-requests', [CommunityCreationRequestController::class, 'store']);
+    Route::get('/me/community-creation-requests', [CommunityCreationRequestController::class, 'mine']);
+    Route::post('/communities/{community}/membership-requests', [CommunityMembershipController::class, 'store']);
+    Route::delete('/communities/{community}/membership-requests', [CommunityMembershipController::class, 'destroy']);
+    Route::post('/communities/{community}/image', [CommunityImageController::class, 'store']);
+    Route::delete('/communities/{community}/image', [CommunityImageController::class, 'remove']);
+    Route::get('/me/memberships', [CommunityMembershipController::class, 'mine']);
     Route::get('/me/communities', [DashboardController::class, 'communities']);
     Route::get('/me/events', [DashboardController::class, 'events']);
     Route::post('/events', [EventController::class, 'store']);
@@ -56,9 +65,19 @@ Route::middleware(['auth:sanctum', 'admin'])
         Route::patch('/locations/{location}', [CatalogAdminController::class, 'updateLocation']);
     });
 
+Route::middleware(['auth:sanctum', 'admin'])
+    ->prefix('admin/community-creation-requests')
+    ->group(function () {
+        Route::get('/', [CommunityCreationRequestController::class, 'adminIndex']);
+        Route::patch('/{communityCreationRequest}/approve', [CommunityCreationRequestController::class, 'approve']);
+        Route::patch('/{communityCreationRequest}/reject', [CommunityCreationRequestController::class, 'reject']);
+    });
+
 Route::get('/events', [EventController::class, 'index']);
 Route::get('/events/{event}', [EventController::class, 'show']);
 Route::get('/event-categories', [ReferenceDataController::class, 'categories']);
 Route::get('/event-modalities', [ReferenceDataController::class, 'modalities']);
 Route::get('/locations', [ReferenceDataController::class, 'locations']);
+Route::get('/communities/discover', [CommunityDirectoryController::class, 'index']);
+Route::get('/communities/{community}', [CommunityDirectoryController::class, 'show']);
 Route::get('/communities', [ReferenceDataController::class, 'communities']);

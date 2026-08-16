@@ -27,7 +27,11 @@ class ListEventsRequest extends FormRequest
                 'string',
                 Rule::exists('event_modalities', 'code')->where('is_active', true),
             ],
-            'community_id' => ['nullable', 'integer', 'exists:communities,id'],
+            'community_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('communities', 'id')->where('is_active', true),
+            ],
             'page' => ['nullable', 'integer', 'min:1'],
             'per_page' => ['nullable', 'integer', 'min:1', 'max:50'],
         ];

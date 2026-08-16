@@ -3,6 +3,8 @@
 namespace Database\Seeders;
 
 use App\Models\Community;
+use App\Models\CommunityCreationRequest;
+use App\Models\CommunityCreationRequestStatus;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
@@ -43,7 +45,21 @@ class PoliLinkDemoSeeder extends Seeder
 
         $community = Community::query()->updateOrCreate(
             ['name' => 'TAWS'],
-            ['description' => 'Comunidad estudiantil de tecnología y desarrollo de software.'],
+            [
+                'description' => 'Comunidad estudiantil de tecnología y desarrollo de software.',
+                'is_active' => true,
+            ],
+        );
+
+        CommunityCreationRequest::query()->firstOrCreate(
+            [
+                'name' => 'Club de Robótica',
+                'requested_by' => $student->id,
+            ],
+            [
+                'description' => 'Comunidad estudiantil de robótica de ESPOL.',
+                'status_id' => CommunityCreationRequestStatus::query()->where('code', 'pending')->sole()->id,
+            ],
         );
 
         $activeStatusId = MembershipStatus::query()->where('code', 'active')->sole()->id;

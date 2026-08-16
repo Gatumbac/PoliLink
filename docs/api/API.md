@@ -129,18 +129,65 @@ Sirven para llenar filtros y selectores del frontend.
 | `GET` | `/event-categories` | Categorías con `id`, `code` y `name`. |
 | `GET` | `/event-modalities` | Modalidades con `id`, `code` y `name`. |
 | `GET` | `/locations` | Ubicaciones con `id`, `name` y `description`. |
-| `GET` | `/communities` | Comunidades con `id`, `name` y `description`. |
+| `GET` | `/communities` | Comunidades activas con `id`, `name`, `description` e `image_url`. |
 
 Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
 `GET /communities` devuelve únicamente comunidades que poseen al menos un
 evento con estado `published`, para evitar opciones de filtro sin resultados.
 
+## Directorio público de comunidades — implementado
+
+Estas rutas son públicas y están separadas de `GET /communities`, que conserva
+su función de alimentar el filtro del catálogo de eventos.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/communities/discover` | Busca todas las comunidades con paginación. |
+| `GET` | `/communities/{community}` | Devuelve el perfil público de una comunidad. |
+
+`GET /communities/discover` acepta `search`, `page` y `per_page`. La búsqueda
+coincide parcialmente por nombre, ordena alfabéticamente y usa `12` elementos
+por página por defecto, con un máximo de `50`. La respuesta contiene `data`,
+`links` y `meta`.
+
+El perfil público devuelve únicamente `id`, `name`, `description` e
+`image_url`. Solo se muestran comunidades activas; no expone usuarios,
+membresías ni roles. Para consultar los eventos publicados de una comunidad se
+reutiliza `GET /events?community_id={id}`; ese endpoint continúa filtrando
+únicamente eventos con estado `published` y comunidades activas.
+
+## Membresías propias — implementado
+
+Estas rutas requieren una sesión Sanctum. La identidad siempre se obtiene de
+la cookie de sesión; el cliente no puede enviar otro `user_id`, rol o estado.
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `POST` | `/communities/{community}/membership-requests` | Crea o reactiva una solicitud propia. |
+| `DELETE` | `/communities/{community}/membership-requests` | Cancela una solicitud o abandona como miembro/tutor. |
+| `GET` | `/me/memberships` | Lista todas las membresías propias con paginación. |
+
+Una solicitud nueva crea `pending/member` y responde `201`. Una membresía
+`rejected` o `left` se reutiliza como `pending/member` y responde `200`,
+limpiando `reviewed_at` y `reviewed_by`. Las solicitudes `pending` y las
+membresías `active` no pueden solicitarse nuevamente y responden `409`.
+
+`DELETE` cambia el estado a `left` sin borrar la fila. Puede cancelar estados
+`pending` y abandonar membresías activas con rol `member` o `tutor`. Un
+`organizer` activo no puede abandonar la comunidad hasta que exista un flujo de
+transferencia y responde `409`.
+
+`GET /me/memberships` devuelve estados `pending`, `active`, `rejected` y `left`
+ordenados por nombre de comunidad. Usa `per_page=12` por defecto y `50` como
+máximo. Cada elemento contiene `id`, `community`, `role`, `status`,
+`requested_at` y `reviewed_at`.
+
 ## Administración de catálogos — implementado
 
 Estas rutas requieren una sesión Sanctum y `users.is_admin = true`. En esta primera
 versión, la cuenta administra únicamente categorías, modalidades y ubicaciones.
-No puede administrar usuarios, membresías, comunidades, eventos, inscripciones ni
-moderación.
+No puede administrar usuarios, membresías existentes, eventos, inscripciones ni
+desactivar comunidades. Sí puede revisar propuestas de creación.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
@@ -228,7 +275,8 @@ decidir permisos.
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
-| `POST` | `/communities` | Crea una comunidad y una membresía `active/organizer` para el usuario actual. |
+| `POST` | `/community-creation-requests` | Envía una propuesta de comunidad para revisión administrativa. |
+| `GET` | `/me/community-creation-requests` | Lista las propuestas enviadas por la sesión actual. |
 | `GET` | `/me/communities` | Lista las comunidades administradas por la sesión actual. |
 | `GET` | `/me/events` | Lista sus eventos, incluidos los cancelados. |
 
@@ -237,20 +285,28 @@ rol `organizer`. Solo ese rol puede crear, editar, cancelar o administrar
 imágenes de eventos pertenecientes a una comunidad que administra. El backend nunca acepta
 `user_id` ni `organizer_id` enviados por el cliente.
 
-### Crear una comunidad: `POST /communities`
+### Proponer una comunidad: `POST /community-creation-requests`
 
-`POST /api/communities` recibe:
+`POST /api/community-creation-requests` recibe JSON o `multipart/form-data`.
+Además de `name` y `description`, el formulario puede incluir una imagen:
 
-```json
+```text
 {
   "name": "Club de Robótica",
-  "description": "Comunidad de robótica de ESPOL."
+  "description": "Comunidad de robótica de ESPOL.",
+  "image": "logo.png"
 }
 ```
 
-El servidor crea la comunidad y una membresía `active/organizer` dentro de una
-sola transacción. Devuelve
-`201`; un nombre repetido o inválido devuelve `422`.
+El servidor crea una `community_creation_request` con estado `pending`; todavía
+no crea la comunidad ni la membresía. `name` es obligatorio y `description` es
+opcional. `image` también es opcional y debe ser JPEG, PNG o WebP de máximo
+5 MB. La imagen se guarda temporalmente en `community-requests/`.
+Devuelve `201` con el estado y `image_url`.
+
+Un nombre repetido en una comunidad existente o en otra solicitud pendiente
+devuelve `422`. La identidad se obtiene de la sesión; el cliente no envía
+`requested_by`, roles ni estados.
 
 Respuesta:
 
@@ -259,15 +315,57 @@ Respuesta:
   "data": {
     "id": 2,
     "name": "Club de Robótica",
-    "description": "Comunidad de robótica de ESPOL."
+    "description": "Comunidad de robótica de ESPOL.",
+    "image_url": "http://localhost:8000/storage/community-requests/abc.png",
+    "status": { "code": "pending", "name": "Pendiente" },
+    "community": null
   }
 }
+```
+
+### Mis propuestas: `GET /me/community-creation-requests`
+
+Devuelve las propuestas de la sesión actual con paginación (`per_page=12`,
+máximo `50`). Incluye los estados `pending`, `approved` y `rejected`, la
+razón de rechazo cuando corresponda y la comunidad creada al aprobarse.
+
+### Revisión administrativa
+
+Estas rutas requieren sesión Sanctum y `users.is_admin = true`:
+
+| Método | Ruta | Descripción |
+| --- | --- | --- |
+| `GET` | `/admin/community-creation-requests` | Lista solicitudes; por defecto muestra `pending`. Acepta `status` y `per_page`. |
+| `PATCH` | `/admin/community-creation-requests/{request}/approve` | Aprueba y crea la comunidad. |
+| `PATCH` | `/admin/community-creation-requests/{request}/reject` | Rechaza con `rejection_reason` obligatorio. |
+
+Al aprobar, el backend crea una comunidad `is_active = true`, mueve la imagen
+de `community-requests/` a `communities/` y crea automáticamente una
+membresía `active/organizer` para el solicitante. El administrador queda
+registrado como revisor. Una solicitud procesada no puede revisarse otra vez.
+En esta versión el administrador no desactiva comunidades desde la API.
+
+### Imagen de comunidad
+
+`POST /communities/{community}/image` recibe `multipart/form-data` con un campo
+`image` obligatorio. Solo un `organizer` con membresía `active` en esa
+comunidad puede reemplazar el logo. `DELETE /communities/{community}/image`
+lo elimina. El archivo usa el disco público del backend y la respuesta expone
+`image_url`; la ruta interna no se publica. Ambos endpoints requieren una
+comunidad activa.
+
+La misma regla de formato y tamaño de las imágenes de eventos aplica a las
+comunidades. En una instalación local o desplegada debe existir el enlace:
+
+```bash
+php artisan storage:link
 ```
 
 ### Listar comunidades administradas: `GET /me/communities`
 
 Devuelve un arreglo sin paginación, ordenado por `name` ascendente. Cada
-elemento contiene `id`, `name` y `description`. Si no hay comunidades, la
+elemento contiene `id`, `name`, `description` e `image_url`. Solo incluye
+comunidades activas que poseen al menos un evento publicado. Si no hay comunidades, la
 respuesta es:
 
 ```json
@@ -296,12 +394,12 @@ no aparecen en el catálogo público.
 | `403` | No existe una membresía activa con rol `organizer` para la comunidad/evento. |
 | `404` | El recurso solicitado no existe; los detalles públicos cancelados también responden `404`. |
 | `409` | Se intenta editar, cambiar la imagen o cancelar un evento ya cancelado. |
-| `422` | Cuerpo, paginación, catálogo o archivo inválido. |
+| `422` | Cuerpo, paginación, catálogo, archivo o razón de rechazo inválidos. |
 
 Los errores `422` mantienen el formato de validación de Laravel con un objeto
 `errors` indexado por nombre de campo. Las operaciones de escritura devuelven
-el recurso actualizado dentro de `data`; la creación de comunidad y evento
-responde `201`, y las actualizaciones responden `200`.
+el recurso actualizado dentro de `data`; la propuesta y el evento responden
+`201`, y las actualizaciones responden `200`.
 
 ## Inscripciones autenticadas — implementado
 

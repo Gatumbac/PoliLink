@@ -10,6 +10,7 @@ use App\Models\EventStatus;
 use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CommunityOnboardingApiTest extends TestCase
@@ -20,7 +21,8 @@ class CommunityOnboardingApiTest extends TestCase
     {
         $this->getJson('/api/me/communities')->assertUnauthorized();
         $this->getJson('/api/me/events')->assertUnauthorized();
-        $this->postJson('/api/communities', ['name' => 'Comunidad nueva'])->assertUnauthorized();
+        $this->postJson('/api/community-creation-requests', ['name' => 'Comunidad nueva'])->assertUnauthorized();
+        $this->getJson('/api/me/community-creation-requests')->assertUnauthorized();
     }
 
     public function test_student_without_communities_receives_empty_dashboard_lists(): void
@@ -37,34 +39,31 @@ class CommunityOnboardingApiTest extends TestCase
             ->assertJsonCount(0, 'data');
     }
 
-    public function test_student_can_create_a_community_and_becomes_its_organizer(): void
+    public function test_student_can_submit_a_community_creation_request(): void
     {
         $this->seed();
         $student = $this->student();
 
-        $this->authenticatedPost($student, '/api/communities', [
-            'name' => 'Club de Robótica',
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Club de Astronomía',
             'description' => 'Comunidad de robótica de ESPOL.',
         ])
             ->assertCreated()
-            ->assertJsonStructure(['data' => ['id', 'name', 'description']])
-            ->assertJsonPath('data.name', 'Club de Robótica');
+            ->assertJsonStructure(['data' => ['id', 'name', 'description', 'image_url', 'status']])
+            ->assertJsonPath('data.name', 'Club de Astronomía')
+            ->assertJsonPath('data.status.code', 'pending');
 
-        $student->refresh();
-        $community = Community::query()->where('name', 'Club de Robótica')->sole();
-
-        $this->assertFalse($student->is_admin);
-        $this->assertDatabaseHas('community_memberships', [
-            'community_id' => $community->id,
-            'user_id' => $student->id,
-            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+        $this->assertDatabaseHas('community_creation_requests', [
+            'name' => 'Club de Astronomía',
+            'requested_by' => $student->id,
+            'status_id' => DB::table('community_creation_request_statuses')->where('code', 'pending')->value('id'),
         ]);
+        $this->assertDatabaseMissing('communities', ['name' => 'Club de Astronomía']);
 
-        $this->authenticatedGet($student, '/api/me/communities')
+        $this->authenticatedGet($student, '/api/me/community-creation-requests')
             ->assertOk()
-            ->assertJsonStructure(['data' => [['id', 'name', 'description']]])
-            ->assertJsonPath('data.0.id', $community->id);
+            ->assertJsonFragment(['name' => 'Club de Astronomía'])
+            ->assertJsonFragment(['code' => 'pending']);
     }
 
     public function test_community_name_must_be_unique(): void
@@ -72,12 +71,20 @@ class CommunityOnboardingApiTest extends TestCase
         $this->seed();
         $student = $this->student();
 
-        $this->authenticatedPost($student, '/api/communities', [
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'TAWS',
+        ])->assertUnprocessable()->assertJsonValidationErrors('name');
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
             'name' => 'Club de Robótica',
+        ])->assertUnprocessable()->assertJsonValidationErrors('name');
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad Única',
         ])->assertCreated();
 
-        $this->authenticatedPost($student, '/api/communities', [
-            'name' => 'Club de Robótica',
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad Única',
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('name');

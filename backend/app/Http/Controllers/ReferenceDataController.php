@@ -38,6 +38,7 @@ class ReferenceDataController extends Controller
     {
         return CommunityResource::collection(
             Community::query()
+                ->where('is_active', true)
                 ->whereHas('events.status', fn ($query) => $query->where('code', 'published'))
                 ->orderBy('name')
                 ->get(),

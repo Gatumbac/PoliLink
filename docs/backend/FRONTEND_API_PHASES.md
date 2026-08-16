@@ -38,15 +38,19 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 | Consultar inscritos y cupos disponibles | Darwin Díaz |
 | Autenticación, shell visual, API client, estados comunes y evidencia | Compartida |
 
-Cada integrante debe cubrir su flujo tanto en frontend como en backend. No se
-añaden aprobación administrativa, autenticación institucional, pagos, correo,
-calendario, códigos QR ni validación de asistencia.
+Cada integrante debe cubrir su flujo tanto en frontend como en backend. La API
+ya incluye aprobación administrativa de propuestas de comunidades, pero su
+panel frontend queda para una fase separada. No se añaden autenticación
+institucional, pagos, correo, calendario, códigos QR ni validación de
+asistencia.
 
 Las tablas internas no generan pantallas CRUD generales. El backend ya expone
 un panel futuro para que `is_admin` mantenga categorías, modalidades y
 ubicaciones; estados, roles comunitarios y relaciones de membresía permanecen
 controlados por el backend. La interfaz de administración se implementará en
-una fase separada.
+una fase separada. El backend también expone la revisión administrativa de
+propuestas de comunidades; no se trata de un CRUD general de usuarios o
+membresías.
 
 ## Fases generales
 
@@ -112,8 +116,9 @@ ediciones, conserva eventos cancelados en el dashboard y devuelve
 `image_url` nullable.
 
 La implementación frontend se dividirá en subfases verticales. Cada una debe
-dejar un recorrido pequeño y verificable antes de iniciar la siguiente; no se
-añaden endpoints nuevos ni un panel administrativo en esta fase.
+dejar un recorrido pequeño y verificable antes de iniciar la siguiente. La
+creación de comunidades consume solicitudes pendientes; no crea la comunidad
+directamente.
 
 #### Fase 3.1 — Fundación del organizador
 
@@ -134,17 +139,19 @@ verificación navegador → Laravel.
 - Implementar el panel separado en `/mis-comunidades` con estado vacío y
   enlace hacia el onboarding.
 - Implementar el onboarding de tres pasos en `/crear-comunidad` para
-  `POST /communities`, con validación, confirmación y estado de éxito.
-- Actualizar la sesión y la navegación cuando un estudiante crea su primera
-  comunidad y obtiene una membresía `active/organizer`.
+  `POST /community-creation-requests`, con validación, imagen opcional,
+  confirmación y estado `pending`.
+- Mostrar el estado de la propuesta y actualizar la navegación únicamente
+  después de que un administrador la apruebe; en ese momento el solicitante
+  obtiene una membresía `active/organizer`.
 - Añadir puntos de descubrimiento desde el landing, el catálogo y la
   navegación autenticada.
 - Mostrar la opción de comunidad existente como capacidad futura, sin
   inventar un endpoint de búsqueda o representación.
 
-**Salida:** un estudiante autenticado entiende cómo participar, registra su
-comunidad mediante un recorrido guiado y llega a un panel separado para
-administrarla.
+**Salida:** un estudiante autenticado entiende cómo participar, envía una
+propuesta mediante un recorrido guiado y llega a un panel separado cuando la
+propuesta queda aprobada.
 
 #### Fase 3.3 — Panel de eventos
 

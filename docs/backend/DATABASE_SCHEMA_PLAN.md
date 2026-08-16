@@ -12,10 +12,12 @@ pertenecen a una membresía concreta.
 | Tabla | Propósito y restricciones |
 | --- | --- |
 | `users` | Identidad, credenciales e `is_admin BOOLEAN NOT NULL DEFAULT FALSE`. `email` es único. |
-| `communities` | Comunidades con `name` único y descripción opcional. |
+| `communities` | Comunidades con `name` único, descripción opcional, `is_active` e `image_path` nullable. |
 | `community_roles` | Catálogo fijo: `member`, `organizer`, `tutor`; `code` y `name` únicos. |
 | `membership_statuses` | Catálogo fijo: `pending`, `active`, `rejected`, `left`. |
 | `community_memberships` | Relación única usuario-comunidad con rol, estado, fechas de solicitud/revisión y `reviewed_by`. |
+| `community_creation_request_statuses` | Catálogo fijo: `pending`, `approved`, `rejected`, con nombres visibles en español. |
+| `community_creation_requests` | Propuestas de comunidad, imagen temporal/definitiva, solicitante, revisor, estado, razón y comunidad creada. |
 | `events` | Evento relacionado directamente con `community_id`, catálogos, estado, imagen opcional, fecha y capacidad. |
 | `registrations` | Relación `event_id`–`user_id`, estado y fechas; `UNIQUE (event_id, user_id)`. |
 
@@ -39,6 +41,10 @@ users ──< community_memberships >── communities
 community_memberships ──> community_roles
 community_memberships ──> membership_statuses
 users (reviewed_by) ──< community_memberships
+users (requested_by) ──< community_creation_requests
+users (reviewed_by) ──< community_creation_requests
+community_creation_requests ──> community_creation_request_statuses
+community_creation_requests ──> communities (nullable after approval)
 communities ──< events ──< registrations >── users
 ```
 
@@ -55,14 +61,21 @@ membresía activa y las inscripciones usan `user_id`.
   preservando el historial. `reviewed_by` permite `NULL` y usa `SET NULL`.
 - Los catálogos de eventos conservan `is_active`; desactivarlos no modifica
   eventos históricos.
+- Las comunidades nuevas solo se crean al aprobar una propuesta administrativa.
+  Una comunidad creada comienza con `is_active = TRUE` y el solicitante recibe
+  la membresía `active/organizer`.
+- Las imágenes usan el disco público del backend: `community-requests/` es
+  temporal y `communities/` es la ubicación definitiva. La base guarda solo
+  `image_path` y la API expone `image_url`.
 - La capacidad disponible se calcula desde las inscripciones activas y no se
   almacena como dato redundante.
 
 ## Seeds
 
-`CommunityReferenceSeeder` crea los roles y estados de membresía. Los seeds de
-demostración crean un usuario con membresía `organizer`, otro con membresía
-`member`, una comunidad, un evento y una inscripción. `AdminSeeder` establece
+`CommunityReferenceSeeder` crea los roles, estados de membresía y estados de
+propuestas en español. Los seeds de demostración crean un usuario con
+membresía `organizer`, otro con membresía `member`, una comunidad, una
+propuesta pendiente, un evento y una inscripción. `AdminSeeder` establece
 `users.is_admin = true` para `admin@espol.edu.ec`.
 
 ## Reinicio local

@@ -57,6 +57,16 @@ class EventApiTest extends TestCase
         $this->getJson("/api/events/{$event->id}")->assertNotFound();
     }
 
+    public function test_public_catalogue_hides_events_from_inactive_communities(): void
+    {
+        $this->seed();
+        $event = $this->seededEvent();
+        $event->community->update(['is_active' => false]);
+
+        $this->getJson('/api/events')->assertOk()->assertJsonMissing(['id' => $event->id]);
+        $this->getJson("/api/events/{$event->id}")->assertNotFound();
+    }
+
     public function test_organizer_can_create_an_event_for_a_managed_community(): void
     {
         $this->seed();

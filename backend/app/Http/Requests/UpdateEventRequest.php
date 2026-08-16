@@ -15,7 +15,12 @@ class UpdateEventRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'community_id' => ['sometimes', 'required', 'integer', 'exists:communities,id'],
+            'community_id' => [
+                'sometimes',
+                'required',
+                'integer',
+                Rule::exists('communities', 'id')->where('is_active', true),
+            ],
             'event_category_id' => [
                 'sometimes',
                 'required',

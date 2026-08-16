@@ -1,6 +1,7 @@
 # Fases de desarrollo del backend de PoliLink
 
-**Estado:** base funcional implementada; evolución de membresías pendiente.
+**Estado:** base funcional, directorio público, membresías propias y
+aprobación administrativa de comunidades implementados.
 
 El backend usa Laravel, MySQL y sesiones Sanctum. Los organizadores publican,
 editan y cancelan eventos directamente; no existe aprobación administrativa de
@@ -23,23 +24,46 @@ del alcance.
    catálogo de categorías, modalidades y ubicaciones.
 6. **Calidad:** migraciones, seeders, policies, resources y pruebas feature
    están alineados con el esquema nuevo.
+7. **Directorio público:** búsqueda paginada y perfil público de comunidades;
+   los eventos se consultan mediante el filtro público existente.
+8. **Membresías propias:** solicitudes `pending/member`, cancelación,
+   reactivación y consulta paginada de todos los estados.
+9. **Propuestas de comunidades:** solicitud autenticada, revisión administrativa,
+   comunidad activa y promoción automática del solicitante a `organizer`.
+10. **Imágenes de comunidades:** logo opcional en la propuesta, movimiento al
+    filesystem definitivo al aprobar y reemplazo/eliminación por el organizador.
 
 ## Próximas fases
 
 ### Fase A — Directorio de comunidades
 
-Agregar búsqueda y perfil público sin modificar el propósito de
-`GET /communities`, que continúa alimentando filtros de eventos publicados.
+**Estado:** implementada en backend.
+
+- `GET /communities/discover` busca por nombre y devuelve todas las comunidades
+  con paginación.
+- `GET /communities/{community}` devuelve únicamente la información pública de
+  la comunidad.
+- Los eventos del perfil se cargan con `GET /events?community_id={id}`.
+- `GET /communities` conserva su propósito de alimentar filtros con
+  comunidades que tienen eventos publicados.
 
 ### Fase B — Solicitudes de membresía
 
-Agregar solicitudes `pending/member`, cancelación, reactivación y consulta de
-la membresía propia. No se permitirá que el cliente asigne roles o estados.
+**Estado:** implementada en backend.
+
+- `POST /communities/{community}/membership-requests` crea o reactiva la
+  solicitud propia como `pending/member`.
+- `DELETE /communities/{community}/membership-requests` cambia la solicitud o
+  membresía propia a `left`, excepto para organizers activos.
+- `GET /me/memberships` lista todos los estados de membresía propios con
+  paginación.
+- El cliente no puede asignar roles ni estados.
 
 ### Fase C — Aprobación comunitaria
 
-Permitir que únicamente un `organizer` activo de la comunidad apruebe,
-rechace o asigne el rol `tutor`. Este flujo no aprueba eventos.
+La aprobación de solicitudes de membresía por `organizer` permanece pendiente.
+La aprobación administrativa de nuevas comunidades ya está implementada con
+`community_creation_requests`; este flujo no aprueba eventos.
 
 ### Fase D — Integración frontend
 
@@ -48,9 +72,16 @@ de organizador con los contratos backend aprobados.
 
 ### Fase E — Propuestas de nuevas comunidades
 
-Decidir si la creación directa continúa o si se introduce una
-`community_creation_request`. No implementar validación institucional sin una
-fuente autorizada y aprobación explícita del alcance.
+**Estado:** implementada en backend.
+
+- `POST /community-creation-requests` recibe nombre, descripción e imagen
+  opcional y deja la propuesta en `pending`.
+- `admin` lista, aprueba o rechaza propuestas; el rechazo exige razón.
+- La aprobación crea una comunidad activa y una membresía `active/organizer`
+  para el solicitante.
+- La imagen temporal se mueve de `community-requests/` a `communities/`.
+- No existe todavía un endpoint para desactivar comunidades ni validación
+  institucional de pertenencia.
 
 ## Validación de entrega
 

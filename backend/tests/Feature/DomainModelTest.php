@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Models\Community;
+use App\Models\CommunityCreationRequest;
 use App\Models\Event;
 use App\Models\EventCategory;
 use App\Models\EventModality;
@@ -51,6 +52,7 @@ class DomainModelTest extends TestCase
 
         $this->assertDatabaseCount('community_roles', 3);
         $this->assertDatabaseCount('membership_statuses', 4);
+        $this->assertDatabaseCount('community_creation_request_statuses', 3);
         $this->assertDatabaseCount('event_categories', 6);
         $this->assertDatabaseCount('event_modalities', 3);
         $this->assertDatabaseCount('locations', 4);
@@ -58,9 +60,14 @@ class DomainModelTest extends TestCase
         $this->assertDatabaseCount('registration_statuses', 2);
         $this->assertDatabaseCount('users', 3);
         $this->assertDatabaseCount('communities', 1);
+        $this->assertDatabaseCount('community_creation_requests', 1);
         $this->assertDatabaseCount('community_memberships', 2);
         $this->assertDatabaseCount('events', 1);
         $this->assertDatabaseCount('registrations', 1);
+
+        $creationRequest = CommunityCreationRequest::query()->with('status')->sole();
+        $this->assertSame('pending', $creationRequest->status->code);
+        $this->assertSame('Club de Robótica', $creationRequest->name);
 
         $event = Event::query()->withCount('activeRegistrations')->sole();
 
