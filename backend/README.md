@@ -43,6 +43,7 @@ Finalmente:
 
 ```bash
 php artisan migrate
+php artisan storage:link
 php artisan serve
 ```
 
@@ -68,7 +69,7 @@ Las tablas principales son:
 - users: usuarios locales con rol student, organizer o admin.
 - roles: permisos de usuario (`student`, `organizer` y `admin`).
 - communities: clubes u organizaciones responsables de eventos.
-- events: información, capacidad, modalidad y estado de cada evento.
+- events: información, capacidad, modalidad, estado e imagen de portada opcional de cada evento.
 - registrations: relación entre estudiantes y eventos, con restricción de inscripción duplicada.
 
 Para recrear la base local con datos de prueba:

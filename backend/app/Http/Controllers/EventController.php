@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CancelEventRequest;
 use App\Http\Requests\ListEventsRequest;
+use App\Http\Requests\StoreEventImageRequest;
 use App\Http\Requests\StoreEventRequest;
 use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
@@ -11,13 +12,20 @@ use App\Models\CommunityOrganizer;
 use App\Models\Event;
 use App\Models\EventStatus;
 use App\Models\User;
+use App\Services\EventImageService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
+use Throwable;
 
 class EventController extends Controller
 {
+    public function __construct(
+        private readonly EventImageService $eventImageService,
+    ) {}
+
     public function index(ListEventsRequest $request)
     {
         $filters = $request->validated();
@@ -69,12 +77,21 @@ class EventController extends Controller
 
         $communityOrganizer = $this->communityOrganizer($organizer, $data['community_id']);
         $publishedStatus = EventStatus::query()->where('code', 'published')->sole();
+        $image = $data['image'] ?? null;
+        $imagePath = $image ? $this->eventImageService->store($image) : null;
 
-        $event = Event::query()->create([
-            ...Arr::except($data, ['community_id']),
-            'community_organizer_id' => $communityOrganizer->id,
-            'event_status_id' => $publishedStatus->id,
-        ]);
+        try {
+            $event = Event::query()->create([
+                ...Arr::except($data, ['community_id', 'image']),
+                'community_organizer_id' => $communityOrganizer->id,
+                'event_status_id' => $publishedStatus->id,
+                'image_path' => $imagePath,
+            ]);
+        } catch (Throwable $exception) {
+            $this->eventImageService->delete($imagePath);
+
+            throw $exception;
+        }
 
         return (new EventResource($this->loadEvent($event)))
             ->response()
@@ -96,6 +113,43 @@ class EventController extends Controller
         $event->fill(Arr::except($data, ['community_id']));
         $event->community_organizer_id = $communityOrganizer->id;
         $event->save();
+
+        return new EventResource($this->loadEvent($event));
+    }
+
+    public function storeImage(StoreEventImageRequest $request, Event $event): EventResource
+    {
+        $organizer = $request->user();
+
+        Gate::forUser($organizer)->authorize('update', $event);
+        $this->ensureNotCancelled($event);
+
+        $previousImagePath = $event->image_path;
+        $imagePath = $this->eventImageService->store($request->file('image'));
+
+        try {
+            $event->update(['image_path' => $imagePath]);
+        } catch (Throwable $exception) {
+            $this->eventImageService->delete($imagePath);
+
+            throw $exception;
+        }
+
+        $this->eventImageService->delete($previousImagePath);
+
+        return new EventResource($this->loadEvent($event));
+    }
+
+    public function removeImage(Request $request, Event $event): EventResource
+    {
+        $organizer = $request->user();
+
+        Gate::forUser($organizer)->authorize('update', $event);
+        $this->ensureNotCancelled($event);
+
+        $previousImagePath = $event->image_path;
+        $event->update(['image_path' => null]);
+        $this->eventImageService->delete($previousImagePath);
 
         return new EventResource($this->loadEvent($event));
     }

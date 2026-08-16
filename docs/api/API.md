@@ -11,6 +11,8 @@ inscripciones están implementados.
 | `GET` | `/events/{event}` | Implementado | Obtiene el detalle de un evento publicado. |
 | `POST` | `/events` | Implementado | Crea un evento para una comunidad administrada. |
 | `PATCH` | `/events/{event}` | Implementado | Actualiza un evento propio publicado. |
+| `POST` | `/events/{event}/image` | Implementado | Reemplaza la imagen de portada de un evento propio. |
+| `DELETE` | `/events/{event}/image` | Implementado | Elimina la imagen de portada de un evento propio. |
 | `PATCH` | `/events/{event}/cancel` | Implementado | Cancela un evento propio sin eliminarlo. |
 
 ### Catálogo: `GET /events`
@@ -51,11 +53,30 @@ Requiere sesión Sanctum. El usuario de la sesión debe tener el rol `organizer`
 y administrar la comunidad indicada. El evento se crea con estado `published`.
 El cliente no envía un identificador de organizador.
 
+La solicitud puede enviarse como JSON, sin imagen, o como `multipart/form-data`
+con los mismos campos y un campo `image` opcional. La imagen debe ser JPEG, PNG
+o WebP y pesar como máximo 5 MB.
+
 ### Editar: `PATCH /events/{event}`
 
 Requiere sesión Sanctum. Los campos de creación son opcionales. Se puede enviar
 `community_id` para mover el evento únicamente a otra comunidad administrada
 por el organizador de la sesión. No se puede editar un evento cancelado.
+
+### Imagen de portada
+
+`POST /events/{event}/image` recibe `multipart/form-data` con un campo `image`
+obligatorio. Solo el organizador responsable puede reemplazar la imagen y no se
+puede modificar un evento cancelado.
+
+`DELETE /events/{event}/image` no recibe cuerpo. Elimina la imagen asociada y
+responde con el evento actualizado. La imagen se almacena en el filesystem
+público del backend; la API devuelve `image_url`, no la ruta interna del servidor.
+Para habilitar la URL pública en una instalación local o desplegada, ejecutar:
+
+```bash
+php artisan storage:link
+```
 
 ### Cancelar: `PATCH /events/{event}/cancel`
 
@@ -71,6 +92,7 @@ registro ni permite una segunda cancelación.
     "id": 1,
     "title": "Hackathon TAWS",
     "description": "Evento de demostración.",
+    "image_url": null,
     "starts_at": "2026-08-20T14:00:00.000000Z",
     "capacity": 50,
     "available_capacity": 49,
@@ -90,7 +112,7 @@ calculan como capacidad menos inscripciones con estado `active`.
 
 | Código | Situación |
 | --- | --- |
-| `422` | Filtros o cuerpo inválidos; por ejemplo, cupo menor que uno. |
+| `422` | Filtros o cuerpo inválidos; por ejemplo, cupo menor que uno o una imagen no compatible. |
 | `401` | No existe una sesión autenticada para crear, editar o cancelar. |
 | `403` | El usuario no tiene rol de organizador o no administra la comunidad/evento. |
 | `404` | Evento inexistente o cancelado en una consulta pública. |

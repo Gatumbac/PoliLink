@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'event_status_id',
     'title',
     'description',
+    'image_path',
     'starts_at',
     'capacity',
 ])]

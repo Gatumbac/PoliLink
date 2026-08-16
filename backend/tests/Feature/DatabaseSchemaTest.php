@@ -18,6 +18,7 @@ class DatabaseSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
         $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
         $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('events', ['image_path']));
 
         foreach ([
             'roles',

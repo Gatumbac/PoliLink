@@ -31,6 +31,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/events', [DashboardController::class, 'events']);
     Route::post('/events', [EventController::class, 'store']);
     Route::patch('/events/{event}', [EventController::class, 'update']);
+    Route::post('/events/{event}/image', [EventController::class, 'storeImage']);
+    Route::delete('/events/{event}/image', [EventController::class, 'removeImage']);
     Route::patch('/events/{event}/cancel', [EventController::class, 'cancel']);
     Route::post('/events/{event}/registrations', [RegistrationController::class, 'store']);
     Route::delete('/events/{event}/registrations', [RegistrationController::class, 'destroy']);

@@ -53,7 +53,7 @@ API; los nombres son texto de presentación. No se usan columnas JSON ni
 
 | Tabla | Columnas principales | Restricciones |
 | --- | --- | --- |
-| `events` | `id`, `community_organizer_id`, `event_category_id`, `event_modality_id`, `location_id`, `event_status_id`, `title`, `description`, `starts_at`, `capacity`, marcas de tiempo | Todas las FK son obligatorias y usan `RESTRICT` al borrar. `capacity` es entero sin signo; la validación `min:1` se aplica en Laravel. Un evento no se elimina: se cambia su estado a `cancelled`. |
+| `events` | `id`, `community_organizer_id`, `event_category_id`, `event_modality_id`, `location_id`, `event_status_id`, `title`, `description`, `image_path`, `starts_at`, `capacity`, marcas de tiempo | Todas las FK son obligatorias y usan `RESTRICT` al borrar. `image_path` es opcional y guarda únicamente la ruta relativa del archivo en el disco público del backend. `capacity` es entero sin signo; la validación `min:1` se aplica en Laravel. Un evento no se elimina: se cambia su estado a `cancelled`. |
 | `registrations` | `id`, `event_id`, `student_id`, `registration_status_id`, `registered_at`, `cancelled_at`, marcas de tiempo | `UNIQUE (event_id, student_id)`. `student_id` referencia `users`; solo se acepta un usuario con rol `student`. |
 
 Una cancelación actualiza la misma fila de `registrations` a estado

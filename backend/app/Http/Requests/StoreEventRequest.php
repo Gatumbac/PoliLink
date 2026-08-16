@@ -33,6 +33,7 @@ class StoreEventRequest extends FormRequest
             ],
             'title' => ['required', 'string', 'max:255'],
             'description' => ['required', 'string'],
+            'image' => ['sometimes', 'nullable', 'file', 'mimes:jpg,jpeg,png,webp', 'max:5120'],
             'starts_at' => ['required', 'date', 'after:now'],
             'capacity' => ['required', 'integer', 'min:1'],
         ];

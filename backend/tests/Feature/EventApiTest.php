@@ -66,7 +66,8 @@ class EventApiTest extends TestCase
         $response
             ->assertCreated()
             ->assertJsonPath('data.status.code', 'published')
-            ->assertJsonPath('data.community.name', 'TAWS');
+            ->assertJsonPath('data.community.name', 'TAWS')
+            ->assertJsonPath('data.image_url', null);
 
         $this->assertDatabaseHas('events', ['title' => 'Taller Laravel']);
     }

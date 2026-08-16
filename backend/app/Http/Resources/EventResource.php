@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\EventImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +14,7 @@ class EventResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'image_url' => app(EventImageService::class)->url($this->image_path),
             'starts_at' => $this->starts_at?->toISOString(),
             'capacity' => $this->capacity,
             'available_capacity' => $this->available_capacity,
