@@ -22,6 +22,7 @@ class UserResource extends JsonResource
                     'community' => [
                         'id' => $membership->community->id,
                         'name' => $membership->community->name,
+                        'slug' => $membership->community->slug,
                     ],
                     'role' => [
                         'code' => $membership->role->code,

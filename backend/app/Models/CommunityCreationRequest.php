@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'name',
+    'slug',
     'description',
     'image_path',
     'requested_by',

@@ -19,6 +19,16 @@ class CommunityMembershipController extends Controller
     {
         $user = $request->user();
         [$membership, $wasReactivated] = DB::transaction(function () use ($community, $user) {
+            $lockedCommunity = Community::query()
+                ->lockForUpdate()
+                ->findOrFail($community->id);
+
+            abort_unless(
+                $lockedCommunity->is_active,
+                Response::HTTP_UNPROCESSABLE_ENTITY,
+                'No puedes solicitar una membresía en una comunidad inactiva.',
+            );
+
             $membership = CommunityMembership::query()
                 ->where('community_id', $community->id)
                 ->where('user_id', $user->id)

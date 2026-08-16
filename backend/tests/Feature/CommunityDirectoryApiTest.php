@@ -21,12 +21,13 @@ class CommunityDirectoryApiTest extends TestCase
         $this->getJson('/api/communities/discover?per_page=50')
             ->assertOk()
             ->assertJsonStructure([
-                'data' => [['id', 'name', 'description', 'image_url']],
+                'data' => [['id', 'name', 'slug', 'description', 'image_url']],
                 'links',
                 'meta',
             ])
             ->assertJsonPath('meta.total', 2)
             ->assertJsonPath('data.0.name', 'Comunidad sin eventos')
+            ->assertJsonPath('data.0.slug', 'comunidad-sin-eventos')
             ->assertJsonPath('data.1.name', 'TAWS')
             ->assertJsonPath('data.0.id', $community->id);
     }
@@ -63,18 +64,27 @@ class CommunityDirectoryApiTest extends TestCase
         $this->seed();
         $community = Community::query()->where('name', 'TAWS')->sole();
 
-        $this->getJson('/api/communities/'.$community->id)
+        $this->getJson('/api/communities/'.$community->slug)
             ->assertOk()
-            ->assertJsonStructure(['data' => ['id', 'name', 'description']])
+            ->assertJsonStructure(['data' => ['id', 'name', 'slug', 'description']])
             ->assertJsonPath('data.id', $community->id)
             ->assertJsonPath('data.name', 'TAWS')
+            ->assertJsonPath('data.slug', 'taws')
             ->assertJsonMissingPath('data.memberships')
             ->assertJsonMissingPath('data.events');
     }
 
     public function test_public_profile_returns_not_found_for_unknown_community(): void
     {
-        $this->getJson('/api/communities/999999')->assertNotFound();
+        $this->getJson('/api/communities/no-existe')->assertNotFound();
+    }
+
+    public function test_public_profile_requires_the_community_slug(): void
+    {
+        $this->seed();
+        $community = Community::query()->where('name', 'TAWS')->sole();
+
+        $this->getJson('/api/communities/'.$community->id)->assertNotFound();
     }
 
     public function test_inactive_communities_are_hidden_from_public_directory_and_profiles(): void
@@ -89,6 +99,6 @@ class CommunityDirectoryApiTest extends TestCase
             ->assertOk()
             ->assertJsonMissing(['id' => $inactiveCommunity->id]);
 
-        $this->getJson('/api/communities/'.$inactiveCommunity->id)->assertNotFound();
+        $this->getJson('/api/communities/'.$inactiveCommunity->slug)->assertNotFound();
     }
 }

@@ -66,7 +66,8 @@ class CommunityCreationApprovalApiTest extends TestCase
         $approvalResponse
             ->assertOk()
             ->assertJsonPath('data.status.code', 'approved')
-            ->assertJsonPath('data.community.name', 'Comunidad de Diseño');
+            ->assertJsonPath('data.community.name', 'Comunidad de Diseño')
+            ->assertJsonPath('data.community.slug', 'comunidad-de-diseno');
 
         $community = Community::query()->where('name', 'Comunidad de Diseño')->sole();
         $request->refresh();
@@ -76,6 +77,7 @@ class CommunityCreationApprovalApiTest extends TestCase
             ->sole();
 
         $this->assertTrue($community->is_active);
+        $this->assertSame('comunidad-de-diseno', $community->slug);
         $this->assertStringStartsWith('communities/', $community->image_path);
         $this->assertSame($community->image_path, $request->image_path);
         $this->assertSame($community->id, $request->community_id);

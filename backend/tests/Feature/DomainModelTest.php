@@ -37,6 +37,7 @@ class DomainModelTest extends TestCase
         $this->assertSame('organizer', $organizer->managedMemberships->first()->role->code);
         $this->assertSame('member', $student->memberships->first()->role->code);
         $this->assertSame('TAWS', $event->community->name);
+        $this->assertSame('taws', $community->slug);
         $this->assertSame('Hackatón', $event->category->name);
         $this->assertSame('Presencial', $event->modality->name);
         $this->assertSame('Campus Gustavo Galindo', $event->location->name);
@@ -68,6 +69,7 @@ class DomainModelTest extends TestCase
         $this->assertSame(CommunityCreationRequestStatus::Pending, $creationRequest->status);
         $this->assertSame('Pendiente', $creationRequest->status->label());
         $this->assertSame('Club de Robótica', $creationRequest->name);
+        $this->assertSame('club-de-robotica', $creationRequest->slug);
 
         $event = Event::query()->withCount('activeRegistrations')->sole();
 

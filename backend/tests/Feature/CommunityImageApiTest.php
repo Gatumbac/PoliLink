@@ -87,8 +87,9 @@ class CommunityImageApiTest extends TestCase
         $this->seed();
         $community = Community::query()->where('name', 'TAWS')->sole();
 
-        $this->getJson("/api/communities/{$community->id}")
+        $this->getJson("/api/communities/{$community->slug}")
             ->assertOk()
+            ->assertJsonPath('data.slug', 'taws')
             ->assertJsonPath('data.image_url', null);
     }
 

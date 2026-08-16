@@ -37,6 +37,7 @@ class CommunityMembershipApiTest extends TestCase
         ])
             ->assertCreated()
             ->assertJsonPath('data.community.id', $community->id)
+            ->assertJsonPath('data.community.slug', 'ciap')
             ->assertJsonPath('data.role.code', 'member')
             ->assertJsonPath('data.status.code', 'pending');
 
@@ -70,6 +71,51 @@ class CommunityMembershipApiTest extends TestCase
 
         $this->authenticatedPost($student, '/api/communities/'.$activeTutorCommunity->id.'/membership-requests')
             ->assertConflict();
+    }
+
+    public function test_inactive_communities_reject_new_and_reactivated_membership_requests(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $newCommunity = Community::factory()->create([
+            'name' => 'Comunidad inactiva nueva',
+            'is_active' => false,
+        ]);
+
+        $this->authenticatedPost($student, '/api/communities/'.$newCommunity->id.'/membership-requests')
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'No puedes solicitar una membresía en una comunidad inactiva.');
+
+        $rejectedCommunity = Community::factory()->create([
+            'name' => 'Comunidad inactiva rechazada',
+            'is_active' => false,
+        ]);
+        $membership = $this->createMembership($student, $rejectedCommunity, 'member', 'rejected');
+
+        $this->authenticatedPost($student, '/api/communities/'.$rejectedCommunity->id.'/membership-requests')
+            ->assertUnprocessable()
+            ->assertJsonPath('message', 'No puedes solicitar una membresía en una comunidad inactiva.');
+
+        $this->assertDatabaseHas('community_memberships', [
+            'id' => $membership->id,
+            'status' => MembershipStatus::Rejected->value,
+        ]);
+    }
+
+    public function test_user_can_leave_a_membership_in_an_inactive_community(): void
+    {
+        $this->seed();
+        $student = $this->student();
+        $community = Community::factory()->create([
+            'name' => 'Comunidad inactiva para salir',
+            'is_active' => false,
+        ]);
+        $this->createMembership($student, $community, 'member', 'active');
+
+        $this->authenticatedDelete($student, '/api/communities/'.$community->id.'/membership-requests')
+            ->assertOk()
+            ->assertJsonPath('data.status.code', 'left');
     }
 
     public function test_rejected_and_left_memberships_are_reactivated_as_pending_members(): void

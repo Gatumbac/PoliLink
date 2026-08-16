@@ -47,6 +47,7 @@ class User extends Authenticatable
     {
         return $this->memberships()
             ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
+            ->whereHas('community', fn ($query) => $query->where('is_active', true))
             ->where('status', MembershipStatus::Active->value);
     }
 
@@ -60,6 +61,7 @@ class User extends Authenticatable
         return $this->memberships()
             ->where('community_id', $communityId)
             ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
+            ->whereHas('community', fn ($query) => $query->where('is_active', true))
             ->where('status', MembershipStatus::Active->value)
             ->exists();
     }

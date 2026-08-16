@@ -12,7 +12,9 @@ use App\Models\Community;
 use App\Models\CommunityCreationRequest as CommunityCreationRequestModel;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
+use App\Services\CommunitySlugService;
 use App\Services\PublicImageStorageService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -24,12 +26,14 @@ class CommunityCreationRequestController extends Controller
 {
     public function __construct(
         private readonly PublicImageStorageService $imageStorage,
+        private readonly CommunitySlugService $slugService,
     ) {}
 
     public function store(StoreCommunityCreationRequest $request): JsonResponse
     {
         $data = $request->validated();
-        $this->ensureNameCanBeRequested($data['name']);
+        $slug = $this->slugService->fromName($data['name']);
+        $this->ensureNameCanBeRequested($data['name'], $slug);
 
         $imagePath = isset($data['image'])
             ? $this->imageStorage->store($data['image'], 'community-requests')
@@ -38,6 +42,7 @@ class CommunityCreationRequestController extends Controller
         try {
             $creationRequest = CommunityCreationRequestModel::query()->create([
                 'name' => $data['name'],
+                'slug' => $slug,
                 'description' => $data['description'] ?? null,
                 'image_path' => $imagePath,
                 'requested_by' => $request->user()->id,
@@ -45,6 +50,12 @@ class CommunityCreationRequestController extends Controller
             ]);
         } catch (Throwable $exception) {
             $this->imageStorage->delete($imagePath);
+
+            if ($this->isPendingSlugUniqueViolation($exception)) {
+                throw ValidationException::withMessages([
+                    'name' => 'Ya existe una solicitud pendiente con ese identificador.',
+                ]);
+            }
 
             throw $exception;
         }
@@ -99,9 +110,15 @@ class CommunityCreationRequestController extends Controller
 
                 $this->ensurePending($lockedRequest);
                 abort_if(
-                    Community::query()->where('name', $lockedRequest->name)->exists(),
+                    Community::query()
+                        ->where(function ($query) use ($lockedRequest) {
+                            $query
+                                ->where('name', $lockedRequest->name)
+                                ->orWhere('slug', $lockedRequest->slug);
+                        })
+                        ->exists(),
                     Response::HTTP_CONFLICT,
-                    'Ya existe una comunidad con ese nombre.',
+                    'Ya existe una comunidad con ese nombre o identificador.',
                 );
 
                 $sourceImagePath = $lockedRequest->image_path;
@@ -111,6 +128,7 @@ class CommunityCreationRequestController extends Controller
 
                 $community = Community::query()->create([
                     'name' => $lockedRequest->name,
+                    'slug' => $lockedRequest->slug,
                     'description' => $lockedRequest->description,
                     'is_active' => true,
                     'image_path' => $targetImagePath,
@@ -180,17 +198,27 @@ class CommunityCreationRequestController extends Controller
         return new CommunityCreationRequestResource($rejectedRequest);
     }
 
-    private function ensureNameCanBeRequested(string $name): void
+    private function ensureNameCanBeRequested(string $name, string $slug): void
     {
-        $communityExists = Community::query()->where('name', $name)->exists();
+        $communityExists = Community::query()
+            ->where(function ($query) use ($name, $slug) {
+                $query
+                    ->where('name', $name)
+                    ->orWhere('slug', $slug);
+            })
+            ->exists();
         $pendingRequestExists = CommunityCreationRequestModel::query()
-            ->where('name', $name)
+            ->where(function ($query) use ($name, $slug) {
+                $query
+                    ->where('name', $name)
+                    ->orWhere('slug', $slug);
+            })
             ->where('status', CommunityCreationRequestStatus::Pending->value)
             ->exists();
 
         if ($communityExists || $pendingRequestExists) {
             throw ValidationException::withMessages([
-                'name' => 'Ya existe una comunidad o solicitud pendiente con ese nombre.',
+                'name' => 'Ya existe una comunidad o solicitud pendiente con ese nombre o identificador.',
             ]);
         }
     }
@@ -202,6 +230,19 @@ class CommunityCreationRequestController extends Controller
             Response::HTTP_CONFLICT,
             'La solicitud ya fue procesada.',
         );
+    }
+
+    private function isPendingSlugUniqueViolation(Throwable $exception): bool
+    {
+        if (! $exception instanceof QueryException) {
+            return false;
+        }
+
+        $message = strtolower($exception->getMessage());
+
+        return str_contains($message, 'community_creation_requests_pending_slug_unique')
+            || str_contains($message, 'community_creation_requests.pending_slug')
+            || str_contains($message, 'community_creation_requests.slug');
     }
 
     private function restoreMovedImage(?string $targetPath, ?string $sourcePath): void

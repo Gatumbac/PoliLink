@@ -6,6 +6,7 @@ use App\Enums\CommunityCreationRequestStatus;
 use App\Enums\EventStatus;
 use App\Enums\MembershipStatus;
 use App\Models\Community;
+use App\Models\CommunityCreationRequest;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
@@ -49,8 +50,9 @@ class CommunityOnboardingApiTest extends TestCase
             'description' => 'Comunidad de robótica de ESPOL.',
         ])
             ->assertCreated()
-            ->assertJsonStructure(['data' => ['id', 'name', 'description', 'image_url', 'status']])
+            ->assertJsonStructure(['data' => ['id', 'name', 'slug', 'description', 'image_url', 'status']])
             ->assertJsonPath('data.name', 'Club de Astronomía')
+            ->assertJsonPath('data.slug', 'club-de-astronomia')
             ->assertJsonPath('data.status.code', 'pending');
 
         $this->assertDatabaseHas('community_creation_requests', [
@@ -85,6 +87,53 @@ class CommunityOnboardingApiTest extends TestCase
 
         $this->authenticatedPost($student, '/api/community-creation-requests', [
             'name' => 'Comunidad Única',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('name');
+    }
+
+    public function test_rejected_community_creation_request_names_can_be_reused(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad reutilizable',
+        ])->assertCreated();
+
+        CommunityCreationRequest::query()
+            ->where('name', 'Comunidad reutilizable')
+            ->update(['status' => CommunityCreationRequestStatus::Rejected->value]);
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad reutilizable',
+        ])->assertCreated();
+
+        $this->assertDatabaseCount('community_creation_requests', 3);
+    }
+
+    public function test_slug_collisions_are_rejected_after_name_normalization(): void
+    {
+        $this->seed();
+        $student = $this->student();
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad con Robótica',
+        ])->assertCreated();
+
+        $this->authenticatedPost($student, '/api/community-creation-requests', [
+            'name' => 'Comunidad con Robotica',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors('name');
+    }
+
+    public function test_names_without_a_valid_slug_are_rejected(): void
+    {
+        $this->seed();
+
+        $this->authenticatedPost($this->student(), '/api/community-creation-requests', [
+            'name' => '!!!',
         ])
             ->assertUnprocessable()
             ->assertJsonValidationErrors('name');
@@ -149,6 +198,25 @@ class CommunityOnboardingApiTest extends TestCase
             ->assertJsonPath('meta.total', 2)
             ->assertJsonFragment(['code' => 'cancelled'])
             ->assertJsonMissing(['title' => 'Evento ajeno']);
+    }
+
+    public function test_dashboard_excludes_inactive_managed_communities_and_events(): void
+    {
+        $this->seed();
+        $organizer = User::query()->where('email', 'organizer@espol.edu.ec')->sole();
+        $community = Community::query()->where('name', 'TAWS')->sole();
+        $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
+
+        $community->update(['is_active' => false]);
+
+        $this->authenticatedGet($organizer, '/api/me/communities')
+            ->assertOk()
+            ->assertJsonMissing(['id' => $community->id]);
+
+        $this->authenticatedGet($organizer, '/api/me/events')
+            ->assertOk()
+            ->assertJsonCount(0, 'data')
+            ->assertJsonMissing(['id' => $event->id]);
     }
 
     public function test_organizer_event_dashboard_rejects_invalid_pagination(): void

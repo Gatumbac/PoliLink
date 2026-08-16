@@ -18,11 +18,11 @@ class DatabaseSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
         $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
         $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
-        $this->assertTrue(Schema::hasColumns('communities', ['is_active', 'image_path']));
+        $this->assertTrue(Schema::hasColumns('communities', ['slug', 'is_active', 'image_path']));
         $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path', 'status']));
         $this->assertTrue(Schema::hasColumns('registrations', ['user_id', 'status']));
         $this->assertTrue(Schema::hasColumns('community_memberships', ['status']));
-        $this->assertTrue(Schema::hasColumns('community_creation_requests', ['status']));
+        $this->assertTrue(Schema::hasColumns('community_creation_requests', ['slug', 'status']));
 
         foreach ([
             'communities',
@@ -56,6 +56,7 @@ class DatabaseSchemaTest extends TestCase
         $userId = $this->createUser();
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
+            'slug' => 'taws',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -84,11 +85,81 @@ class DatabaseSchemaTest extends TestCase
         ]);
     }
 
+    public function test_community_slugs_are_unique(): void
+    {
+        DB::table('communities')->insert([
+            'name' => 'Comunidad uno',
+            'slug' => 'comunidad',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        DB::table('communities')->insert([
+            'name' => 'Comunidad dos',
+            'slug' => 'comunidad',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_pending_community_creation_request_slugs_are_unique(): void
+    {
+        $userId = $this->createUser();
+        $attributes = [
+            'name' => 'Comunidad pendiente única',
+            'slug' => 'comunidad-pendiente-unica',
+            'description' => null,
+            'image_path' => null,
+            'requested_by' => $userId,
+            'status' => 'pending',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'rejection_reason' => null,
+            'community_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        DB::table('community_creation_requests')->insert($attributes);
+
+        $this->expectException(QueryException::class);
+
+        DB::table('community_creation_requests')->insert($attributes);
+    }
+
+    public function test_rejected_community_creation_request_names_can_be_reused(): void
+    {
+        $userId = $this->createUser();
+        $attributes = [
+            'name' => 'Comunidad reutilizable',
+            'slug' => 'comunidad-reutilizable',
+            'description' => null,
+            'image_path' => null,
+            'requested_by' => $userId,
+            'status' => 'rejected',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'rejection_reason' => 'Prueba',
+            'community_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        DB::table('community_creation_requests')->insert($attributes);
+        $attributes['status'] = 'pending';
+        DB::table('community_creation_requests')->insert($attributes);
+
+        $this->assertDatabaseCount('community_creation_requests', 2);
+    }
+
     public function test_registration_is_unique_per_event_and_user(): void
     {
         $userId = $this->createUser('member@espol.edu.ec');
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
+            'slug' => 'taws',
             'created_at' => now(),
             'updated_at' => now(),
         ]);

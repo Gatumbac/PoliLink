@@ -38,6 +38,7 @@ class EventResource extends JsonResource
                 fn () => [
                     'id' => $this->community->id,
                     'name' => $this->community->name,
+                    'slug' => $this->community->slug,
                     'description' => $this->community->description,
                 ],
             ),

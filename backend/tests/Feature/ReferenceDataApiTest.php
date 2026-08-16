@@ -67,7 +67,8 @@ class ReferenceDataApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'TAWS')
-            ->assertJsonStructure(['data' => [['id', 'name', 'description', 'image_url']]]);
+            ->assertJsonPath('data.0.slug', 'taws')
+            ->assertJsonStructure(['data' => [['id', 'name', 'slug', 'description', 'image_url']]]);
     }
 
     private function organizer()

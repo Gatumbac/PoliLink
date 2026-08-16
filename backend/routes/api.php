@@ -79,5 +79,5 @@ Route::get('/event-categories', [ReferenceDataController::class, 'categories']);
 Route::get('/event-modalities', [ReferenceDataController::class, 'modalities']);
 Route::get('/locations', [ReferenceDataController::class, 'locations']);
 Route::get('/communities/discover', [CommunityDirectoryController::class, 'index']);
-Route::get('/communities/{community}', [CommunityDirectoryController::class, 'show']);
+Route::get('/communities/{community:slug}', [CommunityDirectoryController::class, 'show']);
 Route::get('/communities', [ReferenceDataController::class, 'communities']);

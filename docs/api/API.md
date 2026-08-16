@@ -100,7 +100,7 @@ registro ni permite una segunda cancelación.
     "category": { "id": 3, "code": "hackathon", "name": "Hackatón" },
     "modality": { "id": 1, "code": "in_person", "name": "Presencial" },
     "location": { "id": 1, "name": "Campus Gustavo Galindo", "description": null },
-    "community": { "id": 1, "name": "TAWS", "description": "..." },
+    "community": { "id": 1, "name": "TAWS", "slug": "taws", "description": "..." },
     "status": { "code": "published", "name": "Publicado" }
   }
 }
@@ -129,7 +129,7 @@ Sirven para llenar filtros y selectores del frontend.
 | `GET` | `/event-categories` | Categorías con `id`, `code` y `name`. |
 | `GET` | `/event-modalities` | Modalidades con `id`, `code` y `name`. |
 | `GET` | `/locations` | Ubicaciones con `id`, `name` y `description`. |
-| `GET` | `/communities` | Comunidades activas con `id`, `name`, `description` e `image_url`. |
+| `GET` | `/communities` | Comunidades activas con `id`, `name`, `slug`, `description` e `image_url`. |
 
 Todos responden con un arreglo en `data`, ordenado alfabéticamente por nombre.
 `GET /communities` devuelve únicamente comunidades que poseen al menos un
@@ -143,18 +143,23 @@ su función de alimentar el filtro del catálogo de eventos.
 | Método | Ruta | Descripción |
 | --- | --- | --- |
 | `GET` | `/communities/discover` | Busca todas las comunidades con paginación. |
-| `GET` | `/communities/{community}` | Devuelve el perfil público de una comunidad. |
+| `GET` | `/communities/{community:slug}` | Devuelve el perfil público de una comunidad usando su slug. |
 
 `GET /communities/discover` acepta `search`, `page` y `per_page`. La búsqueda
 coincide parcialmente por nombre, ordena alfabéticamente y usa `12` elementos
 por página por defecto, con un máximo de `50`. La respuesta contiene `data`,
 `links` y `meta`.
 
-El perfil público devuelve únicamente `id`, `name`, `description` e
-`image_url`. Solo se muestran comunidades activas; no expone usuarios,
+El perfil público devuelve únicamente `id`, `name`, `slug`, `description` e
+`image_url`. El `slug` se genera automáticamente desde el nombre, es único y
+permanece estable si cambia el nombre. Solo se muestran comunidades activas; no expone usuarios,
 membresías ni roles. Para consultar los eventos publicados de una comunidad se
 reutiliza `GET /events?community_id={id}`; ese endpoint continúa filtrando
 únicamente eventos con estado `published` y comunidades activas.
+
+Las rutas autenticadas de membresías e imágenes continúan usando el `id` de la
+comunidad. La ruta pública por slug reemplaza la resolución pública anterior
+por ID.
 
 ## Membresías propias — implementado
 
@@ -305,9 +310,10 @@ opcional. `image` también es opcional y debe ser JPEG, PNG o WebP de máximo
 5 MB. La imagen se guarda temporalmente en `community-requests/`.
 Devuelve `201` con el estado y `image_url`.
 
-Un nombre repetido en una comunidad existente o en otra solicitud pendiente
-devuelve `422`. La identidad se obtiene de la sesión; el cliente no envía
-`requested_by`, roles ni estados.
+Un nombre repetido, o un nombre cuyo slug normalizado ya pertenece a una
+comunidad o solicitud pendiente, devuelve `422`. Los nombres que no producen un
+slug válido también se rechazan. La identidad se obtiene de la sesión; el
+cliente no envía `requested_by`, slug, roles ni estados.
 
 Respuesta:
 
@@ -316,6 +322,7 @@ Respuesta:
   "data": {
     "id": 2,
     "name": "Club de Robótica",
+    "slug": "club-de-robotica",
     "description": "Comunidad de robótica de ESPOL.",
     "image_url": "http://localhost:8000/storage/community-requests/abc.png",
     "status": { "code": "pending", "name": "Pendiente" },
@@ -340,7 +347,8 @@ Estas rutas requieren sesión Sanctum y `users.is_admin = true`:
 | `PATCH` | `/admin/community-creation-requests/{request}/approve` | Aprueba y crea la comunidad. |
 | `PATCH` | `/admin/community-creation-requests/{request}/reject` | Rechaza con `rejection_reason` obligatorio. |
 
-Al aprobar, el backend crea una comunidad `is_active = true`, mueve la imagen
+Al aprobar, el backend crea una comunidad `is_active = true` con el slug de la
+solicitud, mueve la imagen
 de `community-requests/` a `communities/` y crea automáticamente una
 membresía `active/organizer` para el solicitante. El administrador queda
 registrado como revisor. Una solicitud procesada no puede revisarse otra vez.

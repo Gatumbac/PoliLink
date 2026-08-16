@@ -19,6 +19,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class PoliLinkDemoSeeder extends Seeder
 {
@@ -46,6 +47,7 @@ class PoliLinkDemoSeeder extends Seeder
         $community = Community::query()->updateOrCreate(
             ['name' => 'TAWS'],
             [
+                'slug' => Str::slug('TAWS'),
                 'description' => 'Comunidad estudiantil de tecnología y desarrollo de software.',
                 'is_active' => true,
             ],
@@ -58,6 +60,7 @@ class PoliLinkDemoSeeder extends Seeder
             ],
             [
                 'description' => 'Comunidad estudiantil de robótica de ESPOL.',
+                'slug' => Str::slug('Club de Robótica'),
                 'status' => CommunityCreationRequestStatus::Pending->value,
             ],
         );

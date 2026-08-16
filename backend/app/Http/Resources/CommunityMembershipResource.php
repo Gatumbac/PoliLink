@@ -15,6 +15,7 @@ class CommunityMembershipResource extends JsonResource
             'community' => $this->whenLoaded('community', fn () => [
                 'id' => $this->community->id,
                 'name' => $this->community->name,
+                'slug' => $this->community->slug,
                 'description' => $this->community->description,
                 'image_url' => app(PublicImageStorageService::class)->url($this->community->image_path),
             ]),

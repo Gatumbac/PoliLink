@@ -37,6 +37,7 @@ class EventApiTest extends TestCase
             ->assertJsonPath('data.0.id', $event->id)
             ->assertJsonPath('data.0.available_capacity', 49)
             ->assertJsonPath('data.0.community.name', 'TAWS')
+            ->assertJsonPath('data.0.community.slug', 'taws')
             ->assertJsonPath('data.0.category.code', 'hackathon')
             ->assertJsonPath('meta.per_page', 12);
     }
@@ -118,6 +119,25 @@ class EventApiTest extends TestCase
             'capacity' => 0,
         ]))->assertUnprocessable();
 
+    }
+
+    public function test_inactive_community_blocks_organizer_event_management(): void
+    {
+        $this->seed();
+        $organizer = $this->organizer();
+        $event = $this->seededEvent();
+
+        $event->community->update(['is_active' => false]);
+
+        $this->authenticatedPost($organizer, '/api/events', $this->eventPayload())
+            ->assertUnprocessable();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
+            'title' => 'Cambio no permitido',
+        ])->assertForbidden();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")
+            ->assertForbidden();
     }
 
     public function test_tutor_cannot_create_an_event(): void

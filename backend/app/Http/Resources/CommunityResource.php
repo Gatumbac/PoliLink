@@ -13,6 +13,7 @@ class CommunityResource extends JsonResource
         return [
             'id' => $this->id,
             'name' => $this->name,
+            'slug' => $this->slug,
             'description' => $this->description,
             'image_url' => app(PublicImageStorageService::class)->url($this->image_path),
         ];
