@@ -1,64 +1,54 @@
-# PoliLink repository guide
+# Repository Guidelines
 
-## Project context
+## Project Structure
 
-PoliLink is a Lenguajes de Programación project about the centralized
-management and publication of ESPOL community events. Read
-`docs/CONTEXT/PROJECT_CONTEXT.md` before changing the proposal or implementing
-features related to its scope. `docs/latex/main.tex` is the complete proposal
-source.
+PoliLink is a Laravel API and React SPA for publishing and discovering ESPOL
+community events. Backend source is in `backend/app/`, routes in
+`backend/routes/`, database migrations and seeders in `backend/database/`, and
+PHPUnit feature tests in `backend/tests/`. Frontend source is in
+`frontend/src/`; static assets are in `frontend/public/`. Technical docs and
+the proposal are under `docs/`, especially `docs/CONTEXT/`, `docs/api/`, and
+`docs/latex/`.
 
-## Scope that must remain unchanged
+The backend currently implements local Sanctum authentication, communities,
+event catalog/filtering, event management, and registrations. The React UI is
+still a starter screen with partial API helpers, so do not describe frontend
+flows as complete unless they are actually wired and checked.
 
-- Organizers publish, edit, and cancel events directly; there is no
-  administrative approval flow.
-- Students discover/filter events, register, and cancel their registration to
-  release a place.
-- Keep the event fields and work assignments specified in
-  `docs/CONTEXT/PROJECT_CONTEXT.md`.
-- Do not add institutional integrations or authentication, payments, email or
-  calendar integration, QR codes, or attendance validation without explicit
-  approval.
+## Development Commands
 
-## Repository layout
+Humans manage Docker, MySQL, Laravel, and Vite processes. From the repository
+root, start only MySQL with `docker compose up -d mysql`. In `backend/`, use
+`composer install`, `php artisan migrate`, and `php artisan serve`. In
+`frontend/`, use `npm install` and `npm run dev`. Available checks are
+`php artisan test`, `vendor/bin/pint --test`, `npm run lint`, and
+`npm run build`. Agents must run tests, builds, or validation only when the
+task explicitly requests them.
 
-- `backend/`: Laravel API.
-- `frontend/`: React and TypeScript interface.
-- `docs/`: technical documentation and development log; see `docs/README.md`.
-- `docs/CONTEXT/`: approved academic context.
-- `docs/latex/`: current LaTeX proposal and its images.
-- `docs/api/`: API contract, Postman guide and importable collection.
+## Code Style and Testing
 
-Consult the relevant README before working in `backend/` or `frontend/`. Keep
-application code, API documentation, and the academic proposal consistent, but
-do not broaden the requested change just to make related documents match.
+Use four-space indentation in PHP and two spaces in TypeScript. Follow Laravel
+conventions: PascalCase classes, camelCase methods, Form Requests for input
+validation, Policies for authorization, and timestamped migration names.
+React components use PascalCase; helpers and variables use camelCase.
+Name PHPUnit methods `test_<behavior>`. Add feature coverage for changed API
+rules and authorization paths; no formal frontend coverage threshold is set.
 
-## Local development environment
+## Scope, Security, and Documentation
 
-- The default workflow runs Laravel and React on the host machine; Docker
-  Compose runs only the `mysql` service.
-- Host Laravel connects to the published database with `DB_HOST=127.0.0.1`,
-  `DB_PORT=3306`, `DB_DATABASE=polilink`, `DB_USERNAME=polilink`, and
-  `DB_PASSWORD=polilink`. The hostname `mysql` is only valid from another
-  Docker container.
-- Humans must start, stop, restart, and manage every server or container,
-  including MySQL, Laravel, Vite, and Docker Compose. Agents may document the
-  required commands and inspect explicitly provided logs, but must never run
-  those lifecycle commands themselves.
-- Do not run builds, tests, or validation commands unless the user explicitly
-  requests that action.
+Organizers publish, edit, and cancel events directly; students register and
+cancel registrations. Do not add approval workflows, institutional
+integrations, payments, email/calendar integration, QR codes, or attendance
+validation without approval. Keep credentials in `.env`, never commit them,
+and use `backend/.env.example` as the template. Use `127.0.0.1` for host
+Laravel-to-MySQL connections; `mysql` is only a container hostname.
 
-## Working on the LaTeX proposal
+Keep `docs/api/API.md`, the approved context, README files, and the LaTeX
+proposal consistent. Mark planned behavior as planned.
 
-- Preserve the existing title, authors, course, formal Spanish writing style,
-  and monochrome cover. Do not add external logos or colors.
-- Keep the architecture diagram to its four compact nodes, with no labels on
-  arrows.
-- Keep citations valid when making factual changes.
-- Do not compile LaTeX or run other validation/build commands unless the user
-  explicitly requests it.
+## Commits and Pull Requests
 
-## Change discipline
-
-- State clearly when a detail is planned rather than implemented.
-- Check `git status --short` before handoff and preserve unrelated changes.
+Use concise conventional-style messages such as `feat: add event filters` or
+`docs: update API guide`. PRs should explain the scope, list checks actually
+run, identify known limitations, and include UI or proposal screenshots when
+relevant. Preserve unrelated working-tree changes.
