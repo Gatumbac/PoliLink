@@ -2,6 +2,33 @@
   min-height: 100vh;
 }
 
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: min(100% - 2rem, 68rem);
+  margin: 0 auto;
+  padding: 1.25rem 0;
+}
+
+.app-header nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.brand {
+  color: #132238;
+  font-size: 1.1rem;
+  font-weight: 800;
+  text-decoration: none;
+}
+
+.app-header a:not(.brand) {
+  color: #3867d6;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 .app-shell {
   display: grid;
   min-height: 100vh;
@@ -51,4 +78,3 @@ h1 {
   font-size: 0.9rem;
   font-weight: 700;
 }
-
