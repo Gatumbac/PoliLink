@@ -50,5 +50,7 @@ flujo CSRF del backend.
 
 La base de la aplicación está configurada con React Router, React Query,
 validación Zod, formularios React Hook Form y una política TypeScript estricta.
-Las vistas de catálogo, detalle, autenticación, registro y panel del
-organizador todavía se implementarán sobre este scaffold.
+La integración no visual con Laravel Sanctum ya está preparada: cliente con
+cookies y CSRF, estado de sesión, mutaciones de autenticación y guards
+reutilizables. Las vistas de catálogo, detalle, autenticación, registro y panel
+del organizador todavía se implementarán sobre este scaffold.

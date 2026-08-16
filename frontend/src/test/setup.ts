@@ -5,5 +5,8 @@ import { afterAll, afterEach, beforeAll } from 'vitest'
 import { server } from './server'
 
 beforeAll(() => server.listen({ onUnhandledRequest: 'error' }))
-afterEach(() => server.resetHandlers())
+afterEach(() => {
+  server.resetHandlers()
+  document.cookie = 'XSRF-TOKEN=; Max-Age=0; path=/'
+})
 afterAll(() => server.close())

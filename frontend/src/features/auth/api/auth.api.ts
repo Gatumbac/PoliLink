@@ -1,5 +1,7 @@
 import {
   authEnvelopeSchema,
+  loginPayloadSchema,
+  registerPayloadSchema,
   type AuthUser,
   type LoginPayload,
   type RegisterPayload,
@@ -14,18 +16,21 @@ export const authApi = {
   csrf: requestCsrfCookie,
 
   register: async (payload: RegisterPayload): Promise<AuthUser> => {
-    await requestCsrfCookie()
+    const validPayload = registerPayloadSchema.parse(payload)
 
     return parseAuthUser(
-      await request('/auth/register', { method: 'POST', body: payload }),
+      await request('/auth/register', {
+        method: 'POST',
+        body: validPayload,
+      }),
     )
   },
 
   login: async (payload: LoginPayload): Promise<AuthUser> => {
-    await requestCsrfCookie()
+    const validPayload = loginPayloadSchema.parse(payload)
 
     return parseAuthUser(
-      await request('/auth/login', { method: 'POST', body: payload }),
+      await request('/auth/login', { method: 'POST', body: validPayload }),
     )
   },
 

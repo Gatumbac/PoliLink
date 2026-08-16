@@ -1,29 +1,48 @@
 import {
   createContext,
+  useEffect,
   useContext,
   type ReactNode,
 } from 'react'
 
-import { useQuery } from '@tanstack/react-query'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import { authApi } from '@/features/auth/api/auth.api'
-import type { AuthUser } from '@/features/auth/model/auth.schemas'
+import type {
+  AuthUser,
+  LoginPayload,
+  RegisterPayload,
+} from '@/features/auth/model/auth.schemas'
+import { subscribeToUnauthorized } from '@/shared/api/client'
 import { ApiError } from '@/shared/errors/api-error'
 
-type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error'
+export type AuthStatus = 'loading' | 'authenticated' | 'anonymous' | 'error'
 
-type AuthContextValue = {
+export type AuthContextValue = {
   user: AuthUser | null
   status: AuthStatus
   error: Error | null
+  isLoggingIn: boolean
+  isRegistering: boolean
+  isLoggingOut: boolean
+  login: (payload: LoginPayload) => Promise<AuthUser>
+  register: (payload: RegisterPayload) => Promise<AuthUser>
+  logout: () => Promise<void>
   refresh: () => Promise<void>
 }
+
+export const authQueryKey = ['auth', 'me'] as const
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient()
   const sessionQuery = useQuery<AuthUser | null, Error>({
-    queryKey: ['auth', 'me'],
+    queryKey: authQueryKey,
     queryFn: async (): Promise<AuthUser | null> => {
       try {
         return await authApi.me()
@@ -34,6 +53,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     retry: false,
   })
+
+  const loginMutation = useMutation<AuthUser, Error, LoginPayload>({
+    mutationFn: authApi.login,
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKey, user)
+    },
+  })
+
+  const registerMutation = useMutation<AuthUser, Error, RegisterPayload>({
+    mutationFn: authApi.register,
+    onSuccess: (user) => {
+      queryClient.setQueryData(authQueryKey, user)
+    },
+  })
+
+  const logoutMutation = useMutation<void, Error, void>({
+    mutationFn: authApi.logout,
+  })
+
+  useEffect(() => {
+    return subscribeToUnauthorized(() => {
+      queryClient.setQueryData<AuthUser | null>(authQueryKey, null)
+    })
+  }, [queryClient])
 
   let status: AuthStatus
 
@@ -47,10 +90,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     status = 'anonymous'
   }
 
+  const authenticatedUser = sessionQuery.data ?? null
+
   const value: AuthContextValue = {
-    user: sessionQuery.data ?? null,
+    user: status === 'authenticated' ? authenticatedUser : null,
     status,
     error: sessionQuery.error,
+    isLoggingIn: loginMutation.isPending,
+    isRegistering: registerMutation.isPending,
+    isLoggingOut: logoutMutation.isPending,
+    login: loginMutation.mutateAsync,
+    register: registerMutation.mutateAsync,
+    logout: async () => {
+      try {
+        await logoutMutation.mutateAsync()
+      } catch (error: unknown) {
+        if (!(error instanceof ApiError && error.status === 401)) throw error
+      } finally {
+        queryClient.setQueryData<AuthUser | null>(authQueryKey, null)
+      }
+    },
     refresh: async () => {
       await sessionQuery.refetch()
     },

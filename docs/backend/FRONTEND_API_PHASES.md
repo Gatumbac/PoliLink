@@ -48,6 +48,12 @@ terminada una API cuando aún no existe una pantalla integrada.
 
 ### Fase 1 — Fundación compartida y sesión
 
+**Estado actual:** `In progress`. La integración no visual con Laravel Sanctum
+ya está preparada en React: cliente con cookies y CSRF, errores tipados, estado
+de sesión, mutaciones de autenticación y guards reutilizables. Las pantallas de
+login/registro, el menú de sesión y la verificación navegador → Laravel quedan
+para el siguiente trabajo de interfaz.
+
 Definir la estructura general de la SPA, navegación, estilos compartidos,
 cliente HTTP, sesión Sanctum, registro/login/logout, roles y manejo común de
 carga, errores y sesión expirada.
