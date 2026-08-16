@@ -32,12 +32,8 @@ export function LandingPage() {
                 <ArrowRight />
               </Link>
             </Button>
-            <Button
-              disabled
-              title="Disponible en una fase posterior"
-              variant="outline"
-            >
-              Publicar un evento
+            <Button asChild variant="outline">
+              <Link to={appRoutes.organize}>¿Organizas una comunidad?</Link>
             </Button>
           </div>
           <Badge role="status" variant="outline">

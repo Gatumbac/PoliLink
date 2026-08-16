@@ -2,9 +2,9 @@ import { render, screen } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
-import { AppLayout } from '@/app/layouts/AppLayout'
 import { appRoutes } from '@/app/routes'
 import { type AuthContextValue, useAuth } from '@/features/auth/auth-context'
+import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
 
 vi.mock('@/features/auth/auth-context', () => ({
   useAuth: vi.fn(),
@@ -14,7 +14,7 @@ const mockedUseAuth = vi.mocked(useAuth)
 
 const defaultAuthValue: AuthContextValue = {
   user: null,
-  status: 'anonymous',
+  status: 'authenticated',
   error: null,
   isLoggingIn: false,
   isRegistering: false,
@@ -25,38 +25,10 @@ const defaultAuthValue: AuthContextValue = {
   refresh: vi.fn(),
 }
 
-describe('application layout community navigation', () => {
-  it('shows the managed communities link to organizers', () => {
+describe('organize page', () => {
+  it('guides a student to register a new community', () => {
     mockedUseAuth.mockReturnValue({
       ...defaultAuthValue,
-      status: 'authenticated',
-      user: {
-        id: 7,
-        first_name: 'Ana',
-        last_name: 'Torres',
-        email: 'ana@espol.edu.ec',
-        roles: [
-          { code: 'student', name: 'Student' },
-          { code: 'organizer', name: 'Organizer' },
-        ],
-      },
-    })
-
-    render(
-      <MemoryRouter>
-        <AppLayout />
-      </MemoryRouter>,
-    )
-
-    expect(
-      screen.getByRole('link', { name: 'Mis comunidades' }),
-    ).toHaveAttribute('href', appRoutes.myCommunities)
-  })
-
-  it('shows the community onboarding link to students', () => {
-    mockedUseAuth.mockReturnValue({
-      ...defaultAuthValue,
-      status: 'authenticated',
       user: {
         id: 7,
         first_name: 'Ana',
@@ -68,12 +40,43 @@ describe('application layout community navigation', () => {
 
     render(
       <MemoryRouter>
-        <AppLayout />
+        <OrganizePage />
       </MemoryRouter>,
     )
 
     expect(
-      screen.getByRole('link', { name: 'Organiza una comunidad' }),
-    ).toHaveAttribute('href', appRoutes.organize)
+      screen.getByRole('heading', {
+        name: 'Organiza las actividades de tu comunidad',
+      }),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Comenzar registro' }),
+    ).toHaveAttribute('href', appRoutes.createCommunity)
+    expect(
+      screen.getByRole('button', { name: /Disponible próximamente/ }),
+    ).toBeDisabled()
+  })
+
+  it('sends an existing organizer to the managed communities dashboard', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      user: {
+        id: 7,
+        first_name: 'Ana',
+        last_name: 'Torres',
+        email: 'ana@espol.edu.ec',
+        roles: [{ code: 'organizer', name: 'Organizer' }],
+      },
+    })
+
+    render(
+      <MemoryRouter>
+        <OrganizePage />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'Ver mis comunidades' }),
+    ).toHaveAttribute('href', appRoutes.myCommunities)
   })
 })

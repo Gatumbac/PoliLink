@@ -1,7 +1,7 @@
-import { Plus, RefreshCw, UsersRound } from 'lucide-react'
-import { useState } from 'react'
+import { ArrowRight, Plus, RefreshCw, UsersRound } from 'lucide-react'
+import { Link } from 'react-router'
 
-import { CommunityForm } from '@/features/communities/components/CommunityForm'
+import { appRoutes } from '@/app/routes'
 import { useManagedCommunities } from '@/features/organizer/hooks/use-organizer-queries'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
 import { Button } from '@/shared/ui/button'
@@ -12,19 +12,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/shared/ui/dialog'
 import { Skeleton } from '@/shared/ui/skeleton'
 
 export function ManagedCommunitiesSection() {
   const communitiesQuery = useManagedCommunities()
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
 
   if (communitiesQuery.isPending) {
     return (
@@ -85,24 +76,29 @@ export function ManagedCommunitiesSection() {
               className="font-heading text-xl font-medium"
               id="communities-title"
             >
-              Crea tu comunidad
+              Aún no tienes comunidades
             </h2>
             <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
-              Registra la comunidad que coordinas para comenzar a publicar
-              actividades.
+              Registra una comunidad para comenzar a publicar actividades en
+              PoliLink.
             </p>
           </div>
         </div>
-        <Card>
+        <Card className="border-dashed">
           <CardHeader>
-            <CardTitle>Primero, cuéntanos sobre tu comunidad</CardTitle>
+            <CardTitle>Conecta tu comunidad con PoliLink</CardTitle>
             <CardDescription>
-              Solo necesitas un nombre. Puedes añadir una descripción para que
-              los estudiantes conozcan mejor su propósito.
+              Te guiaremos paso a paso para registrar la comunidad que
+              coordinas.
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <CommunityForm />
+            <Button asChild>
+              <Link to={appRoutes.createCommunity}>
+                Registrar una comunidad
+                <ArrowRight aria-hidden="true" />
+              </Link>
+            </Button>
           </CardContent>
         </Card>
       </section>
@@ -129,26 +125,12 @@ export function ManagedCommunitiesSection() {
             </p>
           </div>
         </div>
-        <Dialog onOpenChange={setIsCreateDialogOpen} open={isCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus aria-hidden="true" />
-              Nueva comunidad
-            </Button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Nueva comunidad</DialogTitle>
-              <DialogDescription>
-                Registra otra comunidad que coordinas.
-              </DialogDescription>
-            </DialogHeader>
-            <CommunityForm
-              onCancel={() => setIsCreateDialogOpen(false)}
-              onCreated={() => setIsCreateDialogOpen(false)}
-            />
-          </DialogContent>
-        </Dialog>
+        <Button asChild>
+          <Link to={appRoutes.createCommunity}>
+            <Plus aria-hidden="true" />
+            Registrar otra comunidad
+          </Link>
+        </Button>
       </div>
 
       <ul className="grid gap-4 md:grid-cols-2">

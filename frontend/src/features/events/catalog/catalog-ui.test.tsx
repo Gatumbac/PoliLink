@@ -111,6 +111,9 @@ describe('public event catalog', () => {
         name: 'Ver detalles de Taller Laravel',
       }),
     ).toBeInTheDocument()
+    expect(
+      screen.getByRole('link', { name: 'Conoce cómo organizar' }),
+    ).toHaveAttribute('href', appRoutes.organize)
 
     await user.type(screen.getByRole('searchbox'), 'laravel')
 

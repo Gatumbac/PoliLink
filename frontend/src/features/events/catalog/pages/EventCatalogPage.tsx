@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
-
+import { CommunityOrganizerCallout } from '@/features/events/catalog/components/CommunityOrganizerCallout'
 import { EventCard } from '@/features/events/catalog/components/EventCard'
 import { EventCatalogFilters } from '@/features/events/catalog/components/EventCatalogFilters'
 import { EventCatalogSkeleton } from '@/features/events/catalog/components/EventCatalogSkeleton'
@@ -121,6 +121,8 @@ export function EventCatalogPage() {
           onSearchChange={setSearchInput}
           searchInput={searchInput}
         />
+
+        <CommunityOrganizerCallout />
 
         {referenceData.isError && (
           <Alert>

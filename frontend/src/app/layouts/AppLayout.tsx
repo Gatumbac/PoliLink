@@ -18,7 +18,7 @@ export function AppLayout() {
         <div className="mx-auto flex w-full max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link
             className="font-heading text-lg font-semibold tracking-[-0.02em] text-foreground"
-            to="/"
+            to={appRoutes.home}
           >
             PoliLink
           </Link>
@@ -35,9 +35,9 @@ export function AppLayout() {
             {isAuthenticated && (
               <Link
                 className="mr-2 transition-colors hover:text-foreground"
-                to={appRoutes.organizer}
+                to={isOrganizer ? appRoutes.myCommunities : appRoutes.organize}
               >
-                {isOrganizer ? 'Organizar' : 'Crear comunidad'}
+                {isOrganizer ? 'Mis comunidades' : 'Organiza una comunidad'}
               </Link>
             )}
             {(status === 'anonymous' || status === 'error') && (

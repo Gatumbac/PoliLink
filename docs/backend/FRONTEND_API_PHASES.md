@@ -99,7 +99,7 @@ ambiente local.
 
 ### Fase 3 — Experiencia del organizador
 
-**Contrato backend:** `Implemented`; **integración frontend:** `Planned`.
+**Contrato backend:** `Implemented`; **integración frontend:** `In progress`.
 
 El contrato de esta fase está cerrado en `docs/api/API.md`: onboarding de
 comunidades, comunidades administradas, eventos propios paginados, creación
@@ -115,8 +115,8 @@ añaden endpoints nuevos ni un panel administrativo en esta fase.
 
 #### Fase 3.1 — Fundación del organizador
 
-- Crear la ruta protegida `/organizador`, guard de sesión y layout de la
-  experiencia.
+- Crear las rutas protegidas `/organizar`, `/crear-comunidad` y
+  `/mis-comunidades`, con `/organizador` como redirección heredada.
 - Añadir el cliente API de comunidades, claves de consulta y estados comunes
   de carga, sesión expirada y error.
 
@@ -129,15 +129,20 @@ organizador.
 verificación navegador → Laravel.
 
 - Consumir `GET /me/communities` y mostrar las comunidades administradas.
-- Implementar estado vacío y formulario para `POST /communities`.
+- Implementar el panel separado en `/mis-comunidades` con estado vacío y
+  enlace hacia el onboarding.
+- Implementar el onboarding de tres pasos en `/crear-comunidad` para
+  `POST /communities`, con validación, confirmación y estado de éxito.
 - Actualizar la sesión y la navegación cuando un estudiante crea su primera
   comunidad y obtiene el rol `organizer`.
-- Permitir el acceso autenticado de estudiantes al onboarding y mostrar el
-  formulario inline sin comunidades; usar un `Dialog` para comunidades
-  adicionales.
+- Añadir puntos de descubrimiento desde el landing, el catálogo y la
+  navegación autenticada.
+- Mostrar la opción de comunidad existente como capacidad futura, sin
+  inventar un endpoint de búsqueda o representación.
 
-**Salida:** un usuario autenticado puede convertirse en organizador desde la
-interfaz y el dashboard refleja la comunidad creada.
+**Salida:** un estudiante autenticado entiende cómo participar, registra su
+comunidad mediante un recorrido guiado y llega a un panel separado para
+administrarla.
 
 #### Fase 3.3 — Panel de eventos
 

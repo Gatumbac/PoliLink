@@ -4,7 +4,10 @@ export const appRoutes = {
   register: '/registrarse',
   events: '/eventos',
   eventDetail: (eventId: number | string) => `/eventos/${eventId}`,
-  organizer: '/organizador',
+  organize: '/organizar',
+  createCommunity: '/crear-comunidad',
+  myCommunities: '/mis-comunidades',
+  legacyOrganizer: '/organizador',
   uiPreview: '/vista-previa',
 } as const
 

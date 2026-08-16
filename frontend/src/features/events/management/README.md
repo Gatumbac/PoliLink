@@ -21,8 +21,14 @@ These endpoints are protected by Sanctum. A `401` means the session is absent;
 `403` means the user lacks the required role or ownership; validation errors
 are `422` with Laravel’s field-level `errors` object.
 
-Students can access `/organizador` to complete onboarding. Organizers see the
-same dashboard with their managed communities and a “Nueva comunidad” dialog.
+Authenticated students discover the organization experience from
+`/organizar`, then use the three-step onboarding at `/crear-comunidad` to
+register a new community. Existing organizers use `/mis-comunidades` to see
+their managed communities and start the next management flows. The legacy
+`/organizador` route redirects to `/organizar`.
+
+The option to connect an existing community is shown as a future capability;
+the current frontend does not simulate a membership or representation request.
 Community editing and deletion are not available in the backend contract.
 
 ## Events

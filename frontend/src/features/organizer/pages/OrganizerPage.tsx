@@ -1,7 +1,5 @@
 import { CalendarDays } from 'lucide-react'
 
-import { useAuth } from '@/features/auth/auth-context'
-import { hasRole } from '@/features/auth/model/auth-helpers'
 import { ManagedCommunitiesSection } from '@/features/organizer/components/ManagedCommunitiesSection'
 import {
   Card,
@@ -12,23 +10,19 @@ import {
 } from '@/shared/ui/card'
 
 export function OrganizerPage() {
-  const { user } = useAuth()
-  const isOrganizer = hasRole(user, 'organizer')
-
   return (
     <main className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-8">
         <header className="max-w-2xl space-y-3">
           <p className="text-sm font-medium text-muted-foreground">
-            ESPOL · Gestión de comunidades
+            ESPOL · Mis comunidades
           </p>
           <h1 className="font-heading text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-            {isOrganizer ? 'Área del organizador' : 'Crea tu comunidad'}
+            Mis comunidades
           </h1>
           <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-            {isOrganizer
-              ? 'Administra tus comunidades y publica actividades para la comunidad estudiantil de ESPOL.'
-              : 'Registra la comunidad que coordinas para comenzar a publicar actividades para la comunidad estudiantil de ESPOL.'}
+            Administra las comunidades que coordinas y prepara sus próximas
+            actividades para la comunidad estudiantil de ESPOL.
           </p>
         </header>
 

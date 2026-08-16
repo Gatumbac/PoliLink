@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router'
+import { createBrowserRouter, Navigate } from 'react-router'
 
 import { AppLayout } from '@/app/layouts/AppLayout'
 import { NotFoundPage } from '@/app/pages/NotFoundPage'
@@ -13,6 +13,8 @@ import { RequireAnonymous, RequireAuth } from '@/features/auth/route-guards'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
+import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
+import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
 import { OrganizerPage } from '@/features/organizer/pages/OrganizerPage'
 
 export const router = createBrowserRouter([
@@ -48,7 +50,29 @@ export const router = createBrowserRouter([
         element: <EventDetailPage />,
       },
       {
-        path: appRoutes.organizer.slice(1),
+        path: appRoutes.organize.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <OrganizePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.createCommunity.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityOnboardingPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.myCommunities.slice(1),
         element: (
           <RequireAuth
             errorFallback={<AuthRouteError />}
@@ -57,6 +81,10 @@ export const router = createBrowserRouter([
             <OrganizerPage />
           </RequireAuth>
         ),
+      },
+      {
+        path: appRoutes.legacyOrganizer.slice(1),
+        element: <Navigate replace to={appRoutes.organize} />,
       },
       { path: appRoutes.uiPreview.slice(1), element: <UiPreviewPage /> },
       { path: '*', element: <NotFoundPage /> },

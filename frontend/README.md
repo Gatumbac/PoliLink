@@ -58,9 +58,21 @@ errores de validación, logout y menú de usuario en el encabezado.
 La verificación navegador → Laravel todavía debe ejecutarse con los servicios
 locales. La Fase 2 ya tiene integración de código para el catálogo público,
 los filtros, la paginación y el detalle de eventos en `/eventos` y
-`/eventos/:eventId`; el panel del organizador, las inscripciones y sus
-recorridos responsive continúan pendientes.
+`/eventos/:eventId`. La experiencia de comunidades incluye el onboarding en
+`/organizar` y `/crear-comunidad`, además del panel en `/mis-comunidades`.
+El panel de eventos, las inscripciones y sus recorridos responsive continúan
+pendientes.
 
 Las rutas visibles del navegador usan español; los nombres de componentes,
 variables, hooks y servicios permanecen en inglés. Los endpoints `/api/...`
 conservan los nombres definidos por el contrato backend.
+
+### Rutas de comunidades
+
+- `/organizar`: explica cómo participar y descubrir la experiencia de
+  organización.
+- `/crear-comunidad`: onboarding guiado de tres pasos para registrar una
+  comunidad nueva.
+- `/mis-comunidades`: panel de comunidades administradas y acceso a las
+  siguientes herramientas de organización.
+- `/organizador`: redirección heredada hacia `/organizar`.

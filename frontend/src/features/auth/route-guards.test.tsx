@@ -123,10 +123,10 @@ describe('auth route guards', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={[appRoutes.organizer]}>
+      <MemoryRouter initialEntries={[appRoutes.myCommunities]}>
         <Routes>
           <Route
-            path={appRoutes.organizer}
+            path={appRoutes.myCommunities}
             element={
               <RequireRole requiredRole="organizer">
                 <div>organizer content</div>
@@ -145,10 +145,10 @@ describe('auth route guards', () => {
     mockedUseAuth.mockReturnValue({ ...defaultAuthValue, status: 'anonymous' })
 
     render(
-      <MemoryRouter initialEntries={[appRoutes.organizer]}>
+      <MemoryRouter initialEntries={[appRoutes.organize]}>
         <Routes>
           <Route
-            path={appRoutes.organizer}
+            path={appRoutes.organize}
             element={
               <RequireRole requiredRole="organizer">
                 <div>organizer content</div>
@@ -161,7 +161,7 @@ describe('auth route guards', () => {
     )
 
     expect(screen.getByTestId('location')).toHaveTextContent(
-      `${appRoutes.login}?redirect=%2Forganizador`,
+      `${appRoutes.login}?redirect=%2Forganizar`,
     )
   })
 
@@ -179,10 +179,10 @@ describe('auth route guards', () => {
     })
 
     render(
-      <MemoryRouter initialEntries={[appRoutes.organizer]}>
+      <MemoryRouter initialEntries={[appRoutes.myCommunities]}>
         <Routes>
           <Route
-            path={appRoutes.organizer}
+            path={appRoutes.myCommunities}
             element={
               <RequireRole requiredRole="organizer">
                 <div>organizer content</div>
