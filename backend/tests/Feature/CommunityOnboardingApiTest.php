@@ -2,15 +2,15 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CommunityCreationRequestStatus;
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 class CommunityOnboardingApiTest extends TestCase
@@ -56,7 +56,7 @@ class CommunityOnboardingApiTest extends TestCase
         $this->assertDatabaseHas('community_creation_requests', [
             'name' => 'Club de Astronomía',
             'requested_by' => $student->id,
-            'status_id' => DB::table('community_creation_request_statuses')->where('code', 'pending')->value('id'),
+            'status' => CommunityCreationRequestStatus::Pending->value,
         ]);
         $this->assertDatabaseMissing('communities', ['name' => 'Club de Astronomía']);
 
@@ -101,7 +101,7 @@ class CommunityOnboardingApiTest extends TestCase
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
             'title' => 'Evento cancelado propio',
             'starts_at' => now()->addYear(),
         ]);
@@ -112,14 +112,14 @@ class CommunityOnboardingApiTest extends TestCase
             'community_id' => $otherCommunity->id,
             'user_id' => $otherOrganizer->id,
             'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
         Event::factory()->create([
             'community_id' => $otherCommunity->id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => $event->event_status_id,
+            'status' => $event->status->value,
             'title' => 'Evento ajeno',
         ]);
 

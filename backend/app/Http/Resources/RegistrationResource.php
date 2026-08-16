@@ -13,10 +13,10 @@ class RegistrationResource extends JsonResource
             'id' => $this->id,
             'registered_at' => $this->registered_at?->toISOString(),
             'cancelled_at' => $this->cancelled_at?->toISOString(),
-            'status' => $this->whenLoaded('status', fn () => [
-                'code' => $this->status->code,
-                'name' => $this->status->name,
-            ]),
+            'status' => [
+                'code' => $this->status->value,
+                'name' => $this->status->label(),
+            ],
             'event' => $this->whenLoaded('event', fn () => new EventResource($this->event)),
             'user' => $this->whenLoaded('user', fn () => [
                 'id' => $this->user->id,

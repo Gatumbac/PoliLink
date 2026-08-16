@@ -15,12 +15,13 @@ comunidades y tener un rol principal distinto en cada una.
 - `communities` representa clubes y organizaciones; `is_active` controla su
   visibilidad pública e `image_path` guarda el logo opcional.
 - `community_creation_requests` conserva las propuestas antes de su aprobación
-  y `community_creation_request_statuses` usa `pending`, `approved` y
-  `rejected`.
+  y usa el enum `CommunityCreationRequestStatus` con `pending`, `approved` y
+  `rejected`. Sus etiquetas en español provienen de `lang/es/statuses.php`.
 - `community_memberships` relaciona de forma única a un usuario con una
   comunidad y conserva su rol y estado.
 - Los roles comunitarios son `member`, `organizer` y `tutor`.
-- Los estados son `pending`, `active`, `rejected` y `left`.
+- Los estados de membresía son el enum `MembershipStatus`: `pending`, `active`,
+  `rejected` y `left`; las respuestas incluyen sus etiquetas en español.
 - `events` apunta directamente a `community_id`.
 - `registrations` apunta a `user_id`; cualquier usuario autenticado puede
   inscribirse.

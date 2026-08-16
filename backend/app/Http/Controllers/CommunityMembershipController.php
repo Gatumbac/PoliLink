@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\MembershipStatus;
 use App\Http\Requests\ListMyMembershipsRequest;
 use App\Http\Resources\CommunityMembershipResource;
 use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
-use App\Models\MembershipStatus;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,7 +26,6 @@ class CommunityMembershipController extends Controller
                 ->first();
 
             $memberRoleId = CommunityRole::query()->where('code', 'member')->sole()->id;
-            $pendingStatusId = MembershipStatus::query()->where('code', 'pending')->sole()->id;
 
             if ($membership === null) {
                 return [
@@ -34,26 +33,26 @@ class CommunityMembershipController extends Controller
                         'community_id' => $community->id,
                         'user_id' => $user->id,
                         'community_role_id' => $memberRoleId,
-                        'membership_status_id' => $pendingStatusId,
+                        'status' => MembershipStatus::Pending->value,
                         'requested_at' => now(),
                     ]),
                     false,
                 ];
             }
 
-            $membership->load(['role', 'status']);
+            $membership->load('role');
 
             abort_if(
-                in_array($membership->status->code, ['pending', 'active'], true),
+                in_array($membership->status, [MembershipStatus::Pending, MembershipStatus::Active], true),
                 Response::HTTP_CONFLICT,
-                $membership->status->code === 'pending'
+                $membership->status === MembershipStatus::Pending
                     ? 'Ya tienes una solicitud pendiente para esta comunidad.'
                     : 'Ya tienes una membresía activa en esta comunidad.',
             );
 
             $membership->update([
                 'community_role_id' => $memberRoleId,
-                'membership_status_id' => $pendingStatusId,
+                'status' => MembershipStatus::Pending->value,
                 'requested_at' => now(),
                 'reviewed_at' => null,
                 'reviewed_by' => null,
@@ -83,23 +82,23 @@ class CommunityMembershipController extends Controller
                 'No tienes una solicitud o membresía en esta comunidad.',
             );
 
-            $membership->load(['role', 'status']);
+            $membership->load('role');
 
             abort_unless(
-                in_array($membership->status->code, ['pending', 'active'], true),
+                in_array($membership->status, [MembershipStatus::Pending, MembershipStatus::Active], true),
                 Response::HTTP_NOT_FOUND,
                 'No tienes una solicitud o membresía cancelable en esta comunidad.',
             );
 
             abort_if(
-                $membership->status->code === 'active'
+                $membership->status === MembershipStatus::Active
                     && $membership->role->code === 'organizer',
                 Response::HTTP_CONFLICT,
                 'Un organizer activo no puede abandonar la comunidad todavía.',
             );
 
             $membership->update([
-                'membership_status_id' => MembershipStatus::query()->where('code', 'left')->sole()->id,
+                'status' => MembershipStatus::Left->value,
             ]);
 
             return $membership;
@@ -114,7 +113,7 @@ class CommunityMembershipController extends Controller
             ->where('user_id', $request->user()->id)
             ->join('communities', 'communities.id', '=', 'community_memberships.community_id')
             ->select('community_memberships.*')
-            ->with(['community', 'role', 'status'])
+            ->with(['community', 'role'])
             ->orderBy('communities.name')
             ->paginate($request->validated('per_page', 12))
             ->withQueryString();
@@ -124,6 +123,6 @@ class CommunityMembershipController extends Controller
 
     private function loadMembership(CommunityMembership $membership): CommunityMembership
     {
-        return $membership->load(['community', 'role', 'status']);
+        return $membership->load(['community', 'role']);
     }
 }

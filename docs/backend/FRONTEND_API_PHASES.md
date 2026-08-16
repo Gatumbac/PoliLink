@@ -46,8 +46,9 @@ asistencia.
 
 Las tablas internas no generan pantallas CRUD generales. El backend ya expone
 un panel futuro para que `is_admin` mantenga categorías, modalidades y
-ubicaciones; estados, roles comunitarios y relaciones de membresía permanecen
-controlados por el backend. La interfaz de administración se implementará en
+ubicaciones; los estados inmutables se entregan como códigos y etiquetas
+españolas desde enums del backend, mientras roles comunitarios y relaciones de
+membresía permanecen controlados por el backend. La interfaz de administración se implementará en
 una fase separada. El backend también expone la revisión administrativa de
 propuestas de comunidades; no se trata de un CRUD general de usuarios o
 membresías.

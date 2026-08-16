@@ -2,8 +2,8 @@
 
 namespace Database\Factories;
 
+use App\Enums\CommunityCreationRequestStatus;
 use App\Models\CommunityCreationRequest;
-use App\Models\CommunityCreationRequestStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -19,7 +19,7 @@ class CommunityCreationRequestFactory extends Factory
             'description' => fake()->paragraph(),
             'image_path' => null,
             'requested_by' => User::factory(),
-            'status_id' => CommunityCreationRequestStatus::factory(),
+            'status' => CommunityCreationRequestStatus::Pending->value,
             'reviewed_by' => null,
             'reviewed_at' => null,
             'rejection_reason' => null,

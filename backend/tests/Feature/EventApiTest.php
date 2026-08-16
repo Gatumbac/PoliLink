@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -25,7 +25,7 @@ class EventApiTest extends TestCase
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
             'title' => 'Evento cancelado',
         ]);
 
@@ -51,7 +51,7 @@ class EventApiTest extends TestCase
             ->assertJsonPath('data.id', $event->id);
 
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
 
         $this->getJson("/api/events/{$event->id}")->assertNotFound();
@@ -152,7 +152,7 @@ class EventApiTest extends TestCase
             'community_id' => $secondCommunity->id,
             'user_id' => $organizer->id,
             'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
 
         $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
@@ -173,7 +173,7 @@ class EventApiTest extends TestCase
             'community_id' => $event->community_id,
             'user_id' => $otherMember->id,
             'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
 
         $this->authenticatedPatch($otherMember, "/api/events/{$event->id}", [

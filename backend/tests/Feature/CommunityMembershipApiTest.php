@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MembershipStatus;
 use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -33,7 +33,7 @@ class CommunityMembershipApiTest extends TestCase
         $this->authenticatedPost($student, '/api/communities/'.$community->id.'/membership-requests', [
             'user_id' => User::query()->where('email', 'organizer@espol.edu.ec')->sole()->id,
             'community_role_id' => CommunityRole::query()->where('code', 'tutor')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ])
             ->assertCreated()
             ->assertJsonPath('data.community.id', $community->id)
@@ -44,7 +44,7 @@ class CommunityMembershipApiTest extends TestCase
             'community_id' => $community->id,
             'user_id' => $student->id,
             'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'pending')->sole()->id,
+            'status' => MembershipStatus::Pending->value,
         ]);
     }
 
@@ -93,7 +93,7 @@ class CommunityMembershipApiTest extends TestCase
 
             $this->assertDatabaseHas('community_memberships', [
                 'id' => $membership->id,
-                'membership_status_id' => MembershipStatus::query()->where('code', 'pending')->sole()->id,
+                'status' => MembershipStatus::Pending->value,
                 'reviewed_at' => null,
                 'reviewed_by' => null,
             ]);
@@ -123,7 +123,7 @@ class CommunityMembershipApiTest extends TestCase
             $this->assertDatabaseHas('community_memberships', [
                 'community_id' => $community->id,
                 'user_id' => $student->id,
-                'membership_status_id' => MembershipStatus::query()->where('code', 'left')->sole()->id,
+                'status' => MembershipStatus::Left->value,
             ]);
         }
     }
@@ -140,7 +140,7 @@ class CommunityMembershipApiTest extends TestCase
         $this->assertDatabaseHas('community_memberships', [
             'community_id' => $community->id,
             'user_id' => $organizer->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
             'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
         ]);
     }
@@ -212,7 +212,7 @@ class CommunityMembershipApiTest extends TestCase
             'community_id' => $community->id,
             'user_id' => $user->id,
             'community_role_id' => CommunityRole::query()->where('code', $roleCode)->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', $statusCode)->sole()->id,
+            'status' => $statusCode,
         ]);
     }
 

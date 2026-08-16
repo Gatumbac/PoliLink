@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\EventCategory;
 use App\Models\EventModality;
-use App\Models\EventStatus;
 use App\Models\Location;
-use App\Models\RegistrationStatus;
 use Illuminate\Database\Seeder;
 
 class EventReferenceSeeder extends Seeder
@@ -58,18 +56,5 @@ class EventReferenceSeeder extends Seeder
             );
         }
 
-        foreach ([
-            'published' => 'Publicado',
-            'cancelled' => 'Cancelado',
-        ] as $code => $name) {
-            EventStatus::query()->updateOrCreate(['code' => $code], ['name' => $name]);
-        }
-
-        foreach ([
-            'active' => 'Activa',
-            'cancelled' => 'Cancelada',
-        ] as $code => $name) {
-            RegistrationStatus::query()->updateOrCreate(['code' => $code], ['name' => $name]);
-        }
     }
 }

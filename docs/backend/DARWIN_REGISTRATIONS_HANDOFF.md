@@ -86,8 +86,8 @@ ser una colección paginada de RegistrationResource con el evento completo.
 - Crear RegistrationController, Form Requests solo para paginación,
   RegistrationResource y pruebas feature propias.
 - Añadir las cuatro rutas dentro del grupo auth:sanctum existente.
-- Reutilizar Registration, RegistrationStatus, Event y sus relaciones; no
-  duplicar lógica de eventos.
+- Reutilizar Registration, el enum `RegistrationStatus`, Event y sus relaciones;
+  no duplicar lógica de eventos.
 - Cubrir: sin sesión (401), organizador no responsable (403), inscripción nueva (201),
   duplicado (409), evento cancelado (409), evento lleno (409), cancelación
   (200), inscripción inexistente (404), reactivación (200), lista autorizada y

@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('event_category_id')->constrained()->restrictOnDelete();
             $table->foreignId('event_modality_id')->constrained()->restrictOnDelete();
             $table->foreignId('location_id')->constrained()->restrictOnDelete();
-            $table->foreignId('event_status_id')->constrained()->restrictOnDelete();
+            $table->string('status');
             $table->string('title');
             $table->text('description');
             $table->string('image_path')->nullable();
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->unsignedInteger('capacity');
             $table->timestamps();
 
-            $table->index(['event_status_id', 'starts_at']);
+            $table->index(['status', 'starts_at']);
             $table->index(['event_category_id', 'starts_at']);
             $table->index(['event_modality_id', 'starts_at']);
             $table->index('location_id');

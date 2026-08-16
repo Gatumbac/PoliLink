@@ -2,10 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\RegistrationStatus;
 use App\Models\Event;
-use App\Models\EventStatus;
 use App\Models\Registration;
-use App\Models\RegistrationStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -67,7 +67,7 @@ class RegistrationApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
         $newUser = $this->createUser('late-user@espol.edu.ec');
 
@@ -99,7 +99,7 @@ class RegistrationApiTest extends TestCase
         $this->assertDatabaseHas('registrations', [
             'event_id' => $event->id,
             'user_id' => $student->id,
-            'registration_status_id' => RegistrationStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => RegistrationStatus::Cancelled->value,
         ]);
     }
 

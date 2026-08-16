@@ -82,7 +82,6 @@ class AuthController extends Controller
         return $user->load([
             'memberships.community',
             'memberships.role',
-            'memberships.status',
         ]);
     }
 

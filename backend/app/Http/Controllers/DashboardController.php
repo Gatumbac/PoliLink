@@ -47,7 +47,6 @@ class DashboardController extends Controller
             'category',
             'modality',
             'location',
-            'status',
         ];
     }
 }

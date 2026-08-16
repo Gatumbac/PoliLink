@@ -2,11 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
+use App\Enums\RegistrationStatus;
 use App\Http\Requests\ListMyRegistrationsRequest;
 use App\Http\Resources\RegistrationResource;
 use App\Models\Event;
 use App\Models\Registration;
-use App\Models\RegistrationStatus;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -25,27 +26,25 @@ class RegistrationController extends Controller
             $hasActiveRegistration = Registration::query()
                 ->where('event_id', $lockedEvent->id)
                 ->where('user_id', $user->id)
-                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->where('status', RegistrationStatus::Active->value)
                 ->exists();
             abort_if($hasActiveRegistration, Response::HTTP_CONFLICT, 'Ya estás inscrito en este evento.');
 
             $activeCount = Registration::query()
                 ->where('event_id', $lockedEvent->id)
-                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->where('status', RegistrationStatus::Active->value)
                 ->count();
             abort_if($activeCount >= $lockedEvent->capacity, Response::HTTP_CONFLICT, 'El evento alcanzó su capacidad máxima.');
-
-            $activeStatusId = RegistrationStatus::query()->where('code', 'active')->sole()->id;
 
             $cancelledRegistration = Registration::query()
                 ->where('event_id', $lockedEvent->id)
                 ->where('user_id', $user->id)
-                ->whereHas('status', fn ($query) => $query->where('code', 'cancelled'))
+                ->where('status', RegistrationStatus::Cancelled->value)
                 ->first();
 
             if ($cancelledRegistration) {
                 $cancelledRegistration->update([
-                    'registration_status_id' => $activeStatusId,
+                    'status' => RegistrationStatus::Active->value,
                     'registered_at' => now(),
                     'cancelled_at' => null,
                 ]);
@@ -56,7 +55,7 @@ class RegistrationController extends Controller
             $registration = Registration::query()->create([
                 'event_id' => $lockedEvent->id,
                 'user_id' => $user->id,
-                'registration_status_id' => $activeStatusId,
+                'status' => RegistrationStatus::Active->value,
                 'registered_at' => now(),
                 'cancelled_at' => null,
             ]);
@@ -78,13 +77,13 @@ class RegistrationController extends Controller
             $registration = Registration::query()
                 ->where('event_id', $event->id)
                 ->where('user_id', $user->id)
-                ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+                ->where('status', RegistrationStatus::Active->value)
                 ->first();
 
             abort_if(! $registration, Response::HTTP_NOT_FOUND, 'No tienes una inscripción activa en este evento.');
 
             $registration->update([
-                'registration_status_id' => RegistrationStatus::query()->where('code', 'cancelled')->sole()->id,
+                'status' => RegistrationStatus::Cancelled->value,
                 'cancelled_at' => now(),
             ]);
 
@@ -101,8 +100,8 @@ class RegistrationController extends Controller
 
         $attendees = Registration::query()
             ->where('event_id', $event->id)
-            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
-            ->with(['status', 'user'])
+            ->where('status', RegistrationStatus::Active->value)
+            ->with('user')
             ->orderBy('registered_at')
             ->get();
 
@@ -124,9 +123,8 @@ class RegistrationController extends Controller
         $user = $request->user();
         $registrations = Registration::query()
             ->where('user_id', $user->id)
-            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+            ->where('status', RegistrationStatus::Active->value)
             ->with([
-                'status',
                 'event' => fn ($query) => $query->with($this->eventRelations())->withCount('activeRegistrations'),
             ])
             ->orderByDesc('registered_at')
@@ -139,7 +137,7 @@ class RegistrationController extends Controller
     private function ensureNotCancelled(Event $event): void
     {
         abort_if(
-            $event->status()->where('code', 'cancelled')->exists(),
+            $event->status === EventStatus::Cancelled,
             Response::HTTP_CONFLICT,
             'El evento está cancelado.',
         );
@@ -157,7 +155,6 @@ class RegistrationController extends Controller
     private function loadRegistration(Registration $registration): Registration
     {
         return $registration->load([
-            'status',
             'event' => fn ($query) => $query->with($this->eventRelations())->withCount('activeRegistrations'),
         ]);
     }
@@ -172,7 +169,6 @@ class RegistrationController extends Controller
             'category',
             'modality',
             'location',
-            'status',
         ];
     }
 }

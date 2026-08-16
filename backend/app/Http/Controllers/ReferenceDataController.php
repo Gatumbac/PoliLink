@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Http\Resources\CommunityResource;
 use App\Http\Resources\EventCategoryResource;
 use App\Http\Resources\EventModalityResource;
@@ -39,7 +40,7 @@ class ReferenceDataController extends Controller
         return CommunityResource::collection(
             Community::query()
                 ->where('is_active', true)
-                ->whereHas('events.status', fn ($query) => $query->where('code', 'published'))
+                ->whereHas('events', fn ($query) => $query->where('status', EventStatus::Published->value))
                 ->orderBy('name')
                 ->get(),
         );

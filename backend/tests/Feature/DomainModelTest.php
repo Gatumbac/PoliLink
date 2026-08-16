@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Enums\CommunityCreationRequestStatus;
 use App\Models\Community;
 use App\Models\CommunityCreationRequest;
 use App\Models\Event;
@@ -39,10 +40,12 @@ class DomainModelTest extends TestCase
         $this->assertSame('Hackatón', $event->category->name);
         $this->assertSame('Presencial', $event->modality->name);
         $this->assertSame('Campus Gustavo Galindo', $event->location->name);
-        $this->assertSame('Publicado', $event->status->name);
+        $this->assertSame('published', $event->status->value);
+        $this->assertSame('Publicado', $event->status->label());
         $this->assertTrue($registration->user->is($student));
         $this->assertTrue($registration->event->is($event));
-        $this->assertSame('Activa', $registration->status->name);
+        $this->assertSame('active', $registration->status->value);
+        $this->assertSame('Activa', $registration->status->label());
     }
 
     public function test_seeders_are_idempotent_and_available_capacity_uses_active_count(): void
@@ -51,13 +54,9 @@ class DomainModelTest extends TestCase
         $this->seed();
 
         $this->assertDatabaseCount('community_roles', 3);
-        $this->assertDatabaseCount('membership_statuses', 4);
-        $this->assertDatabaseCount('community_creation_request_statuses', 3);
         $this->assertDatabaseCount('event_categories', 6);
         $this->assertDatabaseCount('event_modalities', 3);
         $this->assertDatabaseCount('locations', 4);
-        $this->assertDatabaseCount('event_statuses', 2);
-        $this->assertDatabaseCount('registration_statuses', 2);
         $this->assertDatabaseCount('users', 3);
         $this->assertDatabaseCount('communities', 1);
         $this->assertDatabaseCount('community_creation_requests', 1);
@@ -65,8 +64,9 @@ class DomainModelTest extends TestCase
         $this->assertDatabaseCount('events', 1);
         $this->assertDatabaseCount('registrations', 1);
 
-        $creationRequest = CommunityCreationRequest::query()->with('status')->sole();
-        $this->assertSame('pending', $creationRequest->status->code);
+        $creationRequest = CommunityCreationRequest::query()->sole();
+        $this->assertSame(CommunityCreationRequestStatus::Pending, $creationRequest->status);
+        $this->assertSame('Pendiente', $creationRequest->status->label());
         $this->assertSame('Club de Robótica', $creationRequest->name);
 
         $event = Event::query()->withCount('activeRegistrations')->sole();

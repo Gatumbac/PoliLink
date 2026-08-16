@@ -28,8 +28,8 @@ class UserResource extends JsonResource
                         'name' => $membership->role->name,
                     ],
                     'status' => [
-                        'code' => $membership->status->code,
-                        'name' => $membership->status->name,
+                        'code' => $membership->status->value,
+                        'name' => $membership->status->label(),
                     ],
                     'requested_at' => $membership->requested_at?->toISOString(),
                     'reviewed_at' => $membership->reviewed_at?->toISOString(),

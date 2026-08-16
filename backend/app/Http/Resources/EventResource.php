@@ -41,10 +41,10 @@ class EventResource extends JsonResource
                     'description' => $this->community->description,
                 ],
             ),
-            'status' => $this->whenLoaded('status', fn () => [
-                'code' => $this->status->code,
-                'name' => $this->status->name,
-            ]),
+            'status' => [
+                'code' => $this->status->value,
+                'name' => $this->status->label(),
+            ],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MembershipStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -11,7 +12,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
     'community_id',
     'user_id',
     'community_role_id',
-    'membership_status_id',
+    'status',
     'requested_at',
     'reviewed_at',
     'reviewed_by',
@@ -25,6 +26,7 @@ class CommunityMembership extends Model
         return [
             'requested_at' => 'datetime',
             'reviewed_at' => 'datetime',
+            'status' => MembershipStatus::class,
         ];
     }
 
@@ -41,11 +43,6 @@ class CommunityMembership extends Model
     public function role(): BelongsTo
     {
         return $this->belongsTo(CommunityRole::class, 'community_role_id');
-    }
-
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(MembershipStatus::class, 'membership_status_id');
     }
 
     public function reviewer(): BelongsTo

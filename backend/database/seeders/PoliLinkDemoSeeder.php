@@ -2,19 +2,19 @@
 
 namespace Database\Seeders;
 
+use App\Enums\CommunityCreationRequestStatus;
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
+use App\Enums\RegistrationStatus;
 use App\Models\Community;
 use App\Models\CommunityCreationRequest;
-use App\Models\CommunityCreationRequestStatus;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
 use App\Models\EventCategory;
 use App\Models\EventModality;
-use App\Models\EventStatus;
 use App\Models\Location;
-use App\Models\MembershipStatus;
 use App\Models\Registration;
-use App\Models\RegistrationStatus;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
@@ -58,11 +58,10 @@ class PoliLinkDemoSeeder extends Seeder
             ],
             [
                 'description' => 'Comunidad estudiantil de robótica de ESPOL.',
-                'status_id' => CommunityCreationRequestStatus::query()->where('code', 'pending')->sole()->id,
+                'status' => CommunityCreationRequestStatus::Pending->value,
             ],
         );
 
-        $activeStatusId = MembershipStatus::query()->where('code', 'active')->sole()->id;
         $organizerRoleId = CommunityRole::query()->where('code', 'organizer')->sole()->id;
         $memberRoleId = CommunityRole::query()->where('code', 'member')->sole()->id;
 
@@ -73,7 +72,7 @@ class PoliLinkDemoSeeder extends Seeder
             ],
             [
                 'community_role_id' => $organizerRoleId,
-                'membership_status_id' => $activeStatusId,
+                'status' => MembershipStatus::Active->value,
                 'requested_at' => now(),
                 'reviewed_at' => null,
                 'reviewed_by' => null,
@@ -86,7 +85,7 @@ class PoliLinkDemoSeeder extends Seeder
             ],
             [
                 'community_role_id' => $memberRoleId,
-                'membership_status_id' => $activeStatusId,
+                'status' => MembershipStatus::Active->value,
                 'requested_at' => now(),
                 'reviewed_at' => now(),
                 'reviewed_by' => $organizer->id,
@@ -102,7 +101,7 @@ class PoliLinkDemoSeeder extends Seeder
                 'event_category_id' => EventCategory::query()->where('code', 'hackathon')->sole()->id,
                 'event_modality_id' => EventModality::query()->where('code', 'in_person')->sole()->id,
                 'location_id' => Location::query()->where('name', 'Campus Gustavo Galindo')->sole()->id,
-                'event_status_id' => EventStatus::query()->where('code', 'published')->sole()->id,
+                'status' => EventStatus::Published->value,
                 'description' => 'Hackathon de demostración para el avance de PoliLink.',
                 'starts_at' => Carbon::create(2026, 8, 20, 9),
                 'capacity' => 50,
@@ -115,7 +114,7 @@ class PoliLinkDemoSeeder extends Seeder
                 'user_id' => $student->id,
             ],
             [
-                'registration_status_id' => RegistrationStatus::query()->where('code', 'active')->sole()->id,
+                'status' => RegistrationStatus::Active->value,
                 'registered_at' => now(),
                 'cancelled_at' => null,
             ],

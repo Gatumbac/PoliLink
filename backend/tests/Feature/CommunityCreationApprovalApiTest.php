@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\MembershipStatus;
 use App\Models\Community;
 use App\Models\CommunityCreationRequest;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -79,15 +79,15 @@ class CommunityCreationApprovalApiTest extends TestCase
         $this->assertStringStartsWith('communities/', $community->image_path);
         $this->assertSame($community->image_path, $request->image_path);
         $this->assertSame($community->id, $request->community_id);
-        $this->assertSame('approved', $request->status->code);
+        $this->assertSame('approved', $request->status->value);
         $this->assertSame($admin->id, $request->reviewed_by);
         $this->assertSame(
             CommunityRole::query()->where('code', 'organizer')->sole()->id,
             $membership->community_role_id,
         );
         $this->assertSame(
-            MembershipStatus::query()->where('code', 'active')->sole()->id,
-            $membership->membership_status_id,
+            MembershipStatus::Active->value,
+            $membership->status->value,
         );
         Storage::disk('public')->assertMissing($temporaryPath);
         Storage::disk('public')->assertExists($community->image_path);
@@ -120,7 +120,7 @@ class CommunityCreationApprovalApiTest extends TestCase
 
         $request->refresh();
         $this->assertNull($request->image_path);
-        $this->assertSame('rejected', $request->status->code);
+        $this->assertSame('rejected', $request->status->value);
         Storage::disk('public')->assertMissing($temporaryPath);
         $this->assertDatabaseMissing('communities', ['name' => 'Comunidad Rechazada']);
     }

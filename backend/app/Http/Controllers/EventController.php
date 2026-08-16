@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Http\Requests\CancelEventRequest;
 use App\Http\Requests\ListEventsRequest;
 use App\Http\Requests\StoreEventImageRequest;
@@ -10,7 +11,6 @@ use App\Http\Requests\UpdateEventRequest;
 use App\Http\Resources\EventResource;
 use App\Models\Community;
 use App\Models\Event;
-use App\Models\EventStatus;
 use App\Services\EventImageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -31,7 +31,7 @@ class EventController extends Controller
         $perPage = $filters['per_page'] ?? 12;
 
         $events = Event::query()
-            ->whereHas('status', fn ($query) => $query->where('code', 'published'))
+            ->where('status', EventStatus::Published->value)
             ->whereHas('community', fn ($query) => $query->where('is_active', true))
             ->when($filters['search'] ?? null, function ($query, string $search) {
                 $query->where(function ($query) use ($search) {
@@ -63,7 +63,7 @@ class EventController extends Controller
 
     public function show(Event $event): EventResource
     {
-        abort_unless($event->status()->where('code', 'published')->exists(), Response::HTTP_NOT_FOUND);
+        abort_unless($event->status === EventStatus::Published, Response::HTTP_NOT_FOUND);
         abort_unless($event->community()->where('is_active', true)->exists(), Response::HTTP_NOT_FOUND);
 
         return new EventResource($this->loadEvent($event));
@@ -76,7 +76,6 @@ class EventController extends Controller
 
         $community = Community::query()->findOrFail($data['community_id']);
         Gate::forUser($organizer)->authorize('create', [Event::class, $community]);
-        $publishedStatus = EventStatus::query()->where('code', 'published')->sole();
         $image = $data['image'] ?? null;
         $imagePath = $image ? $this->eventImageService->store($image) : null;
 
@@ -84,7 +83,7 @@ class EventController extends Controller
             $event = Event::query()->create([
                 ...Arr::except($data, ['community_id', 'image']),
                 'community_id' => $community->id,
-                'event_status_id' => $publishedStatus->id,
+                'status' => EventStatus::Published->value,
                 'image_path' => $imagePath,
             ]);
         } catch (Throwable $exception) {
@@ -162,7 +161,7 @@ class EventController extends Controller
         $this->ensureNotCancelled($event);
 
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
 
         return new EventResource($this->loadEvent($event));
@@ -171,7 +170,7 @@ class EventController extends Controller
     private function ensureNotCancelled(Event $event): void
     {
         abort_if(
-            $event->status()->where('code', 'cancelled')->exists(),
+            $event->status === EventStatus::Cancelled,
             Response::HTTP_CONFLICT,
             'El evento ya está cancelado.',
         );
@@ -192,7 +191,6 @@ class EventController extends Controller
             'category',
             'modality',
             'location',
-            'status',
         ];
     }
 }

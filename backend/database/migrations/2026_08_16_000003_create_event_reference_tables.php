@@ -32,33 +32,10 @@ return new class extends Migration
             $table->timestamps();
         });
 
-        Schema::create('event_statuses', function (Blueprint $table): void {
-            $table->id();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
-
-        Schema::create('registration_statuses', function (Blueprint $table): void {
-            $table->id();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
-
-        Schema::create('membership_statuses', function (Blueprint $table): void {
-            $table->id();
-            $table->string('code')->unique();
-            $table->string('name')->unique();
-            $table->timestamps();
-        });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('membership_statuses');
-        Schema::dropIfExists('registration_statuses');
-        Schema::dropIfExists('event_statuses');
         Schema::dropIfExists('locations');
         Schema::dropIfExists('event_modalities');
         Schema::dropIfExists('event_categories');

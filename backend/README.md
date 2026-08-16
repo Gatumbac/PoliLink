@@ -72,10 +72,10 @@ Las tablas principales son:
 - community_creation_requests: propuestas pendientes de aprobación de un
   administrador; al aprobarse crean la comunidad y el organizer inicial.
 - community_memberships: relación única entre un usuario y una comunidad, con
-  rol `member`, `organizer` o `tutor` y estado de membresía.
+  rol `member`, `organizer` o `tutor` y estado de membresía basado en enum.
 - events: información, capacidad, modalidad, estado e imagen de portada
   opcional de cada evento, relacionada directamente con una comunidad.
-- registrations: relación entre usuarios y eventos, con restricción de
+- registrations: relación entre usuarios y eventos, con estado basado en enum y restricción de
   inscripción duplicada.
 
 Para recrear la base local con datos de prueba:

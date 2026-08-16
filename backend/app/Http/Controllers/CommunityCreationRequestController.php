@@ -2,16 +2,16 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\CommunityCreationRequestStatus;
+use App\Enums\MembershipStatus;
 use App\Http\Requests\ListCommunityCreationRequestsRequest;
 use App\Http\Requests\RejectCommunityCreationRequest;
 use App\Http\Requests\StoreCommunityCreationRequest;
 use App\Http\Resources\CommunityCreationRequestResource;
 use App\Models\Community;
 use App\Models\CommunityCreationRequest as CommunityCreationRequestModel;
-use App\Models\CommunityCreationRequestStatus;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
-use App\Models\MembershipStatus;
 use App\Services\PublicImageStorageService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -41,7 +41,7 @@ class CommunityCreationRequestController extends Controller
                 'description' => $data['description'] ?? null,
                 'image_path' => $imagePath,
                 'requested_by' => $request->user()->id,
-                'status_id' => CommunityCreationRequestStatus::query()->where('code', 'pending')->sole()->id,
+                'status' => CommunityCreationRequestStatus::Pending->value,
             ]);
         } catch (Throwable $exception) {
             $this->imageStorage->delete($imagePath);
@@ -49,7 +49,7 @@ class CommunityCreationRequestController extends Controller
             throw $exception;
         }
 
-        return (new CommunityCreationRequestResource($creationRequest->load('status')))
+        return (new CommunityCreationRequestResource($creationRequest))
             ->response()
             ->setStatusCode(Response::HTTP_CREATED);
     }
@@ -58,7 +58,7 @@ class CommunityCreationRequestController extends Controller
     {
         $requests = CommunityCreationRequestModel::query()
             ->where('requested_by', $request->user()->id)
-            ->with(['status', 'community'])
+            ->with('community')
             ->orderByDesc('created_at')
             ->paginate($request->validated('per_page', 12))
             ->withQueryString();
@@ -68,11 +68,11 @@ class CommunityCreationRequestController extends Controller
 
     public function adminIndex(ListCommunityCreationRequestsRequest $request): JsonResponse
     {
-        $statusCode = $request->validated('status', 'pending');
+        $statusCode = $request->validated('status', CommunityCreationRequestStatus::Pending->value);
 
         $requests = CommunityCreationRequestModel::query()
-            ->whereHas('status', fn ($query) => $query->where('code', $statusCode))
-            ->with(['status', 'requester', 'community'])
+            ->where('status', $statusCode)
+            ->with(['requester', 'community'])
             ->orderBy('created_at')
             ->paginate($request->validated('per_page', 12))
             ->withQueryString();
@@ -94,7 +94,6 @@ class CommunityCreationRequestController extends Controller
             ) {
                 $lockedRequest = CommunityCreationRequestModel::query()
                     ->whereKey($communityCreationRequest->id)
-                    ->with('status')
                     ->lockForUpdate()
                     ->firstOrFail();
 
@@ -121,21 +120,21 @@ class CommunityCreationRequestController extends Controller
                     'community_id' => $community->id,
                     'user_id' => $lockedRequest->requested_by,
                     'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
-                    'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+                    'status' => MembershipStatus::Active->value,
                     'requested_at' => $lockedRequest->created_at,
                     'reviewed_at' => now(),
                     'reviewed_by' => $request->user()->id,
                 ]);
 
                 $lockedRequest->update([
-                    'status_id' => CommunityCreationRequestStatus::query()->where('code', 'approved')->sole()->id,
+                    'status' => CommunityCreationRequestStatus::Approved->value,
                     'reviewed_by' => $request->user()->id,
                     'reviewed_at' => now(),
                     'community_id' => $community->id,
                     'image_path' => $targetImagePath,
                 ]);
 
-                return $lockedRequest->load(['status', 'requester', 'community']);
+                return $lockedRequest->load(['requester', 'community']);
             });
         } catch (Throwable $exception) {
             $this->restoreMovedImage($targetImagePath, $sourceImagePath);
@@ -159,7 +158,6 @@ class CommunityCreationRequestController extends Controller
         ) {
             $lockedRequest = CommunityCreationRequestModel::query()
                 ->whereKey($communityCreationRequest->id)
-                ->with('status')
                 ->lockForUpdate()
                 ->firstOrFail();
 
@@ -167,14 +165,14 @@ class CommunityCreationRequestController extends Controller
             $imagePath = $lockedRequest->image_path;
 
             $lockedRequest->update([
-                'status_id' => CommunityCreationRequestStatus::query()->where('code', 'rejected')->sole()->id,
+                'status' => CommunityCreationRequestStatus::Rejected->value,
                 'reviewed_by' => $request->user()->id,
                 'reviewed_at' => now(),
                 'rejection_reason' => $request->validated('rejection_reason'),
                 'image_path' => null,
             ]);
 
-            return $lockedRequest->load(['status', 'requester', 'community']);
+            return $lockedRequest->load(['requester', 'community']);
         });
 
         $this->imageStorage->delete($imagePath);
@@ -187,7 +185,7 @@ class CommunityCreationRequestController extends Controller
         $communityExists = Community::query()->where('name', $name)->exists();
         $pendingRequestExists = CommunityCreationRequestModel::query()
             ->where('name', $name)
-            ->whereHas('status', fn ($query) => $query->where('code', 'pending'))
+            ->where('status', CommunityCreationRequestStatus::Pending->value)
             ->exists();
 
         if ($communityExists || $pendingRequestExists) {
@@ -200,7 +198,7 @@ class CommunityCreationRequestController extends Controller
     private function ensurePending(CommunityCreationRequestModel $creationRequest): void
     {
         abort_unless(
-            $creationRequest->status->code === 'pending',
+            $creationRequest->status === CommunityCreationRequestStatus::Pending,
             Response::HTTP_CONFLICT,
             'La solicitud ya fue procesada.',
         );

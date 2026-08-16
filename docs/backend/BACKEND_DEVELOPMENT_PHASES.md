@@ -11,7 +11,7 @@ del alcance.
 ## Estado implementado
 
 1. **Persistencia limpia:** `users.is_admin`, comunidades, roles comunitarios,
-   estados de membresía, eventos, catálogos e inscripciones.
+   enums de estado, eventos, catálogos e inscripciones.
 2. **Modelo de pertenencia:** `community_memberships` relaciona un usuario con
    una comunidad y un rol principal: `member`, `organizer` o `tutor`.
 3. **Eventos:** `events.community_id` identifica la comunidad; solo una

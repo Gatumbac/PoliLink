@@ -19,28 +19,34 @@ class DatabaseSchemaTest extends TestCase
         $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
         $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
         $this->assertTrue(Schema::hasColumns('communities', ['is_active', 'image_path']));
-        $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path']));
-        $this->assertTrue(Schema::hasColumns('registrations', ['user_id']));
+        $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path', 'status']));
+        $this->assertTrue(Schema::hasColumns('registrations', ['user_id', 'status']));
+        $this->assertTrue(Schema::hasColumns('community_memberships', ['status']));
+        $this->assertTrue(Schema::hasColumns('community_creation_requests', ['status']));
 
         foreach ([
             'communities',
             'community_roles',
-            'membership_statuses',
             'community_memberships',
-            'community_creation_request_statuses',
             'community_creation_requests',
             'event_categories',
             'event_modalities',
             'locations',
-            'event_statuses',
-            'registration_statuses',
             'events',
             'registrations',
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table));
         }
 
-        foreach (['roles', 'role_user', 'community_organizers'] as $removedTable) {
+        foreach ([
+            'roles',
+            'role_user',
+            'community_organizers',
+            'event_statuses',
+            'registration_statuses',
+            'membership_statuses',
+            'community_creation_request_statuses',
+        ] as $removedTable) {
             $this->assertFalse(Schema::hasTable($removedTable));
         }
     }
@@ -54,13 +60,12 @@ class DatabaseSchemaTest extends TestCase
             'updated_at' => now(),
         ]);
         $roleId = $this->createReference('community_roles', 'member', 'Miembro');
-        $statusId = $this->createReference('membership_statuses', 'active', 'Activa');
 
         DB::table('community_memberships')->insert([
             'community_id' => $communityId,
             'user_id' => $userId,
             'community_role_id' => $roleId,
-            'membership_status_id' => $statusId,
+            'status' => 'active',
             'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -72,7 +77,7 @@ class DatabaseSchemaTest extends TestCase
             'community_id' => $communityId,
             'user_id' => $userId,
             'community_role_id' => $roleId,
-            'membership_status_id' => $statusId,
+            'status' => 'active',
             'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -94,14 +99,12 @@ class DatabaseSchemaTest extends TestCase
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $eventStatusId = $this->createReference('event_statuses', 'published', 'Publicado');
-        $registrationStatusId = $this->createReference('registration_statuses', 'active', 'Activa');
         $eventId = DB::table('events')->insertGetId([
             'community_id' => $communityId,
             'event_category_id' => $categoryId,
             'event_modality_id' => $modalityId,
             'location_id' => $locationId,
-            'event_status_id' => $eventStatusId,
+            'status' => 'published',
             'title' => 'Hackathon TAWS',
             'description' => 'Evento de prueba.',
             'starts_at' => now()->addWeek(),
@@ -113,7 +116,7 @@ class DatabaseSchemaTest extends TestCase
         DB::table('registrations')->insert([
             'event_id' => $eventId,
             'user_id' => $userId,
-            'registration_status_id' => $registrationStatusId,
+            'status' => 'active',
             'registered_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -124,7 +127,7 @@ class DatabaseSchemaTest extends TestCase
         DB::table('registrations')->insert([
             'event_id' => $eventId,
             'user_id' => $userId,
-            'registration_status_id' => $registrationStatusId,
+            'status' => 'active',
             'registered_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -139,11 +142,30 @@ class DatabaseSchemaTest extends TestCase
             'community_id' => 999,
             'user_id' => 999,
             'community_role_id' => 999,
-            'membership_status_id' => 999,
+            'status' => 'active',
             'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+    }
+
+    public function test_status_columns_reject_values_outside_their_enums(): void
+    {
+        $this->seed();
+
+        foreach ([
+            ['table' => 'events', 'id' => DB::table('events')->value('id')],
+            ['table' => 'registrations', 'id' => DB::table('registrations')->value('id')],
+            ['table' => 'community_memberships', 'id' => DB::table('community_memberships')->value('id')],
+            ['table' => 'community_creation_requests', 'id' => DB::table('community_creation_requests')->value('id')],
+        ] as $target) {
+            try {
+                DB::table($target['table'])->where('id', $target['id'])->update(['status' => 'invalid']);
+                $this->fail("{$target['table']} accepted an invalid status.");
+            } catch (QueryException) {
+                $this->addToAssertionCount(1);
+            }
+        }
     }
 
     private function createUser(string $email = 'user@espol.edu.ec'): int

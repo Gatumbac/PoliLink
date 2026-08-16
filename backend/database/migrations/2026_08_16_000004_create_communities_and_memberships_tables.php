@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('community_id')->constrained()->restrictOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('community_role_id')->constrained()->restrictOnDelete();
-            $table->foreignId('membership_status_id')->constrained()->restrictOnDelete();
+            $table->string('status');
             $table->timestamp('requested_at')->useCurrent();
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
@@ -35,7 +35,7 @@ return new class extends Migration
 
             $table->unique(['community_id', 'user_id']);
             $table->index('user_id');
-            $table->index(['community_id', 'membership_status_id']);
+            $table->index(['community_id', 'status']);
         });
     }
 

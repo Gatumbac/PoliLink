@@ -14,17 +14,26 @@ pertenecen a una membresía concreta.
 | `users` | Identidad, credenciales e `is_admin BOOLEAN NOT NULL DEFAULT FALSE`. `email` es único. |
 | `communities` | Comunidades con `name` único, descripción opcional, `is_active` e `image_path` nullable. |
 | `community_roles` | Catálogo fijo: `member`, `organizer`, `tutor`; `code` y `name` únicos. |
-| `membership_statuses` | Catálogo fijo: `pending`, `active`, `rejected`, `left`. |
-| `community_memberships` | Relación única usuario-comunidad con rol, estado, fechas de solicitud/revisión y `reviewed_by`. |
-| `community_creation_request_statuses` | Catálogo fijo: `pending`, `approved`, `rejected`, con nombres visibles en español. |
+| `community_memberships` | Relación única usuario-comunidad con `community_role_id`, `status`, fechas de solicitud/revisión y `reviewed_by`. |
 | `community_creation_requests` | Propuestas de comunidad, imagen temporal/definitiva, solicitante, revisor, estado, razón y comunidad creada. |
 | `events` | Evento relacionado directamente con `community_id`, catálogos, estado, imagen opcional, fecha y capacidad. |
 | `registrations` | Relación `event_id`–`user_id`, estado y fechas; `UNIQUE (event_id, user_id)`. |
 
+Los estados inmutables se guardan como códigos string restringidos por la base de
+datos y se castean a enums PHP. Sus nombres visibles en español viven en
+`backend/lang/es/statuses.php`; no son tablas editables del catálogo:
+
+| Campo | Valores permitidos |
+| --- | --- |
+| `events.status` | `published`, `cancelled` |
+| `registrations.status` | `active`, `cancelled` |
+| `community_memberships.status` | `pending`, `active`, `rejected`, `left` |
+| `community_creation_requests.status` | `pending`, `approved`, `rejected` |
+
 `community_memberships` tiene estas columnas de relación y auditoría:
 
 ```text
-id, community_id, user_id, community_role_id, membership_status_id,
+id, community_id, user_id, community_role_id, status,
 requested_at, reviewed_at, reviewed_by, created_at, updated_at
 ```
 
@@ -39,11 +48,9 @@ debe conservar al menos un organizador activo por comunidad.
 ```text
 users ──< community_memberships >── communities
 community_memberships ──> community_roles
-community_memberships ──> membership_statuses
 users (reviewed_by) ──< community_memberships
 users (requested_by) ──< community_creation_requests
 users (reviewed_by) ──< community_creation_requests
-community_creation_requests ──> community_creation_request_statuses
 community_creation_requests ──> communities (nullable after approval)
 communities ──< events ──< registrations >── users
 ```
@@ -55,9 +62,11 @@ membresía activa y las inscripciones usan `user_id`.
 ## Normalización e integridad
 
 - No se guardan listas, JSON de miembros ni nombres duplicados en relaciones.
-- Los datos de usuario, comunidad, rol y estado viven en sus propias tablas.
+- Los datos de usuario, comunidad y rol viven en sus propias tablas; los estados
+  inmutables se validan con enums PHP, traducciones españolas y restricciones
+  restricciones `CHECK` compatibles con el motor.
 - La combinación `community_id + user_id` evita membresías duplicadas.
-- Las FK usan `RESTRICT` para comunidades, usuarios, roles, estados y eventos,
+- Las FK usan `RESTRICT` para comunidades, usuarios, roles y eventos,
   preservando el historial. `reviewed_by` permite `NULL` y usa `SET NULL`.
 - Los catálogos de eventos conservan `is_active`; desactivarlos no modifica
   eventos históricos.
@@ -72,8 +81,8 @@ membresía activa y las inscripciones usan `user_id`.
 
 ## Seeds
 
-`CommunityReferenceSeeder` crea los roles, estados de membresía y estados de
-propuestas en español. Los seeds de demostración crean un usuario con
+`CommunityReferenceSeeder` crea los roles comunitarios. Los códigos y etiquetas
+de estados los proporcionan los enums y `lang/es/statuses.php`. Los seeds de demostración crean un usuario con
 membresía `organizer`, otro con membresía `member`, una comunidad, una
 propuesta pendiente, un evento y una inscripción. `AdminSeeder` establece
 `users.is_admin = true` para `admin@espol.edu.ec`.

@@ -2,12 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\Community;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -51,7 +51,7 @@ class ReferenceDataApiTest extends TestCase
             'community_id' => $hiddenCommunity->id,
             'user_id' => $organizer->id,
             'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
 
@@ -60,7 +60,7 @@ class ReferenceDataApiTest extends TestCase
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'published')->sole()->id,
+            'status' => EventStatus::Published->value,
         ]);
 
         $this->getJson('/api/communities')

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\MembershipStatus;
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -46,7 +47,7 @@ class User extends Authenticatable
     {
         return $this->memberships()
             ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
-            ->whereHas('status', fn ($query) => $query->where('code', 'active'));
+            ->where('status', MembershipStatus::Active->value);
     }
 
     public function registrations(): HasMany
@@ -59,7 +60,7 @@ class User extends Authenticatable
         return $this->memberships()
             ->where('community_id', $communityId)
             ->whereHas('role', fn ($query) => $query->where('code', 'organizer'))
-            ->whereHas('status', fn ($query) => $query->where('code', 'active'))
+            ->where('status', MembershipStatus::Active->value)
             ->exists();
     }
 

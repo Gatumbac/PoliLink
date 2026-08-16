@@ -205,9 +205,10 @@ Las categorías y modalidades reciben `code` y `name` al crearse. El `code` es
 inmutable; únicamente el nombre puede editarse. Las ubicaciones reciben
 `name` y una `description` opcional. No existen rutas `DELETE`: desactivar una
 fila conserva los eventos históricos que la utilizan y la excluye de los
-formularios y filtros públicos. Los catálogos `event_statuses`,
-`registration_statuses`, `membership_statuses` y `community_roles` permanecen
-controlados por el sistema.
+formularios y filtros públicos. `community_roles` permanece como catálogo
+controlado por el sistema. Los estados de eventos, inscripciones, membresías y
+propuestas son enums del backend, con códigos estables y etiquetas en español;
+no se exponen como tablas editables.
 
 La cuenta demo inicial se crea mediante `php artisan migrate:fresh --seed` con
 `admin@espol.edu.ec` y contraseña `admin`. Para habilitar otra cuenta se puede

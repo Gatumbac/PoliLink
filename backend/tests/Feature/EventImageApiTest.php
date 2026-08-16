@@ -2,11 +2,11 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\CommunityMembership;
 use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
-use App\Models\MembershipStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\UploadedFile;
@@ -94,7 +94,7 @@ class EventImageApiTest extends TestCase
             'community_id' => $event->community_id,
             'user_id' => $otherMember->id,
             'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
-            'membership_status_id' => MembershipStatus::query()->where('code', 'active')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
 
         $this->authenticatedMultipartPost($organizer, "/api/events/{$event->id}/image", [
@@ -110,7 +110,7 @@ class EventImageApiTest extends TestCase
         ])->assertForbidden();
 
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
 
         $this->authenticatedMultipartPost($organizer, "/api/events/{$event->id}/image", [

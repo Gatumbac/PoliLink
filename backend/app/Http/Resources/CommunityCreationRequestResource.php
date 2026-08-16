@@ -15,10 +15,10 @@ class CommunityCreationRequestResource extends JsonResource
             'name' => $this->name,
             'description' => $this->description,
             'image_url' => app(PublicImageStorageService::class)->url($this->image_path),
-            'status' => $this->whenLoaded('status', fn () => [
-                'code' => $this->status->code,
-                'name' => $this->status->name,
-            ]),
+            'status' => [
+                'code' => $this->status->value,
+                'name' => $this->status->label(),
+            ],
             'requested_by' => $this->whenLoaded('requester', fn () => [
                 'id' => $this->requester->id,
                 'first_name' => $this->requester->first_name,
