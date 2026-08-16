@@ -18,6 +18,7 @@ describe('public event detail', () => {
             id: 7,
             title: 'Taller Laravel',
             description: 'Introducción a Laravel.',
+            image_url: null,
             starts_at: '2026-08-20T15:00:00.000000Z',
             capacity: 30,
             available_capacity: 29,

@@ -1,15 +1,20 @@
 import { http, HttpResponse } from 'msw'
 import { describe, expect, it } from 'vitest'
 
-import { publicEventsApi } from '@/features/events/api/events.api'
+import {
+  organizerEventsApi,
+  publicEventsApi,
+} from '@/features/events/api/events.api'
 import { server } from '@/test/server'
 
 const apiUrl = 'http://localhost:8000/api'
+const backendUrl = 'http://localhost:8000'
 
 const event = {
   id: 7,
   title: 'Taller Laravel',
   description: 'Introducción a Laravel.',
+  image_url: null,
   starts_at: '2026-08-20T15:00:00.000000Z',
   capacity: 30,
   available_capacity: 29,
@@ -90,5 +95,134 @@ describe('public events API', () => {
     await expect(publicEventsApi.communities()).resolves.toEqual([
       event.community,
     ])
+  })
+})
+
+describe('organizer events API', () => {
+  it('serializes event creation as multipart with an optional image', async () => {
+    server.use(
+      http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
+        document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.post(`${apiUrl}/events`, async ({ request }) => {
+        expect(request.headers.get('Content-Type')).toMatch(
+          /^multipart\/form-data; boundary=/,
+        )
+
+        const formData = await request.formData()
+
+        expect(formData.get('community_id')).toBe('4')
+        expect(formData.get('event_category_id')).toBe('3')
+        expect(formData.get('event_modality_id')).toBe('1')
+        expect(formData.get('location_id')).toBe('1')
+        expect(formData.get('capacity')).toBe('25')
+        expect(formData.get('image')).toMatchObject({
+          name: 'cover.webp',
+          type: 'image/webp',
+        })
+
+        return HttpResponse.json(
+          {
+            data: {
+              ...event,
+              image_url:
+                'http://localhost:8000/storage/events/cover.webp',
+            },
+          },
+          { status: 201 },
+        )
+      }),
+    )
+
+    await expect(
+      organizerEventsApi.create({
+        community_id: 4,
+        event_category_id: 3,
+        event_modality_id: 1,
+        location_id: 1,
+        title: 'Taller Laravel',
+        description: 'Introducción a Laravel.',
+        starts_at: '2026-08-20T10:00:00-05:00',
+        capacity: 25,
+        image: new File(['cover'], 'cover.webp', { type: 'image/webp' }),
+      }),
+    ).resolves.toMatchObject({
+      image_url: 'http://localhost:8000/storage/events/cover.webp',
+    })
+  })
+
+  it('omits the optional image when creating an event without one', async () => {
+    server.use(
+      http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
+        document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.post(`${apiUrl}/events`, async ({ request }) => {
+        const formData = await request.formData()
+
+        expect(formData.get('image')).toBeNull()
+        return HttpResponse.json({ data: event }, { status: 201 })
+      }),
+    )
+
+    await expect(
+      organizerEventsApi.create({
+        community_id: 4,
+        event_category_id: 3,
+        event_modality_id: 1,
+        location_id: 1,
+        title: 'Taller Laravel',
+        description: 'Introducción a Laravel.',
+        starts_at: '2026-08-20T10:00:00-05:00',
+        capacity: 25,
+      }),
+    ).resolves.toMatchObject({ image_url: null })
+  })
+
+  it('keeps JSON updates and supports image replacement and removal', async () => {
+    document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+
+    server.use(
+      http.patch(`${apiUrl}/events/7`, async ({ request }) => {
+        expect(request.headers.get('Content-Type')).toContain(
+          'application/json',
+        )
+        expect(await request.json()).toEqual({
+          title: 'Taller Laravel actualizado',
+        })
+
+        return HttpResponse.json({ data: event })
+      }),
+      http.post(`${apiUrl}/events/7/image`, async ({ request }) => {
+        const formData = await request.formData()
+
+        expect(formData.get('image')).toMatchObject({
+          name: 'replacement.png',
+          type: 'image/png',
+        })
+
+        return HttpResponse.json({
+          data: {
+            ...event,
+            image_url: 'http://localhost:8000/storage/events/replacement.png',
+          },
+        })
+      }),
+      http.delete(`${apiUrl}/events/7/image`, () =>
+        HttpResponse.json({ data: event }),
+      ),
+    )
+
+    await expect(
+      organizerEventsApi.update(7, { title: 'Taller Laravel actualizado' }),
+    ).resolves.toEqual(event)
+    await expect(
+      organizerEventsApi.uploadImage(
+        7,
+        new File(['replacement'], 'replacement.png', { type: 'image/png' }),
+      ),
+    ).resolves.toMatchObject({ image_url: expect.any(String) })
+    await expect(organizerEventsApi.removeImage(7)).resolves.toEqual(event)
   })
 })

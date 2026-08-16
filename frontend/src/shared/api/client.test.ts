@@ -72,6 +72,35 @@ describe('API client', () => {
     expect(csrfRequests).toBe(1)
   })
 
+  it('sends FormData without forcing JSON content type', async () => {
+    let csrfRequests = 0
+
+    server.use(
+      http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
+        csrfRequests += 1
+        document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.post(`${backendUrl}/api/upload`, async ({ request: receivedRequest }) => {
+        expect(receivedRequest.headers.get('Content-Type')).toMatch(
+          /^multipart\/form-data; boundary=/,
+        )
+        expect(receivedRequest.headers.get('X-XSRF-TOKEN')).toBe('csrf-token')
+        expect((await receivedRequest.formData()).get('name')).toBe('cover')
+
+        return HttpResponse.json({ status: 'uploaded' })
+      }),
+    )
+
+    const formData = new FormData()
+    formData.append('name', 'cover')
+
+    await expect(
+      request('/upload', { method: 'POST', body: formData }),
+    ).resolves.toEqual({ status: 'uploaded' })
+    expect(csrfRequests).toBe(1)
+  })
+
   it('refreshes CSRF and retries once after a 419 response', async () => {
     let csrfRequests = 0
     let mutationRequests = 0
@@ -100,6 +129,43 @@ describe('API client', () => {
     ).resolves.toEqual({ status: 'updated' })
 
     expect(csrfRequests).toBe(1)
+    expect(mutationRequests).toBe(2)
+  })
+
+  it('refreshes CSRF and retries a FormData request after a 419 response', async () => {
+    let csrfRequests = 0
+    let mutationRequests = 0
+
+    server.use(
+      http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
+        csrfRequests += 1
+        document.cookie = 'XSRF-TOKEN=fresh-token; path=/'
+        return new HttpResponse(null, { status: 204 })
+      }),
+      http.post(`${backendUrl}/api/upload`, async ({ request: receivedRequest }) => {
+        mutationRequests += 1
+
+        if (mutationRequests === 1) {
+          return new HttpResponse(null, { status: 419 })
+        }
+
+        expect(receivedRequest.headers.get('X-XSRF-TOKEN')).toBe('fresh-token')
+        expect(receivedRequest.headers.get('Content-Type')).toMatch(
+          /^multipart\/form-data; boundary=/,
+        )
+        expect((await receivedRequest.formData()).get('name')).toBe('cover')
+
+        return HttpResponse.json({ status: 'retried' })
+      }),
+    )
+
+    const formData = new FormData()
+    formData.append('name', 'cover')
+
+    await expect(
+      request('/upload', { method: 'POST', body: formData }),
+    ).resolves.toEqual({ status: 'retried' })
+    expect(csrfRequests).toBe(2)
     expect(mutationRequests).toBe(2)
   })
 })

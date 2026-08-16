@@ -6,12 +6,16 @@ import {
   eventLocationCollectionSchema,
   eventModalityCollectionSchema,
   eventPageSchema,
+  eventUpdateFieldsSchema,
+  eventWriteFieldsSchema,
   type Event,
   type EventCategory,
   type EventCommunity,
   type EventLocation,
   type EventModality,
   type EventPage,
+  type EventUpdateFields,
+  type EventWriteFields,
 } from '@/features/events/model/event.schemas'
 
 export type PublicEventFilters = {
@@ -22,6 +26,43 @@ export type PublicEventFilters = {
   communityId?: number
   page?: number
   perPage?: number
+}
+
+export type CreateEventPayload = EventWriteFields & {
+  image?: File | null
+}
+
+export type UpdateEventPayload = EventUpdateFields
+
+function appendEventFormValue(
+  formData: FormData,
+  key: keyof EventWriteFields,
+  value: string | number | undefined,
+): void {
+  if (value !== undefined) formData.append(key, String(value))
+}
+
+function buildEventFormData(fields: EventWriteFields): FormData {
+  const formData = new FormData()
+
+  appendEventFormValue(formData, 'community_id', fields.community_id)
+  appendEventFormValue(
+    formData,
+    'event_category_id',
+    fields.event_category_id,
+  )
+  appendEventFormValue(
+    formData,
+    'event_modality_id',
+    fields.event_modality_id,
+  )
+  appendEventFormValue(formData, 'location_id', fields.location_id)
+  appendEventFormValue(formData, 'title', fields.title)
+  appendEventFormValue(formData, 'description', fields.description)
+  appendEventFormValue(formData, 'starts_at', fields.starts_at)
+  appendEventFormValue(formData, 'capacity', fields.capacity)
+
+  return formData
 }
 
 function appendQueryValue(
@@ -82,10 +123,60 @@ export const publicEventsApi = {
   },
 }
 
-export const dashboardEventsApi = {
+export const organizerEventsApi = {
   list: async (perPage = 12): Promise<EventPage> => {
     const query = new URLSearchParams({ per_page: String(perPage) })
 
     return eventPageSchema.parse(await request(`/me/events?${query}`))
   },
+
+  create: async (payload: CreateEventPayload): Promise<Event> => {
+    const { image, ...fields } = payload
+    const validFields = eventWriteFieldsSchema.parse(fields)
+    const formData = buildEventFormData(validFields)
+
+    if (image) formData.append('image', image)
+
+    return eventEnvelopeSchema.parse(
+      await request('/events', {
+        method: 'POST',
+        body: formData,
+      }),
+    ).data
+  },
+
+  update: async (
+    eventId: number,
+    payload: UpdateEventPayload,
+  ): Promise<Event> => {
+    const validPayload = eventUpdateFieldsSchema.parse(payload)
+
+    return eventEnvelopeSchema.parse(
+      await request(`/events/${eventId}`, {
+        method: 'PATCH',
+        body: validPayload,
+      }),
+    ).data
+  },
+
+  uploadImage: async (eventId: number, image: File): Promise<Event> => {
+    const formData = new FormData()
+    formData.append('image', image)
+
+    return eventEnvelopeSchema.parse(
+      await request(`/events/${eventId}/image`, {
+        method: 'POST',
+        body: formData,
+      }),
+    ).data
+  },
+
+  removeImage: async (eventId: number): Promise<Event> =>
+    eventEnvelopeSchema.parse(
+      await request(`/events/${eventId}/image`, { method: 'DELETE' }),
+    ).data,
+}
+
+export const dashboardEventsApi = {
+  list: organizerEventsApi.list,
 }

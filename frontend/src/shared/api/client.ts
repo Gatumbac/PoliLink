@@ -29,6 +29,17 @@ function applyCsrfHeader(headers: Headers): void {
   if (token) headers.set('X-XSRF-TOKEN', token)
 }
 
+function isFormDataBody(body: unknown): body is FormData {
+  return typeof FormData !== 'undefined' && body instanceof FormData
+}
+
+function serializeRequestBody(body: unknown): BodyInit | undefined {
+  if (body === undefined) return undefined
+  if (isFormDataBody(body)) return body
+
+  return JSON.stringify(body)
+}
+
 async function ensureCsrfCookie(): Promise<void> {
   if (readCsrfToken()) return
 
@@ -83,24 +94,28 @@ export async function request(
   path: string,
   options: RequestOptions = {},
 ): Promise<unknown> {
+  const { body, ...requestOptions } = options
   const headers = new Headers(options.headers)
   const method = (options.method ?? 'GET').toUpperCase()
   const isMutating = mutatingMethods.has(method)
+  const formDataBody = isFormDataBody(body)
+  const requestBody = serializeRequestBody(body)
 
   headers.set('Accept', 'application/json')
+
+  if (formDataBody) headers.delete('Content-Type')
 
   if (isMutating) {
     await ensureCsrfCookie()
     applyCsrfHeader(headers)
-    headers.set('Content-Type', 'application/json')
+    if (!formDataBody) headers.set('Content-Type', 'application/json')
   }
 
-  const { body, ...requestOptions } = options
   const requestInit: RequestInit = {
     ...requestOptions,
-    ...(body === undefined
+    ...(requestBody === undefined
       ? {}
-      : { body: JSON.stringify(body) }),
+      : { body: requestBody }),
     credentials: 'include',
     headers,
   }
