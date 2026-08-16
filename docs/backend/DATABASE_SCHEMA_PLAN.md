@@ -19,8 +19,8 @@ pertenecen a una membresía concreta.
 | `events` | Evento relacionado directamente con `community_id`, catálogos, estado, imagen opcional, fecha y capacidad. |
 | `registrations` | Relación `event_id`–`user_id`, estado y fechas; `UNIQUE (event_id, user_id)`. |
 
-Los estados inmutables se guardan como códigos string restringidos por la base de
-datos y se castean a enums PHP. Sus nombres visibles en español viven en
+Los estados inmutables se guardan como enums en la base de datos y se castean a
+enums PHP. Sus nombres visibles en español viven en
 `backend/lang/es/statuses.php`; no son tablas editables del catálogo:
 
 | Campo | Valores permitidos |
@@ -63,8 +63,8 @@ membresía activa y las inscripciones usan `user_id`.
 
 - No se guardan listas, JSON de miembros ni nombres duplicados en relaciones.
 - Los datos de usuario, comunidad y rol viven en sus propias tablas; los estados
-  inmutables se validan con enums PHP, traducciones españolas y restricciones
-  restricciones `CHECK` compatibles con el motor.
+  inmutables se validan con enums de base de datos, enums PHP y traducciones
+  españolas.
 - La combinación `community_id + user_id` evita membresías duplicadas.
 - Las FK usan `RESTRICT` para comunidades, usuarios, roles y eventos,
   preservando el historial. `reviewed_by` permite `NULL` y usa `SET NULL`.

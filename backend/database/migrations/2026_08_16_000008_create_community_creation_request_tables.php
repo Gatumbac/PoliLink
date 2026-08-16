@@ -14,7 +14,7 @@ return new class extends Migration
             $table->text('description')->nullable();
             $table->string('image_path')->nullable();
             $table->foreignId('requested_by')->constrained('users')->restrictOnDelete();
-            $table->string('status');
+            $table->enum('status', ['pending', 'approved', 'rejected']);
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
             $table->timestamp('reviewed_at')->nullable();
             $table->text('rejection_reason')->nullable();

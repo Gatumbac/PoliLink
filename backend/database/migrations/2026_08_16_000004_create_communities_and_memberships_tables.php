@@ -27,7 +27,7 @@ return new class extends Migration
             $table->foreignId('community_id')->constrained()->restrictOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
             $table->foreignId('community_role_id')->constrained()->restrictOnDelete();
-            $table->string('status');
+            $table->enum('status', ['pending', 'active', 'rejected', 'left']);
             $table->timestamp('requested_at')->useCurrent();
             $table->timestamp('reviewed_at')->nullable();
             $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();

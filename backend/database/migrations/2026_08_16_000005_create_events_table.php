@@ -14,7 +14,7 @@ return new class extends Migration
             $table->foreignId('event_category_id')->constrained()->restrictOnDelete();
             $table->foreignId('event_modality_id')->constrained()->restrictOnDelete();
             $table->foreignId('location_id')->constrained()->restrictOnDelete();
-            $table->string('status');
+            $table->enum('status', ['published', 'cancelled']);
             $table->string('title');
             $table->text('description');
             $table->string('image_path')->nullable();

@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('event_id')->constrained()->restrictOnDelete();
             $table->foreignId('user_id')->constrained()->restrictOnDelete();
-            $table->string('status');
+            $table->enum('status', ['active', 'cancelled']);
             $table->timestamp('registered_at')->useCurrent();
             $table->timestamp('cancelled_at')->nullable();
             $table->timestamps();
