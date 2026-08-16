@@ -116,6 +116,8 @@ evento con estado `published`, para evitar opciones de filtro sin resultados.
 
 La SPA usa Laravel Sanctum con cookies de sesión y CSRF. No se emiten tokens
 Bearer ni se integra ninguna cuenta institucional.
+Para una explicación conceptual del flujo, consulta
+[`SANCTUM_SESSION_AUTH.md`](SANCTUM_SESSION_AUTH.md).
 
 | Método | Ruta | Descripción |
 | --- | --- | --- |
