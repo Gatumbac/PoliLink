@@ -1,6 +1,12 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import { ArrowLeft, ArrowRight, CalendarPlus, CircleCheck } from 'lucide-react'
-import { type FormEvent, useEffect, useState } from 'react'
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarPlus,
+  CircleCheck,
+  LoaderCircle,
+} from 'lucide-react'
+import { type FormEvent, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { Link, useNavigate } from 'react-router'
 
@@ -121,9 +127,6 @@ export function CreateEventPage() {
   const referenceData = useEventWriteReferenceData()
   const [step, setStep] = useState<CreateEventStep>(1)
   const [formError, setFormError] = useState<unknown>(null)
-  const [createdEventTitle, setCreatedEventTitle] = useState<string | null>(
-    null,
-  )
   const form = useForm<EventFormValues>({
     defaultValues: {
       capacity: '',
@@ -144,20 +147,12 @@ export function CreateEventPage() {
   const selectedImage = formValues.image
   const hasUnsavedDetails = form.formState.isDirty || Boolean(selectedImage)
   const exitGuard = useUnsavedChangesGuard(
-    hasUnsavedDetails && !createEvent.isPending && createdEventTitle === null,
+    hasUnsavedDetails && !createEvent.isPending,
   )
 
-  useEffect(() => {
-    if (createdEventTitle === null) return
-
-    form.reset()
-    navigate(appRoutes.myEvents, {
-      replace: true,
-      state: { createdEventTitle },
-    })
-  }, [createdEventTitle, form, navigate])
-
   const handleBasicContinue = async () => {
+    if (createEvent.isPending) return
+
     const isValid = await form.trigger([...basicFields])
 
     if (isValid) {
@@ -168,11 +163,19 @@ export function CreateEventPage() {
   }
 
   const handleCreate = async (values: EventFormValues) => {
+    if (createEvent.isPending) return
+
     setFormError(null)
 
     try {
       const event = await createEvent.mutateAsync(toCreateEventPayload(values))
-      setCreatedEventTitle(event.title)
+      exitGuard.allowNavigation()
+      form.reset()
+      navigate(appRoutes.myEvents, {
+        replace: true,
+        state: { createdEventTitle: event.title },
+        viewTransition: 'startViewTransition' in document,
+      })
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError, { starts_at: 'starts_on' })
       setFormError(error)
@@ -188,6 +191,11 @@ export function CreateEventPage() {
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+    if (createEvent.isPending) {
+      event.preventDefault()
+      return
+    }
+
     if (step === 1) {
       event.preventDefault()
       void handleBasicContinue()
@@ -200,6 +208,8 @@ export function CreateEventPage() {
   }
 
   const handleBack = () => {
+    if (createEvent.isPending) return
+
     setFormError(null)
     setStep(1)
     window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -294,140 +304,171 @@ export function CreateEventPage() {
               />
             )}
 
-            <form noValidate onSubmit={handleSubmit}>
-              <Card>
-                {step === 1 && (
-                  <>
-                    <CardHeader>
-                      <CardTitle aria-level={2} role="heading">
-                        Información básica
-                      </CardTitle>
-                      <CardDescription>
-                        Presenta el evento y elige la comunidad que lo organiza.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <EventFormFields
-                        categories={referenceData.categories}
-                        communities={communities}
-                        control={form.control}
-                        errors={form.formState.errors}
-                        locations={referenceData.locations}
-                        modalities={referenceData.modalities}
-                        register={form.register}
-                        selectedImage={selectedImage}
-                        setValue={form.setValue}
-                        step={step}
-                      />
-                    </CardContent>
-                  </>
-                )}
+            <form
+              aria-busy={createEvent.isPending}
+              noValidate
+              onSubmit={handleSubmit}
+            >
+              <fieldset className="min-w-0" disabled={createEvent.isPending}>
+                <Card>
+                  {step === 1 && (
+                    <>
+                      <CardHeader>
+                        <CardTitle aria-level={2} role="heading">
+                          Información básica
+                        </CardTitle>
+                        <CardDescription>
+                          Presenta el evento y elige la comunidad que lo
+                          organiza.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent>
+                        <EventFormFields
+                          categories={referenceData.categories}
+                          communities={communities}
+                          control={form.control}
+                          disabled={createEvent.isPending}
+                          errors={form.formState.errors}
+                          locations={referenceData.locations}
+                          modalities={referenceData.modalities}
+                          register={form.register}
+                          selectedImage={selectedImage}
+                          selectedDate={formValues.starts_on}
+                          setValue={form.setValue}
+                          step={step}
+                        />
+                      </CardContent>
+                    </>
+                  )}
 
-                {step === 2 && (
-                  <>
-                    <CardHeader>
-                      <CardTitle aria-level={2} role="heading">
-                        Detalles y publicación
-                      </CardTitle>
-                      <CardDescription>
-                        Completa cuándo y dónde será la actividad. Se publicará
-                        de inmediato al confirmar.
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                      <section className="rounded-lg border bg-muted/30 p-4">
-                        <h2 className="text-sm font-medium">Resumen básico</h2>
-                        <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
-                          <div>
-                            <dt className="text-muted-foreground">Título</dt>
-                            <dd className="mt-1 font-medium">
-                              {formValues.title}
-                            </dd>
-                          </div>
-                          <div>
-                            <dt className="text-muted-foreground">Comunidad</dt>
-                            <dd className="mt-1 font-medium">
-                              {communities.find(
-                                (community) =>
-                                  String(community.id) ===
-                                  formValues.community_id,
-                              )?.name ?? 'Sin seleccionar'}
-                            </dd>
-                          </div>
-                          <div className="sm:col-span-2">
-                            <dt className="text-muted-foreground">
-                              Descripción
-                            </dt>
-                            <dd className="mt-1 whitespace-pre-wrap">
-                              {formValues.description}
-                            </dd>
-                          </div>
-                        </dl>
+                  {step === 2 && (
+                    <>
+                      <CardHeader>
+                        <CardTitle aria-level={2} role="heading">
+                          Detalles y publicación
+                        </CardTitle>
+                        <CardDescription>
+                          Completa cuándo y dónde será la actividad. Se
+                          publicará de inmediato al confirmar.
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-6">
+                        <section className="rounded-lg border bg-muted/30 p-4">
+                          <h2 className="text-sm font-medium">
+                            Resumen básico
+                          </h2>
+                          <dl className="mt-3 grid gap-3 text-sm sm:grid-cols-2">
+                            <div>
+                              <dt className="text-muted-foreground">Título</dt>
+                              <dd className="mt-1 font-medium">
+                                {formValues.title}
+                              </dd>
+                            </div>
+                            <div>
+                              <dt className="text-muted-foreground">
+                                Comunidad
+                              </dt>
+                              <dd className="mt-1 font-medium">
+                                {communities.find(
+                                  (community) =>
+                                    String(community.id) ===
+                                    formValues.community_id,
+                                )?.name ?? 'Sin seleccionar'}
+                              </dd>
+                            </div>
+                            <div className="sm:col-span-2">
+                              <dt className="text-muted-foreground">
+                                Descripción
+                              </dt>
+                              <dd className="mt-1 whitespace-pre-wrap">
+                                {formValues.description}
+                              </dd>
+                            </div>
+                          </dl>
+                          <Button
+                            className="mt-4"
+                            onClick={handleBack}
+                            type="button"
+                            variant="ghost"
+                          >
+                            <ArrowLeft aria-hidden="true" />
+                            Editar información básica
+                          </Button>
+                        </section>
+
+                        <EventFormFields
+                          categories={referenceData.categories}
+                          communities={communities}
+                          control={form.control}
+                          disabled={createEvent.isPending}
+                          errors={form.formState.errors}
+                          locations={referenceData.locations}
+                          modalities={referenceData.modalities}
+                          register={form.register}
+                          selectedImage={selectedImage}
+                          selectedDate={formValues.starts_on}
+                          setValue={form.setValue}
+                          step={step}
+                        />
+                        <FieldDescription>
+                          La fecha se enviará con la zona horaria de ESPOL
+                          (UTC-5).
+                        </FieldDescription>
+                      </CardContent>
+                    </>
+                  )}
+
+                  <div
+                    className={`flex flex-col-reverse gap-2 border-t bg-muted/20 p-4 sm:flex-row sm:items-center ${step === 1 ? 'sm:justify-end' : 'sm:justify-between'}`}
+                  >
+                    <Button asChild type="button" variant="ghost">
+                      <Link
+                        aria-disabled={createEvent.isPending}
+                        onClick={(event) => {
+                          if (createEvent.isPending) event.preventDefault()
+                        }}
+                        tabIndex={createEvent.isPending ? -1 : undefined}
+                        to={appRoutes.myEvents}
+                      >
+                        Cancelar
+                      </Link>
+                    </Button>
+                    {step === 1 && (
+                      <Button disabled={createEvent.isPending} type="submit">
+                        Continuar con los detalles
+                        <ArrowRight aria-hidden="true" />
+                      </Button>
+                    )}
+                    {step === 2 && (
+                      <div className="flex flex-col-reverse gap-2 sm:flex-row">
                         <Button
-                          className="mt-4"
+                          disabled={createEvent.isPending}
                           onClick={handleBack}
                           type="button"
-                          variant="ghost"
+                          variant="outline"
                         >
                           <ArrowLeft aria-hidden="true" />
-                          Editar información básica
+                          Atrás
                         </Button>
-                      </section>
-
-                      <EventFormFields
-                        categories={referenceData.categories}
-                        communities={communities}
-                        control={form.control}
-                        errors={form.formState.errors}
-                        locations={referenceData.locations}
-                        modalities={referenceData.modalities}
-                        register={form.register}
-                        selectedImage={selectedImage}
-                        setValue={form.setValue}
-                        step={step}
-                      />
-                      <FieldDescription>
-                        La fecha se enviará con la zona horaria de ESPOL
-                        (UTC-5).
-                      </FieldDescription>
-                    </CardContent>
-                  </>
-                )}
-
-                <div
-                  className={`flex flex-col-reverse gap-2 border-t bg-muted/20 p-4 sm:flex-row sm:items-center ${step === 1 ? 'sm:justify-end' : 'sm:justify-between'}`}
-                >
-                  <Button asChild type="button" variant="ghost">
-                    <Link to={appRoutes.myEvents}>Cancelar</Link>
-                  </Button>
-                  {step === 1 && (
-                    <Button type="submit">
-                      Continuar con los detalles
-                      <ArrowRight aria-hidden="true" />
-                    </Button>
-                  )}
-                  {step === 2 && (
-                    <div className="flex flex-col-reverse gap-2 sm:flex-row">
-                      <Button
-                        onClick={handleBack}
-                        type="button"
-                        variant="outline"
-                      >
-                        <ArrowLeft aria-hidden="true" />
-                        Atrás
-                      </Button>
-                      <Button disabled={createEvent.isPending} type="submit">
-                        {createEvent.isPending
-                          ? 'Publicando evento…'
-                          : 'Publicar evento'}
-                        {!createEvent.isPending && (
-                          <CircleCheck aria-hidden="true" />
-                        )}
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              </Card>
+                        <Button disabled={createEvent.isPending} type="submit">
+                          {createEvent.isPending && (
+                            <LoaderCircle
+                              aria-hidden="true"
+                              className="animate-spin"
+                            />
+                          )}
+                          {createEvent.isPending
+                            ? 'Publicando evento…'
+                            : 'Publicar evento'}
+                          {!createEvent.isPending && (
+                            <CircleCheck aria-hidden="true" />
+                          )}
+                        </Button>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              </fieldset>
             </form>
           </>
         )}

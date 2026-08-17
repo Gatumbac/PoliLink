@@ -10,6 +10,7 @@ import type {
   EventFormReferenceData,
   EventFormValues,
 } from '@/features/events/management/model/event-form.schemas'
+import { DatePicker } from '@/shared/ui/date-picker'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { ImageUploader } from '@/shared/ui/image-uploader'
 import { Input } from '@/shared/ui/input'
@@ -21,12 +22,15 @@ import {
   SelectValue,
 } from '@/shared/ui/select'
 import { Textarea } from '@/shared/ui/textarea'
+import { TimePicker } from '@/shared/ui/time-picker'
 
 type EventFormFieldsProps = EventFormReferenceData & {
   control: Control<EventFormValues>
+  disabled?: boolean
   errors: FieldErrors<EventFormValues>
   register: UseFormRegister<EventFormValues>
   selectedImage: EventFormValues['image']
+  selectedDate: EventFormValues['starts_on']
   setValue: UseFormSetValue<EventFormValues>
   step: 1 | 2
 }
@@ -39,8 +43,10 @@ function ReferenceSelect({
   name,
   options,
   placeholder,
+  disabled,
 }: {
   control: Control<EventFormValues>
+  disabled?: boolean
   error: FieldErrors<EventFormValues>[keyof EventFormValues]
   id: string
   label: string
@@ -60,7 +66,7 @@ function ReferenceSelect({
         name={name}
         render={({ field }) => (
           <Select
-            disabled={options.length === 0}
+            disabled={disabled || options.length === 0}
             onValueChange={field.onChange}
             value={field.value}
           >
@@ -90,11 +96,13 @@ export function EventFormFields({
   categories,
   communities,
   control,
+  disabled = false,
   errors,
   locations,
   modalities,
   register,
   selectedImage,
+  selectedDate,
   setValue,
   step,
 }: EventFormFieldsProps) {
@@ -106,6 +114,7 @@ export function EventFormFields({
           <Input
             aria-describedby={errors.title ? 'event-title-error' : undefined}
             aria-invalid={Boolean(errors.title)}
+            disabled={disabled}
             id="event-title"
             maxLength={255}
             placeholder="Ej. Taller de introducción a Laravel"
@@ -123,6 +132,7 @@ export function EventFormFields({
               errors.description ? 'event-description-error' : undefined
             }
             aria-invalid={Boolean(errors.description)}
+            disabled={disabled}
             id="event-description"
             placeholder="Cuéntales a los estudiantes qué aprenderán o encontrarán."
             rows={5}
@@ -137,6 +147,7 @@ export function EventFormFields({
         <div className="grid gap-5 sm:grid-cols-2">
           <ReferenceSelect
             control={control}
+            disabled={disabled}
             error={errors.event_category_id}
             id="event-category"
             label="Categoría"
@@ -146,6 +157,7 @@ export function EventFormFields({
           />
           <ReferenceSelect
             control={control}
+            disabled={disabled}
             error={errors.community_id}
             id="event-community"
             label="Comunidad organizadora"
@@ -163,27 +175,42 @@ export function EventFormFields({
       <div className="grid gap-5 sm:grid-cols-2">
         <Field data-invalid={Boolean(errors.starts_on)}>
           <FieldLabel htmlFor="event-starts-on">Fecha</FieldLabel>
-          <Input
-            aria-describedby={
-              errors.starts_on ? 'event-starts-on-error' : undefined
-            }
-            aria-invalid={Boolean(errors.starts_on)}
-            id="event-starts-on"
-            type="date"
-            {...register('starts_on')}
+          <Controller
+            control={control}
+            name="starts_on"
+            render={({ field }) => (
+              <DatePicker
+                aria-describedby={
+                  errors.starts_on ? 'event-starts-on-error' : undefined
+                }
+                aria-invalid={Boolean(errors.starts_on)}
+                disabled={disabled}
+                id="event-starts-on"
+                onChange={field.onChange}
+                value={field.value}
+              />
+            )}
           />
           <FieldError id="event-starts-on-error" errors={[errors.starts_on]} />
         </Field>
         <Field data-invalid={Boolean(errors.starts_time)}>
           <FieldLabel htmlFor="event-starts-time">Hora (ESPOL)</FieldLabel>
-          <Input
-            aria-describedby={
-              errors.starts_time ? 'event-starts-time-error' : undefined
-            }
-            aria-invalid={Boolean(errors.starts_time)}
-            id="event-starts-time"
-            type="time"
-            {...register('starts_time')}
+          <Controller
+            control={control}
+            name="starts_time"
+            render={({ field }) => (
+              <TimePicker
+                aria-describedby={
+                  errors.starts_time ? 'event-starts-time-error' : undefined
+                }
+                aria-invalid={Boolean(errors.starts_time)}
+                disabled={disabled}
+                id="event-starts-time"
+                minTime={getMinimumTime(selectedDate)}
+                onChange={field.onChange}
+                value={field.value}
+              />
+            )}
           />
           <FieldError
             id="event-starts-time-error"
@@ -195,6 +222,7 @@ export function EventFormFields({
       <div className="grid gap-5 sm:grid-cols-2">
         <ReferenceSelect
           control={control}
+          disabled={disabled}
           error={errors.event_modality_id}
           id="event-modality"
           label="Modalidad"
@@ -204,6 +232,7 @@ export function EventFormFields({
         />
         <ReferenceSelect
           control={control}
+          disabled={disabled}
           error={errors.location_id}
           id="event-location"
           label="Ubicación"
@@ -220,6 +249,7 @@ export function EventFormFields({
             errors.capacity ? 'event-capacity-error' : undefined
           }
           aria-invalid={Boolean(errors.capacity)}
+          disabled={disabled}
           id="event-capacity"
           inputMode="numeric"
           min={1}
@@ -237,6 +267,7 @@ export function EventFormFields({
         </FieldLabel>
         <ImageUploader
           ariaLabel="Imagen del evento"
+          disabled={disabled}
           error={Boolean(errors.image)}
           errorId="event-image-error"
           inputId="event-image"
@@ -258,4 +289,26 @@ export function EventFormFields({
       </Field>
     </FieldGroup>
   )
+}
+
+function getDateInputValue(date: Date) {
+  return [date.getFullYear(), date.getMonth() + 1, date.getDate()]
+    .map((part, index) =>
+      index === 0 ? String(part) : String(part).padStart(2, '0'),
+    )
+    .join('-')
+}
+
+function getMinimumTime(selectedDate: string) {
+  const now = new Date()
+
+  if (selectedDate !== getDateInputValue(now)) return undefined
+
+  const nextQuarter = new Date(now)
+  nextQuarter.setSeconds(0, 0)
+  nextQuarter.setMinutes(Math.floor(nextQuarter.getMinutes() / 15) * 15 + 15)
+
+  if (getDateInputValue(nextQuarter) !== selectedDate) return '24:00'
+
+  return `${String(nextQuarter.getHours()).padStart(2, '0')}:${String(nextQuarter.getMinutes()).padStart(2, '0')}`
 }

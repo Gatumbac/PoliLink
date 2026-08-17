@@ -7,6 +7,7 @@ const acceptedImageTypes = 'image/jpeg,image/png,image/webp'
 
 type ImageUploaderProps = {
   ariaLabel: string
+  disabled?: boolean
   error?: boolean
   errorId?: string
   inputId: string
@@ -31,6 +32,7 @@ function formatFileSize(bytes: number) {
 
 export function ImageUploader({
   ariaLabel,
+  disabled = false,
   error = false,
   errorId,
   inputId,
@@ -55,11 +57,15 @@ export function ImageUploader({
   }, [selectedImage])
 
   const openFilePicker = () => {
+    if (disabled) return
+
     if (imageInputRef.current) imageInputRef.current.value = ''
     imageInputRef.current?.click()
   }
 
   const selectImage = (file: File | undefined) => {
+    if (disabled) return
+
     setIsDragActive(false)
 
     if (!file) return
@@ -68,6 +74,8 @@ export function ImageUploader({
   }
 
   const clearImage = () => {
+    if (disabled) return
+
     onClear()
 
     if (imageInputRef.current) imageInputRef.current.value = ''
@@ -83,6 +91,7 @@ export function ImageUploader({
         aria-label={ariaLabel}
         aria-invalid={error}
         className="sr-only"
+        disabled={disabled}
         id={inputId}
         onChange={(event) => selectImage(event.target.files?.[0])}
         ref={imageInputRef}
@@ -108,6 +117,7 @@ export function ImageUploader({
             event.preventDefault()
             selectImage(event.dataTransfer.files?.[0])
           }}
+          disabled={disabled}
           type="button"
         >
           <span className="flex size-11 items-center justify-center rounded-full border border-border bg-background text-muted-foreground">
@@ -159,6 +169,7 @@ export function ImageUploader({
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
+                disabled={disabled}
                 onClick={openFilePicker}
                 size="sm"
                 type="button"
@@ -168,6 +179,7 @@ export function ImageUploader({
                 Cambiar imagen
               </Button>
               <Button
+                disabled={disabled}
                 onClick={clearImage}
                 size="sm"
                 type="button"

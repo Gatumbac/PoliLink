@@ -1,6 +1,8 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { addDays, format, startOfToday } from 'date-fns'
+import { es } from 'date-fns/locale'
 import { HttpResponse, http } from 'msw'
 import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
@@ -10,6 +12,11 @@ import { CreateEventPage } from '@/features/events/management/pages/CreateEventP
 import { server } from '@/test/server'
 
 const apiUrl = 'http://localhost:8000/api'
+
+function setCsrfCookie() {
+  // biome-ignore lint/suspicious/noDocumentCookie: The request client reads this cookie during the integration test.
+  document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+}
 
 const community = {
   id: 4,
@@ -119,12 +126,29 @@ async function fillBasicDetails(user: ReturnType<typeof userEvent.setup>) {
 }
 
 async function fillEventDetails(user: ReturnType<typeof userEvent.setup>) {
-  fireEvent.change(screen.getByLabelText('Fecha'), {
-    target: { value: '2099-08-20' },
-  })
-  fireEvent.change(screen.getByLabelText('Hora (ESPOL)'), {
-    target: { value: '10:30' },
-  })
+  const today = startOfToday()
+  const eventDate = addDays(today, 7)
+
+  await user.click(screen.getByRole('button', { name: 'Fecha' }))
+
+  if (eventDate.getMonth() !== today.getMonth()) {
+    await user.click(
+      screen.getByRole('button', { name: 'Ir al mes siguiente' }),
+    )
+  }
+
+  await user.click(
+    screen.getByRole('button', {
+      name: format(eventDate, 'PPPP', { locale: es }),
+    }),
+  )
+
+  await user.click(screen.getByRole('button', { name: 'Hora (ESPOL)' }))
+  await user.click(screen.getByRole('combobox', { name: 'Hora' }))
+  await user.click(screen.getByRole('option', { name: '10' }))
+  await user.click(screen.getByRole('combobox', { name: 'Minutos' }))
+  await user.click(screen.getByRole('option', { name: '30' }))
+
   await selectOption(user, 'Modalidad', 'Presencial')
   await selectOption(user, 'Ubicación', 'Campus ESPOL')
   await user.type(
@@ -172,14 +196,16 @@ describe('create event page', () => {
   }, 15_000)
 
   it('publishes the event with JSON and redirects to the organizer events', async () => {
-    document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+    setCsrfCookie()
     let receivedPayload: unknown
+    let receivedBody: unknown
 
     server.use(
       http.post(`${apiUrl}/events`, async ({ request }) => {
         expect(request.headers.get('Content-Type')).toContain(
           'application/json',
         )
+        receivedBody = await request.json()
         receivedPayload = 'received'
 
         return HttpResponse.json({ data: event }, { status: 201 })
@@ -200,6 +226,46 @@ describe('create event page', () => {
       appRoutes.myEvents,
     )
     expect(receivedPayload).toBe('received')
+    expect(receivedBody).toMatchObject({
+      starts_at: expect.stringMatching(/T\d{2}:30:00-05:00$/),
+    })
+  }, 15_000)
+
+  it('locks the form while publishing and releases it after success', async () => {
+    setCsrfCookie()
+    let releaseRequest: (() => void) | undefined
+    const requestReleased = new Promise<void>((resolve) => {
+      releaseRequest = resolve
+    })
+
+    server.use(
+      http.post(`${apiUrl}/events`, async () => {
+        await requestReleased
+        return HttpResponse.json({ data: event }, { status: 201 })
+      }),
+    )
+
+    const user = userEvent.setup()
+    renderCreateEvent()
+    await fillBasicDetails(user)
+    await user.click(
+      screen.getByRole('button', { name: 'Continuar con los detalles' }),
+    )
+    await fillEventDetails(user)
+    await user.click(screen.getByRole('button', { name: 'Publicar evento' }))
+
+    expect(
+      await screen.findByRole('button', { name: 'Publicando evento…' }),
+    ).toBeDisabled()
+    expect(screen.getByRole('link', { name: 'Cancelar' })).toHaveAttribute(
+      'aria-disabled',
+      'true',
+    )
+
+    releaseRequest?.()
+    expect(await screen.findByTestId('location')).toHaveTextContent(
+      appRoutes.myEvents,
+    )
   }, 15_000)
 
   it('blocks leaving a dirty form and preserves the entered value', async () => {

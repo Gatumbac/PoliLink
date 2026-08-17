@@ -1,8 +1,11 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useBeforeUnload, useBlocker } from 'react-router'
 
 export function useUnsavedChangesGuard(shouldBlock: boolean) {
-  const blocker = useBlocker(shouldBlock)
+  const allowNavigationRef = useRef(false)
+  const blocker = useBlocker(() => {
+    return shouldBlock && !allowNavigationRef.current
+  })
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
   useEffect(() => {
@@ -36,7 +39,7 @@ export function useUnsavedChangesGuard(shouldBlock: boolean) {
   useBeforeUnload(
     useCallback(
       (event) => {
-        if (!shouldBlock) return
+        if (!shouldBlock || allowNavigationRef.current) return
 
         event.preventDefault()
         event.returnValue = ''
@@ -47,6 +50,9 @@ export function useUnsavedChangesGuard(shouldBlock: boolean) {
   )
 
   return {
+    allowNavigation: useCallback(() => {
+      allowNavigationRef.current = true
+    }, []),
     handleDialogChange,
     isDialogOpen,
     leave,
