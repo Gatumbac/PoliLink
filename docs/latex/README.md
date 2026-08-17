@@ -27,8 +27,8 @@ no usar imágenes de relleno.
 
 ## Capturas del frontend para el Avance 2
 
-`main.tex` reserva las siguientes capturas del frontend de Gabriel. Súbelas a
-la carpeta `images/` de Overleaf con estos nombres exactos:
+Las siguientes capturas del frontend de Gabriel ya están en `images/` y
+referenciadas desde `main.tex`:
 
 - `frontend-gabriel-01-catalogo.png` — catálogo con búsqueda y filtros.
 - `frontend-gabriel-02-detalle.png` — detalle de un evento.
@@ -37,6 +37,14 @@ la carpeta `images/` de Overleaf con estos nombres exactos:
 - `frontend-gabriel-05-editar-evento.png` — formulario de edición.
 - `frontend-gabriel-06-imagen-cancelacion.png` — imagen y cancelación del evento.
 
-Las capturas de Darwin se incorporarán cuando sus recorridos frontend de
-inscripción y asistentes estén implementados. No compilar `main.tex` localmente:
-la compilación y la revisión visual se realizan en Overleaf.
+## Capturas del frontend de Darwin
+
+Los recorridos de inscripción, mis inscripciones y consulta de inscritos ya
+están implementados y verificados en el navegador con el frontend, Laravel y
+MySQL en ejecución. Sus capturas reales ya están en `images/` y referenciadas
+desde `main.tex`:
+
+- `frontend-darwin-01-inscripcion.jpg` — detalle del evento con inscripción activa.
+- `frontend-darwin-02-mis-inscripciones.jpg` — pantalla `/mis-inscripciones`.
+- `frontend-darwin-03-cancelar-inscripcion.jpg` — confirmación al cancelar una inscripción.
+- `frontend-darwin-04-inscritos.jpg` — inscritos y cupos vistos por el organizador responsable.
