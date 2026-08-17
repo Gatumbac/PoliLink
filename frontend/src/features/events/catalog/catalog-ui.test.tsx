@@ -15,7 +15,7 @@ const event = {
   id: 7,
   title: 'Taller Laravel',
   description: 'Introducción a Laravel.',
-  image_url: null,
+  image_url: 'http://localhost:8000/storage/events/laravel.webp',
   starts_at: '2026-08-20T15:00:00.000000Z',
   capacity: 30,
   available_capacity: 29,
@@ -116,6 +116,10 @@ describe('public event catalog', () => {
         name: 'Ver detalles de Taller Laravel',
       }),
     ).toBeInTheDocument()
+    expect(screen.getByAltText('Portada de Taller Laravel')).toHaveAttribute(
+      'src',
+      event.image_url,
+    )
     expect(
       screen.getByRole('link', { name: 'Conoce cómo organizar' }),
     ).toHaveAttribute('href', appRoutes.organize)

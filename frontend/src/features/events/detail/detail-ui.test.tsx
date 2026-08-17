@@ -19,7 +19,7 @@ describe('public event detail', () => {
             id: 7,
             title: 'Taller Laravel',
             description: 'Introducción a Laravel.',
-            image_url: null,
+            image_url: 'http://localhost:8000/storage/events/laravel.webp',
             starts_at: '2026-08-20T15:00:00.000000Z',
             capacity: 30,
             available_capacity: 29,
@@ -60,6 +60,10 @@ describe('public event detail', () => {
     expect(
       await screen.findByRole('heading', { name: 'Taller Laravel' }),
     ).toBeInTheDocument()
+    expect(screen.getByAltText('Portada de Taller Laravel')).toHaveAttribute(
+      'src',
+      'http://localhost:8000/storage/events/laravel.webp',
+    )
     expect(screen.getByText('29 de 30 cupos disponibles')).toBeInTheDocument()
     expect(screen.getByText('Campus')).toBeInTheDocument()
   })

@@ -62,3 +62,9 @@ Use concise conventional-style messages such as `feat: add event filters` or
 `docs: update API guide`. PRs should explain the scope, list checks actually
 run, identify known limitations, and include UI or proposal screenshots when
 relevant. Preserve unrelated working-tree changes.
+
+After completing an approved implementation plan, run the relevant checks,
+review the final status and diff, and create a conventional commit
+automatically. Stage only files belonging to that implementation, do not
+include unrelated changes or secrets, and do not push unless explicitly asked.
+If the worktree has no changes, do not create an empty commit.

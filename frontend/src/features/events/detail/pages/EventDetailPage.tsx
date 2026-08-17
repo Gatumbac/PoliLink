@@ -4,6 +4,7 @@ import { Link, useParams } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { usePublicEventDetail } from '@/features/events/catalog/hooks/use-event-queries'
+import { EventImage } from '@/features/events/components/EventImage'
 import {
   formatEventCapacity,
   formatEventDate,
@@ -33,6 +34,7 @@ function DetailSkeleton() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <section className="space-y-5">
+        <Skeleton className="aspect-video w-full rounded-xl" />
         <div className="flex gap-2">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-5 w-28" />
@@ -108,6 +110,11 @@ export function EventDetailPage() {
         <BackToCatalog />
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
           <article className="space-y-6">
+            <EventImage
+              alt={`Portada de ${event.title}`}
+              className="rounded-xl"
+              imageUrl={event.image_url}
+            />
             <div className="flex flex-wrap gap-2">
               {event.category && (
                 <Badge variant="secondary">{event.category.name}</Badge>

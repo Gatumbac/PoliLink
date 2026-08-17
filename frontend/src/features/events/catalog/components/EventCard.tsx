@@ -2,6 +2,7 @@ import { ArrowUpRight, CalendarDays, MapPin, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
+import { EventImage } from '@/features/events/components/EventImage'
 import type { Event } from '@/features/events/model/event.schemas'
 import {
   formatEventCapacity,
@@ -27,7 +28,12 @@ export function EventCard({ event }: EventCardProps) {
       className="group block h-full rounded-xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       to={appRoutes.eventDetail(event.id)}
     >
-      <Card className="h-full transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:ring-foreground/20">
+      <Card className="h-full p-0 transition-transform duration-200 group-hover:-translate-y-0.5 group-hover:ring-foreground/20">
+        <EventImage
+          alt={`Portada de ${event.title}`}
+          className="rounded-t-xl"
+          imageUrl={event.image_url}
+        />
         <CardHeader className="gap-3">
           <div className="flex items-start justify-between gap-3">
             <div className="flex flex-wrap gap-2">

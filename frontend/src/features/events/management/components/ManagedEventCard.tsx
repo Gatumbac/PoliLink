@@ -1,7 +1,8 @@
-import { CalendarDays, ImageIcon, MapPin, Users } from 'lucide-react'
+import { CalendarDays, MapPin, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
+import { EventImage } from '@/features/events/components/EventImage'
 import type { Event } from '@/features/events/model/event.schemas'
 import {
   formatEventCapacity,
@@ -21,20 +22,11 @@ export function ManagedEventCard({ event }: ManagedEventCardProps) {
   return (
     <Card className="h-full">
       <CardContent className="grid h-full gap-4 p-0 sm:grid-cols-[10rem_1fr]">
-        <div className="flex aspect-video items-center justify-center bg-muted sm:aspect-auto sm:min-h-full">
-          {event.image_url ? (
-            <img
-              alt={`Portada de ${event.title}`}
-              className="size-full object-cover"
-              src={event.image_url}
-            />
-          ) : (
-            <ImageIcon
-              aria-hidden="true"
-              className="size-8 text-muted-foreground/60"
-            />
-          )}
-        </div>
+        <EventImage
+          alt={`Portada de ${event.title}`}
+          className="sm:aspect-auto sm:min-h-full"
+          imageUrl={event.image_url}
+        />
 
         <div className="flex min-w-0 flex-col gap-4 p-5 sm:pl-1">
           <div className="flex flex-wrap items-center justify-between gap-2">
