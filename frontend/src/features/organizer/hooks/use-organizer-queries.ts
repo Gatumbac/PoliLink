@@ -70,18 +70,48 @@ export function useUpdateOrganizerEvent() {
   })
 }
 
+function refreshEventQueries(
+  queryClient: ReturnType<typeof useQueryClient>,
+  event: Awaited<ReturnType<typeof organizerEventsApi.update>>,
+) {
+  queryClient.setQueryData(eventQueryKeys.detail(event.id), event)
+  void Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: organizerQueryKeys.eventsRoot(),
+    }),
+    queryClient.invalidateQueries({ queryKey: eventQueryKeys.all }),
+  ]).catch(() => undefined)
+}
+
 export function useCancelOrganizerEvent() {
   const queryClient = useQueryClient()
 
   return useMutation({
     mutationFn: organizerEventsApi.cancel,
-    onSuccess: () => {
-      void Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: organizerQueryKeys.eventsRoot(),
-        }),
-        queryClient.invalidateQueries({ queryKey: eventQueryKeys.all }),
-      ]).catch(() => undefined)
-    },
+    onSuccess: (event) => refreshEventQueries(queryClient, event),
+  })
+}
+
+export type UploadOrganizerEventImageVariables = {
+  eventId: number
+  image: File
+}
+
+export function useUploadOrganizerEventImage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ eventId, image }: UploadOrganizerEventImageVariables) =>
+      organizerEventsApi.uploadImage(eventId, image),
+    onSuccess: (event) => refreshEventQueries(queryClient, event),
+  })
+}
+
+export function useRemoveOrganizerEventImage() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (eventId: number) => organizerEventsApi.removeImage(eventId),
+    onSuccess: (event) => refreshEventQueries(queryClient, event),
   })
 }

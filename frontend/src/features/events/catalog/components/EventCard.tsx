@@ -54,7 +54,7 @@ export function EventCard({ event }: EventCardProps) {
             {event.description ?? 'Consulta los detalles de esta actividad.'}
           </CardDescription>
         </CardHeader>
-        <CardContent className="mt-auto space-y-3 text-sm text-muted-foreground">
+        <CardContent className="mt-auto space-y-3 pb-5 text-sm text-muted-foreground">
           <div className="flex items-start gap-2">
             <CalendarDays
               aria-hidden="true"

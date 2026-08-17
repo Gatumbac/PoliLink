@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { createMemoryRouter, RouterProvider, useLocation } from 'react-router'
@@ -7,6 +7,7 @@ import { describe, expect, it } from 'vitest'
 
 import { appRoutePatterns, appRoutes } from '@/app/routes'
 import { EditEventPage } from '@/features/events/management/pages/EditEventPage'
+import type { Event } from '@/features/events/model/event.schemas'
 import { server } from '@/test/server'
 
 const apiUrl = 'http://localhost:8000/api'
@@ -23,7 +24,7 @@ const category = { id: 3, code: 'hackathon', name: 'Hackathon' }
 const modality = { id: 1, code: 'in_person', name: 'Presencial' }
 const location = { id: 1, name: 'Campus ESPOL', description: null }
 
-const event = {
+const event: Event = {
   id: 7,
   title: 'Taller Laravel',
   description: 'Introducción práctica a Laravel.',
@@ -43,6 +44,11 @@ const event = {
   status: { code: 'published', name: 'Publicado' },
   created_at: '2099-08-01T15:00:00.000000Z',
   updated_at: '2099-08-01T15:00:00.000000Z',
+}
+
+const eventWithImage = {
+  ...event,
+  image_url: 'http://localhost:8000/storage/events/original.webp',
 }
 
 const cancelledEvent = {
@@ -80,7 +86,7 @@ function LocationProbe() {
   return <output data-testid="location">{location.pathname}</output>
 }
 
-function renderEditEvent(eventResponse = event) {
+function renderEditEvent(eventResponse: Event = event) {
   const queryClient = new QueryClient({
     defaultOptions: {
       mutations: { retry: false },
@@ -157,9 +163,127 @@ describe('edit event page', () => {
       screen.getByRole('button', { name: 'Hora (ESPOL)' }),
     ).toHaveTextContent('10:30')
     expect(
-      document.querySelector('[data-slot="event-image-fallback"]'),
-    ).not.toBeNull()
-    expect(screen.queryByLabelText('Imagen del evento')).not.toBeInTheDocument()
+      screen.getByRole('button', { name: 'Subir imagen del evento' }),
+    ).toBeInTheDocument()
+  })
+
+  it('replaces the image immediately without changing the event fields', async () => {
+    setCsrfCookie()
+    let uploadedFile: unknown = null
+    let currentEvent: Event = eventWithImage
+    const replacementUrl =
+      'http://localhost:8000/storage/events/replacement.webp'
+
+    server.use(
+      http.post(`${apiUrl}/events/${event.id}/image`, async ({ request }) => {
+        const formData = await request.formData()
+        const image = formData.get('image')
+
+        uploadedFile = image
+        currentEvent = { ...eventWithImage, image_url: replacementUrl }
+
+        return HttpResponse.json({
+          data: currentEvent,
+        })
+      }),
+    )
+
+    const user = userEvent.setup()
+    renderEditEvent(eventWithImage)
+    server.use(
+      http.get(`${apiUrl}/events/${event.id}`, () =>
+        HttpResponse.json({ data: currentEvent }),
+      ),
+    )
+    await user.click(
+      await screen.findByRole('button', { name: 'Continuar con los detalles' }),
+    )
+
+    const input = screen.getByLabelText('Imagen del evento')
+    await user.upload(
+      input,
+      new File(['replacement'], 'replacement.webp', { type: 'image/webp' }),
+    )
+
+    await waitFor(() => {
+      expect(uploadedFile).toMatchObject({ type: 'image/webp' })
+    })
+    expect(
+      await screen.findByAltText('Portada actual del evento'),
+    ).toHaveAttribute('src', replacementUrl)
+  })
+
+  it('removes the current image after explicit confirmation', async () => {
+    setCsrfCookie()
+    let deleteCalls = 0
+    let currentEvent: Event = eventWithImage
+
+    server.use(
+      http.delete(`${apiUrl}/events/${event.id}/image`, () => {
+        deleteCalls += 1
+
+        const responseEvent = { ...eventWithImage, image_url: null }
+        currentEvent = responseEvent
+
+        return HttpResponse.json({ data: responseEvent })
+      }),
+    )
+
+    const user = userEvent.setup()
+    renderEditEvent(eventWithImage)
+    server.use(
+      http.get(`${apiUrl}/events/${event.id}`, () =>
+        HttpResponse.json({ data: currentEvent }),
+      ),
+    )
+    await user.click(
+      await screen.findByRole('button', { name: 'Continuar con los detalles' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Eliminar imagen' }))
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByText(
+        'La imagen dejará de mostrarse en este evento. Puedes subir otra después desde este mismo formulario.',
+      ),
+    ).toBeInTheDocument()
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Eliminar imagen' }),
+    )
+
+    await waitFor(() => {
+      expect(deleteCalls).toBe(1)
+      expect(
+        screen.getByRole('button', { name: 'Subir imagen del evento' }),
+      ).toBeInTheDocument()
+    })
+  })
+
+  it('rejects unsupported image files before sending them to the API', async () => {
+    setCsrfCookie()
+    let uploadCalls = 0
+
+    server.use(
+      http.post(`${apiUrl}/events/${event.id}/image`, () => {
+        uploadCalls += 1
+        return HttpResponse.json({ data: eventWithImage })
+      }),
+    )
+
+    const user = userEvent.setup({ applyAccept: false })
+    renderEditEvent(event)
+    await user.click(
+      await screen.findByRole('button', { name: 'Continuar con los detalles' }),
+    )
+    await user.upload(
+      screen.getByLabelText('Imagen del evento'),
+      new File(['invalid'], 'animation.gif', { type: 'image/gif' }),
+    )
+
+    expect(
+      await screen.findByText('La imagen debe ser JPG, PNG o WebP.'),
+    ).toBeInTheDocument()
+    expect(uploadCalls).toBe(0)
   })
 
   it('updates the event with JSON and redirects without sending an image', async () => {

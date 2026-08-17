@@ -5,7 +5,7 @@ import { Link, useSearchParams } from 'react-router'
 import { appRoutes } from '@/app/routes'
 import { useAuth } from '@/features/auth/auth-context'
 import { hasRole } from '@/features/auth/model/auth-helpers'
-import { CommunityOrganizerCallout } from '@/features/events/catalog/components/CommunityOrganizerCallout'
+import { CommunityOrganizerActions } from '@/features/events/catalog/components/CommunityOrganizerActions'
 import { EventCard } from '@/features/events/catalog/components/EventCard'
 import { EventCatalogFilters } from '@/features/events/catalog/components/EventCatalogFilters'
 import { EventCatalogSkeleton } from '@/features/events/catalog/components/EventCatalogSkeleton'
@@ -90,7 +90,7 @@ export function EventCatalogPage() {
   return (
     <main className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-8">
-        <header className="space-y-4">
+        <header className="space-y-6">
           <Link
             className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
             to={appRoutes.home}
@@ -98,17 +98,20 @@ export function EventCatalogPage() {
             <ArrowLeft aria-hidden="true" className="size-4" />
             Volver al inicio
           </Link>
-          <div className="max-w-2xl space-y-3">
-            <p className="text-sm font-medium text-muted-foreground">
-              ESPOL · Comunidades estudiantiles
-            </p>
-            <h1 className="font-heading text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
-              Descubre eventos
-            </h1>
-            <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
-              Encuentra talleres, actividades y encuentros publicados por las
-              comunidades de ESPOL.
-            </p>
+          <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+            <div className="max-w-2xl space-y-3">
+              <p className="text-sm font-medium text-muted-foreground">
+                ESPOL · Comunidades estudiantiles
+              </p>
+              <h1 className="font-heading text-4xl font-semibold tracking-[-0.04em] sm:text-5xl">
+                Descubre eventos
+              </h1>
+              <p className="text-base leading-relaxed text-muted-foreground sm:text-lg">
+                Encuentra talleres, actividades y encuentros publicados por las
+                comunidades de ESPOL.
+              </p>
+            </div>
+            <CommunityOrganizerActions variant={calloutVariant} />
           </div>
         </header>
 
@@ -122,8 +125,6 @@ export function EventCatalogPage() {
           onSearchChange={setSearchInput}
           searchInput={searchInput}
         />
-
-        <CommunityOrganizerCallout variant={calloutVariant} />
 
         {referenceData.isError && (
           <Alert>
