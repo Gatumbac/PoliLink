@@ -1,10 +1,12 @@
 # Fases de integración del frontend de PoliLink
 
-**Estado:** integración incremental; las Fases 1 y 2 están implementadas en
-código, pero aún requieren verificación con servicios locales.
-**Documento canónico:** este archivo describe el trabajo pendiente para
-conectar React con la API Laravel. Los detalles exactos de cuerpos, respuestas
-y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
+**Estado:** integración incremental; las Fases 1, 2 y la experiencia del
+organizador de la Fase 3 están implementadas en código. La verificación con
+servicios locales sigue pendiente; las inscripciones y asistentes pertenecen a
+Darwin y a las fases posteriores.
+**Documento canónico:** este archivo describe el estado y el trabajo restante
+para conectar React con la API Laravel. Los detalles exactos de cuerpos,
+respuestas y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 
 ## Línea base actual
 
@@ -18,13 +20,16 @@ y códigos HTTP se mantienen en [`docs/api/API.md`](../api/API.md).
 - La Fase 2 ya integra en código el catálogo público, búsqueda con debounce,
   filtros URL-backed, datos de referencia, paginación numerada y detalle de
   evento en `/eventos` y `/eventos/:eventId`. La ruta `/` conserva la landing.
-- Todavía no existe una integración completa del organizador, inscripciones ni
-  de todos los estados de sus recorridos.
+- La integración frontend del organizador para comunidades y eventos está
+  implementada en código, incluyendo creación, edición, imágenes y
+  cancelación. Las inscripciones, asistentes y todos sus estados todavía no
+  están integrados en el frontend.
 - La verificación en ambiente real con MySQL, Laravel y Vite debe registrarse
   por separado; la existencia de código o documentación no la reemplaza.
-- Por lo tanto, las fases restantes de integración frontend permanecen
-  pendientes hasta que sus pantallas y recorridos funcionen; una API marcada
-  como implementada no significa que la experiencia React esté terminada.
+- Por lo tanto, las fases pendientes corresponden principalmente a la
+  verificación real del organizador y a los recorridos de Darwin; una API
+  marcada como implementada no significa que la experiencia React esté
+  verificada en runtime.
 - Las rutas visibles del navegador usan español; los nombres de código se
   mantienen en inglés. Los endpoints `/api/...` conservan el contrato backend.
 
@@ -160,8 +165,9 @@ formateo local de fechas `es-EC`, cupos visibles y estados de carga, error y
 catálogo vacío. En móvil los filtros se muestran en un Sheet de shadcn; en
 escritorio se muestran como controles inline.
 
-Esta fase es deliberadamente de solo lectura. La inscripción, cancelación de
-inscripciones y publicación de eventos quedan para las fases 3 y 4. No fueron
+Esta fase es deliberadamente de solo lectura. La inscripción y la cancelación
+de inscripciones quedan para la Fase 4. La publicación de eventos pertenece a
+la Fase 3 y ya está implementada en el recorrido del organizador. No fueron
 necesarios cambios funcionales adicionales en el backend para implementar este
 alcance;
 debe verificarse que el contrato y los datos sembrados estén disponibles en el
@@ -169,7 +175,8 @@ ambiente local.
 
 ### Fase 3 — Experiencia del organizador
 
-**Contrato backend:** `Implemented`; **integración frontend:** `In progress`.
+**Contrato backend:** `Implemented`; **integración frontend del organizador:**
+`Implemented`; **verificación real:** `Pending`.
 
 El contrato de esta fase está cerrado en `docs/api/API.md`: onboarding de
 comunidades, comunidades administradas, eventos propios paginados, creación
@@ -180,45 +187,47 @@ para altas y
 ediciones, conserva eventos cancelados en el dashboard y devuelve
 `image_url` nullable.
 
-La implementación frontend se dividirá en subfases verticales. Cada una debe
-dejar un recorrido pequeño y verificable antes de iniciar la siguiente. La
-creación de comunidades consume solicitudes pendientes; no crea la comunidad
-directamente.
+La implementación frontend se organiza en subfases verticales. Cada una dejó
+un recorrido pequeño y automatizado; la verificación completa del conjunto
+todavía requiere ejecutar los servicios locales. La creación de comunidades
+consume solicitudes pendientes; no crea la comunidad directamente.
 
 #### Fase 3.1 — Fundación del organizador
 
-- Crear las rutas protegidas `/organizar`, `/crear-comunidad`,
-  `/mis-solicitudes` y `/mis-comunidades`, con `/organizador` como redirección
+**Estado:** implementada en código; `Verified` queda pendiente de la
+verificación navegador → Laravel.
+
+- Las rutas protegidas `/organizar`, `/crear-comunidad`, `/mis-solicitudes` y
+  `/mis-comunidades` están disponibles, con `/organizador` como redirección
   heredada.
-- Añadir el cliente API de comunidades, claves de consulta y estados comunes
-  de carga, sesión expirada y error.
+- El cliente API de comunidades, las claves de consulta y los estados comunes
+  de carga, sesión expirada y error están integrados.
 
 **Salida:** el usuario autenticado puede entrar al área correcta del
 organizador.
 
 #### Fase 3.2 — Comunidades
 
-**Estado:** contrato backend implementado; la integración frontend requiere
-actualizarse al flujo de solicitudes y al campo `slug`. `Verified` queda
-pendiente de la verificación navegador → Laravel.
+**Estado:** implementada en código; `Verified` queda pendiente de la
+verificación navegador → Laravel.
 
-- Consumir `GET /me/communities` y mostrar las comunidades administradas.
-- Implementar el panel separado en `/mis-comunidades` con estado vacío y
-  enlace hacia el onboarding.
-- Implementar el onboarding de dos pasos en `/crear-comunidad` para
-  `POST /community-creation-requests`, con validación, imagen opcional y
-  confirmación. Después del envío, redirigir a `/mis-solicitudes`.
-- Implementar `/mis-solicitudes` como vista independiente para listar,
-  paginar y consultar el estado de las solicitudes propias.
-- Mostrar `slug` en el modelo de comunidad y construir los enlaces públicos
-  con `/comunidades/:slug`; no usar el `id` en la URL pública.
-- Mantener el `id` numérico para membresías, imágenes, filtros y
+- Consume `GET /me/communities` y muestra las comunidades administradas.
+- El panel separado `/mis-comunidades` incluye estado vacío y enlace hacia el
+  onboarding.
+- El onboarding de dos pasos en `/crear-comunidad` consume
+  `POST /community-creation-requests`, valida los datos, acepta una imagen
+  opcional y confirma el envío antes de redirigir a `/mis-solicitudes`.
+- `/mis-solicitudes` lista, pagina y muestra el estado de las solicitudes
+  propias como una vista independiente.
+- El modelo conserva `slug` y los enlaces públicos usan
+  `/comunidades/:slug`; el `id` no se usa en la URL pública.
+- El `id` numérico se conserva para membresías, imágenes, filtros y
   `community_id` de eventos.
-- Mostrar el estado de la propuesta y actualizar la navegación únicamente
-  después de que un administrador la apruebe; en ese momento el solicitante
-  obtiene una membresía `active/organizer`.
-- Añadir puntos de descubrimiento desde el landing, el catálogo y la
-  navegación autenticada.
+- El estado de la propuesta se muestra y la navegación se actualiza después de
+  la aprobación administrativa, cuando el solicitante obtiene una membresía
+  `active/organizer`.
+- El landing, el catálogo y la navegación autenticada incluyen puntos de
+  descubrimiento para organizar.
 - Mostrar la opción de comunidad existente como capacidad futura, sin
   inventar un endpoint de búsqueda o representación.
 
@@ -301,6 +310,32 @@ verificación navegador → Laravel → MySQL queda pendiente.
 
 **Salida:** la experiencia del organizador queda verificada y lista para la
 fase de inscripciones del estudiante después de completar la verificación real.
+
+#### Checklist de verificación real del organizador
+
+Este checklist es la condición para cambiar las fases 3.3–3.7 de `Pending` a
+`Verified`. Las pruebas automatizadas no sustituyen estos pasos.
+
+- [ ] Iniciar MySQL, Laravel y Vite según los README del repositorio.
+- [ ] Ejecutar `php artisan migrate:fresh --seed` y `php artisan storage:link`.
+- [ ] Iniciar sesión con un usuario que tenga una membresía activa con rol
+  `organizer`.
+- [ ] Abrir `/mis-eventos` y confirmar carga, paginación, imagen, cupos y
+  estados `Publicado`/`Cancelado`.
+- [ ] Crear un evento sin imagen y otro con imagen; comprobar que ambos
+  aparecen en el historial y en `/eventos`.
+- [ ] Editar un evento publicado y confirmar que la fecha se presenta en la
+  zona horaria de ESPOL y que el `PATCH` no incluye `image`.
+- [ ] Reemplazar la portada, confirmar el preview actualizado y comprobar la
+  persistencia en el detalle público y el historial.
+- [ ] Eliminar la portada, confirmar el diálogo y comprobar el fallback de
+  imagen después de recargar.
+- [ ] Cancelar un evento, confirmar que desaparece del catálogo público y que
+  permanece en el historial sin acciones de edición o cancelación.
+- [ ] Confirmar manualmente los casos de sesión expirada, permisos, conflicto
+  por evento cancelado, validación de imagen y error de red.
+- [ ] Registrar fecha, usuario de prueba, comandos, resultado y capturas en
+  `docs/BITACORA.md` antes de cambiar el estado a `Verified`.
 
 ### Fase 4 — Experiencia del estudiante
 

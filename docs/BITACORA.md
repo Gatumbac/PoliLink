@@ -199,3 +199,31 @@ eventos: edición de portada y cancelación con estados seguros.
 Las Fases 3.6 y 3.7 están implementadas y cubiertas automáticamente. La
 verificación real y la evidencia final del organizador quedan como requisito
 antes de cerrar toda la integración y comenzar las inscripciones de Darwin.
+
+## 2026-08-16 — Cierre documental de la integración del organizador
+
+### Objetivo
+
+Dejar alineados los documentos Markdown con el estado actual del código y
+separar claramente implementación, pruebas automatizadas y verificación real.
+
+### Acciones realizadas
+
+- Se actualizó el índice documental y el README raíz con el estado de las
+  fases del organizador y la responsabilidad pendiente de Darwin.
+- Se corrigió `docs/backend/FRONTEND_API_PHASES.md` para marcar la integración
+  de comunidades y eventos como implementada en código, manteniendo pendiente
+  únicamente la ejecución navegador → Laravel → MySQL.
+- Se añadió un checklist reproducible para validar creación, edición, portada,
+  cancelación, permisos, conflictos y errores de red.
+- Se documentó en Postman el reemplazo y la eliminación de imágenes de eventos.
+- Se sincronizó la guía del módulo frontend con las mutaciones de imagen y
+  cancelación disponibles.
+- Se aclaró en el plan académico que sus casillas históricas no sustituyen el
+  estado técnico vigente.
+
+### Estado
+
+La documentación del alcance implementado está disponible en archivos Markdown.
+La verificación real no se marca como completada porque requiere que una
+persona inicie los servicios locales y registre evidencia del recorrido.
