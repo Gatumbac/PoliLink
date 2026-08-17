@@ -69,7 +69,8 @@ los filtros, la paginación y el detalle de eventos en `/eventos` y
 `/organizar`, la creación en `/crear-comunidad`, el seguimiento en
 `/mis-solicitudes` y el panel en `/mis-comunidades`. El panel de eventos está
 disponible en `/mis-eventos` para consultar el historial paginado del
-organizador; la publicación, edición, cancelación y las inscripciones siguen
+organizador. La publicación y edición de eventos activos están implementadas;
+la gestión de imágenes posterior, la cancelación y las inscripciones siguen
 en sus subfases correspondientes.
 
 Las rutas visibles del navegador usan español; los nombres de componentes,

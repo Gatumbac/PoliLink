@@ -111,9 +111,15 @@ describe('organizer events page', () => {
       screen.getByRole('link', { name: 'Ver detalles de Taller Laravel' }),
     ).toHaveAttribute('href', appRoutes.eventDetail(publishedEvent.id))
     expect(
+      screen.getByRole('link', { name: 'Editar evento Taller Laravel' }),
+    ).toHaveAttribute('href', appRoutes.editEvent(publishedEvent.id))
+    expect(
       screen.queryByRole('link', {
         name: 'Ver detalles de Encuentro cancelado',
       }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Editar evento Encuentro cancelado' }),
     ).not.toBeInTheDocument()
     expect(screen.getByAltText('Portada de Taller Laravel')).toBeInTheDocument()
   })
@@ -189,6 +195,24 @@ describe('organizer events page', () => {
     expect(
       screen.getByText(
         '“Taller Laravel” ya está disponible para los estudiantes.',
+      ),
+    ).toBeInTheDocument()
+  })
+
+  it('shows the update confirmation after editing an event', async () => {
+    renderPage({
+      pathname: appRoutes.myEvents,
+      state: {
+        eventNotice: { action: 'updated', title: 'Taller Laravel' },
+      },
+    })
+
+    expect(
+      await screen.findByText('Evento actualizado correctamente'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        '“Taller Laravel” conserva su publicación con la información actualizada.',
       ),
     ).toBeInTheDocument()
   })

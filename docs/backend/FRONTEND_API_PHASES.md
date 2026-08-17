@@ -240,6 +240,9 @@ queda pendiente.
 
 #### Fase 3.4 — Crear evento
 
+**Estado:** implementada en código; verificación navegador → Laravel → MySQL
+queda pendiente.
+
 - Crear el formulario con React Hook Form y Zod.
 - Cargar categorías, modalidades, ubicaciones y comunidades administradas.
 - Enviar `multipart/form-data` con imagen opcional y mostrar errores `422`.
@@ -249,9 +252,20 @@ queda pendiente.
 
 #### Fase 3.5 — Editar evento
 
+**Estado:** implementada en código; verificación navegador → Laravel → MySQL
+queda pendiente.
+
 - Reutilizar el formulario para editar mediante `PATCH /events/{event}`.
 - Permitir cambios de comunidad únicamente entre comunidades administradas.
-- Bloquear visualmente eventos cancelados y manejar respuestas `409`.
+- Precargar título, descripción, catálogos, comunidad, fecha, hora, modalidad,
+  ubicación y cupos; convertir `starts_at` desde UTC a la zona horaria de
+  ESPOL antes de mostrarlo.
+- Enviar el conjunto editable como JSON, sin incluir `image`; la imagen actual
+  se muestra de forma no editable hasta la Fase 3.6.
+- Exponer `Editar evento` solo para eventos publicados, bloquear visualmente
+  eventos cancelados y manejar respuestas `401`, `403`, `404`, `409` y `422`.
+- Invalidar el panel del organizador y el detalle público después de guardar,
+  mostrar confirmación y proteger cambios pendientes durante la navegación.
 
 **Salida:** el organizador puede corregir eventos activos.
 

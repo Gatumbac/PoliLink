@@ -1,6 +1,7 @@
 import { z } from 'zod'
 
 import type {
+  Event,
   EventCategory,
   EventCommunity,
   EventLocation,
@@ -18,6 +19,17 @@ export const eventImageFileSchema = z
 
 const datePattern = /^\d{4}-\d{2}-\d{2}$/
 const timePattern = /^\d{2}:\d{2}$/
+const espolTimeZone = 'America/Guayaquil'
+
+const eventDateTimeFormatter = new Intl.DateTimeFormat('en-US', {
+  day: '2-digit',
+  hour: '2-digit',
+  hourCycle: 'h23',
+  minute: '2-digit',
+  month: '2-digit',
+  timeZone: espolTimeZone,
+  year: 'numeric',
+})
 
 function toEspolDate(date: string, time: string): Date {
   return new Date(`${date}T${time}:00-05:00`)
@@ -75,18 +87,73 @@ export type CreateEventFormPayload = EventWriteFields & {
   image: File | null
 }
 
-export function toCreateEventPayload(
-  values: EventFormValues,
-): CreateEventFormPayload {
+function toEventWritePayload(values: EventFormValues): EventWriteFields {
   return {
     capacity: Number(values.capacity),
     community_id: Number(values.community_id),
     description: values.description.trim(),
     event_category_id: Number(values.event_category_id),
     event_modality_id: Number(values.event_modality_id),
-    image: values.image ?? null,
     location_id: Number(values.location_id),
     starts_at: `${values.starts_on}T${values.starts_time}:00-05:00`,
     title: values.title.trim(),
+  }
+}
+
+export function toCreateEventPayload(
+  values: EventFormValues,
+): CreateEventFormPayload {
+  return {
+    ...toEventWritePayload(values),
+    image: values.image ?? null,
+  }
+}
+
+export function toUpdateEventPayload(
+  values: EventFormValues,
+): EventWriteFields {
+  return toEventWritePayload(values)
+}
+
+function getDateTimeParts(value: string | null) {
+  if (!value) return null
+
+  const date = new Date(value)
+
+  if (Number.isNaN(date.getTime())) return null
+
+  const parts = new Map(
+    eventDateTimeFormatter
+      .formatToParts(date)
+      .map(({ type, value: partValue }) => [type, partValue]),
+  )
+  const year = parts.get('year')
+  const month = parts.get('month')
+  const day = parts.get('day')
+  const hour = parts.get('hour')
+  const minute = parts.get('minute')
+
+  if (!year || !month || !day || !hour || !minute) return null
+
+  return {
+    date: `${year}-${month}-${day}`,
+    time: `${hour}:${minute}`,
+  }
+}
+
+export function toEventFormValues(event: Event): EventFormValues {
+  const dateTime = getDateTimeParts(event.starts_at)
+
+  return {
+    capacity: String(event.capacity),
+    community_id: event.community?.id ? String(event.community.id) : '',
+    description: event.description ?? '',
+    event_category_id: event.category?.id ? String(event.category.id) : '',
+    event_modality_id: event.modality?.id ? String(event.modality.id) : '',
+    image: null,
+    location_id: event.location?.id ? String(event.location.id) : '',
+    starts_on: dateTime?.date ?? '',
+    starts_time: dateTime?.time ?? '',
+    title: event.title,
   }
 }

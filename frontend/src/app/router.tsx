@@ -15,6 +15,7 @@ import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPa
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
 import { CreateEventPage } from '@/features/events/management/pages/CreateEventPage'
+import { EditEventPage } from '@/features/events/management/pages/EditEventPage'
 import { OrganizerEventsPage } from '@/features/events/management/pages/OrganizerEventsPage'
 import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
 import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
@@ -51,6 +52,17 @@ export const router = createBrowserRouter([
       {
         path: appRoutePatterns.eventDetail,
         element: <EventDetailPage />,
+      },
+      {
+        path: appRoutePatterns.eventEdit,
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <EditEventPage />
+          </RequireAuth>
+        ),
       },
       {
         path: appRoutes.organize.slice(1),

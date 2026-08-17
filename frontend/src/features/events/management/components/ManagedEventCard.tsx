@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Users } from 'lucide-react'
+import { CalendarDays, MapPin, Pencil, Users } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
@@ -9,6 +9,7 @@ import {
   formatEventDate,
 } from '@/features/events/model/event-formatters'
 import { Badge } from '@/shared/ui/badge'
+import { Button } from '@/shared/ui/button'
 import { Card, CardContent, CardDescription, CardTitle } from '@/shared/ui/card'
 
 type ManagedEventCardProps = {
@@ -17,6 +18,7 @@ type ManagedEventCardProps = {
 
 export function ManagedEventCard({ event }: ManagedEventCardProps) {
   const isCancelled = event.status?.code === 'cancelled'
+  const canEdit = event.status?.code === 'published'
   const statusLabel = event.status?.name ?? 'Estado no disponible'
 
   return (
@@ -80,6 +82,19 @@ export function ManagedEventCard({ event }: ManagedEventCardProps) {
               <span>{event.community?.name ?? 'Comunidad no disponible'}</span>
             </div>
           </div>
+          {canEdit && (
+            <div className="flex justify-end border-t pt-3">
+              <Button asChild size="sm" variant="outline">
+                <Link
+                  aria-label={`Editar evento ${event.title}`}
+                  to={appRoutes.editEvent(event.id)}
+                >
+                  <Pencil aria-hidden="true" />
+                  Editar evento
+                </Link>
+              </Button>
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

@@ -19,21 +19,52 @@ function parsePage(searchParams: URLSearchParams): number {
   return Number.isInteger(value) && value > 0 ? value : 1
 }
 
-function readCreatedEventTitle(state: unknown): string | null {
+type EventNotice = {
+  action: 'created' | 'updated'
+  title: string
+}
+
+function readEventNotice(state: unknown): EventNotice | null {
   if (!state || typeof state !== 'object') return null
 
-  const title = (state as { createdEventTitle?: unknown }).createdEventTitle
+  const stateRecord = state as {
+    createdEventTitle?: unknown
+    eventNotice?: unknown
+  }
+  const notice = stateRecord.eventNotice
 
-  return typeof title === 'string' ? title : null
+  if (notice && typeof notice === 'object') {
+    const noticeRecord = notice as {
+      action?: unknown
+      title?: unknown
+    }
+
+    const action = noticeRecord.action
+    const title = noticeRecord.title
+
+    if (
+      (action === 'created' || action === 'updated') &&
+      typeof title === 'string'
+    ) {
+      return {
+        action,
+        title,
+      }
+    }
+  }
+
+  const createdEventTitle = stateRecord.createdEventTitle
+
+  return typeof createdEventTitle === 'string'
+    ? { action: 'created', title: createdEventTitle }
+    : null
 }
 
 export function OrganizerEventsPage() {
   const location = useLocation()
   const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
-  const [createdEventTitle] = useState(() =>
-    readCreatedEventTitle(location.state),
-  )
+  const [eventNotice] = useState(() => readEventNotice(location.state))
   const currentPage = parsePage(searchParams)
   const eventsQuery = useOrganizerEvents({
     page: currentPage,
@@ -42,13 +73,13 @@ export function OrganizerEventsPage() {
   const eventPage = eventsQuery.data
 
   useEffect(() => {
-    if (createdEventTitle === null || location.state === null) return
+    if (eventNotice === null || location.state === null) return
 
     navigate(`${location.pathname}${location.search}`, {
       replace: true,
       state: null,
     })
-  }, [createdEventTitle, location, navigate])
+  }, [eventNotice, location, navigate])
 
   const handlePageChange = (page: number) => {
     const nextSearchParams = new URLSearchParams(searchParams)
@@ -87,12 +118,18 @@ export function OrganizerEventsPage() {
           </Button>
         </header>
 
-        {createdEventTitle !== null && (
+        {eventNotice !== null && (
           <Alert>
             <CheckCircle aria-hidden="true" />
-            <AlertTitle>Evento publicado correctamente</AlertTitle>
+            <AlertTitle>
+              {eventNotice.action === 'created'
+                ? 'Evento publicado correctamente'
+                : 'Evento actualizado correctamente'}
+            </AlertTitle>
             <AlertDescription>
-              “{createdEventTitle}” ya está disponible para los estudiantes.
+              {eventNotice.action === 'created'
+                ? `“${eventNotice.title}” ya está disponible para los estudiantes.`
+                : `“${eventNotice.title}” conserva su publicación con la información actualizada.`}
             </AlertDescription>
           </Alert>
         )}

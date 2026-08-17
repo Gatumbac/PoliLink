@@ -6,6 +6,7 @@ import type {
 } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 
+import { EventImage } from '@/features/events/components/EventImage'
 import type {
   EventFormReferenceData,
   EventFormValues,
@@ -28,6 +29,8 @@ type EventFormFieldsProps = EventFormReferenceData & {
   control: Control<EventFormValues>
   disabled?: boolean
   errors: FieldErrors<EventFormValues>
+  existingImageUrl?: string | null | undefined
+  imageSelectionEnabled?: boolean
   register: UseFormRegister<EventFormValues>
   selectedImage: EventFormValues['image']
   selectedDate: EventFormValues['starts_on']
@@ -98,6 +101,8 @@ export function EventFormFields({
   control,
   disabled = false,
   errors,
+  existingImageUrl = null,
+  imageSelectionEnabled = true,
   locations,
   modalities,
   register,
@@ -265,26 +270,34 @@ export function EventFormFields({
           Imagen del evento{' '}
           <span className="font-normal text-muted-foreground">(opcional)</span>
         </FieldLabel>
-        <ImageUploader
-          ariaLabel="Imagen del evento"
-          disabled={disabled}
-          error={Boolean(errors.image)}
-          errorId="event-image-error"
-          inputId="event-image"
-          onClear={() =>
-            setValue('image', null, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-          onSelect={(file) =>
-            setValue('image', file, {
-              shouldDirty: true,
-              shouldValidate: true,
-            })
-          }
-          selectedImage={selectedImage}
-        />
+        {imageSelectionEnabled ? (
+          <ImageUploader
+            ariaLabel="Imagen del evento"
+            disabled={disabled}
+            error={Boolean(errors.image)}
+            errorId="event-image-error"
+            inputId="event-image"
+            onClear={() =>
+              setValue('image', null, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            onSelect={(file) =>
+              setValue('image', file, {
+                shouldDirty: true,
+                shouldValidate: true,
+              })
+            }
+            selectedImage={selectedImage}
+          />
+        ) : (
+          <EventImage
+            alt="Portada actual del evento"
+            className="rounded-lg"
+            imageUrl={existingImageUrl}
+          />
+        )}
         <FieldError id="event-image-error" errors={[errors.image]} />
       </Field>
     </FieldGroup>

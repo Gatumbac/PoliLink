@@ -8,6 +8,7 @@ import {
 import {
   type OrganizerEventListFilters,
   organizerEventsApi,
+  type UpdateEventPayload,
 } from '@/features/events/api/events.api'
 import { eventQueryKeys } from '@/features/events/catalog/hooks/use-event-queries'
 import { organizerQueryKeys } from '@/features/organizer/model/organizer-query-keys'
@@ -36,6 +37,29 @@ export function useCreateOrganizerEvent() {
   return useMutation({
     mutationFn: organizerEventsApi.create,
     onSuccess: () => {
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: organizerQueryKeys.eventsRoot(),
+        }),
+        queryClient.invalidateQueries({ queryKey: eventQueryKeys.all }),
+      ]).catch(() => undefined)
+    },
+  })
+}
+
+export type UpdateOrganizerEventVariables = {
+  eventId: number
+  payload: UpdateEventPayload
+}
+
+export function useUpdateOrganizerEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: ({ eventId, payload }: UpdateOrganizerEventVariables) =>
+      organizerEventsApi.update(eventId, payload),
+    onSuccess: (event) => {
+      queryClient.setQueryData(eventQueryKeys.detail(event.id), event)
       void Promise.all([
         queryClient.invalidateQueries({
           queryKey: organizerQueryKeys.eventsRoot(),
