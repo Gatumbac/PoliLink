@@ -59,7 +59,8 @@ La verificación navegador → Laravel todavía debe ejecutarse con los servicio
 locales. La Fase 2 ya tiene integración de código para el catálogo público,
 los filtros, la paginación y el detalle de eventos en `/eventos` y
 `/eventos/:eventId`. La experiencia de comunidades incluye el onboarding en
-`/organizar` y `/crear-comunidad`, además del panel en `/mis-comunidades`.
+`/organizar`, la creación en `/crear-comunidad`, el seguimiento en
+`/mis-solicitudes` y el panel en `/mis-comunidades`.
 El panel de eventos, las inscripciones y sus recorridos responsive continúan
 pendientes.
 
@@ -71,8 +72,9 @@ conservan los nombres definidos por el contrato backend.
 
 - `/organizar`: explica cómo participar y descubrir la experiencia de
   organización.
-- `/crear-comunidad`: onboarding guiado de tres pasos para registrar una
+- `/crear-comunidad`: onboarding guiado de dos pasos para registrar una
   comunidad nueva.
+- `/mis-solicitudes`: historial y estado de las solicitudes de creación.
 - `/mis-comunidades`: panel de comunidades administradas y acceso a las
   siguientes herramientas de organización.
 - `/organizador`: redirección heredada hacia `/organizar`.

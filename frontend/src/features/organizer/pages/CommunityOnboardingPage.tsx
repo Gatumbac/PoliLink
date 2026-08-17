@@ -1,28 +1,20 @@
 import { zodResolver } from '@hookform/resolvers/zod'
-import {
-  ArrowLeft,
-  ArrowRight,
-  Check,
-  CircleCheck,
-  UsersRound,
-} from 'lucide-react'
+import { ArrowLeft, ArrowRight, Check, CircleCheck } from 'lucide-react'
 import { type FormEvent, useState } from 'react'
 import { useForm } from 'react-hook-form'
-import { Link, useNavigate } from 'react-router'
+import { useNavigate } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { applyApiFieldErrors } from '@/features/auth/model/auth-form-errors'
 import { CommunityFormFields } from '@/features/communities/components/CommunityFormFields'
+import { useSubmitCommunityCreationRequest } from '@/features/communities/hooks/use-community-queries'
 import {
-  type Community,
   type CommunityCreatePayload,
   communityCreatePayloadSchema,
 } from '@/features/communities/model/community.schemas'
 import { getCommunityErrorMessage } from '@/features/communities/model/community-form-errors'
-import { useCreateCommunity } from '@/features/organizer/hooks/use-organizer-queries'
 import { ApiError } from '@/shared/errors/api-error'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
-import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -31,18 +23,26 @@ import {
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/shared/ui/dialog'
 
-type OnboardingStep = 1 | 2 | 3
+type OnboardingStep = 1 | 2
 
 const steps = [
-  { number: 1, label: 'Tu comunidad' },
-  { number: 2, label: 'Información básica' },
-  { number: 3, label: 'Confirmación' },
+  { number: 1, label: 'Información básica' },
+  { number: 2, label: 'Revisión y confirmación' },
 ] as const
 
 function CommunityOnboardingProgress({ step }: { step: OnboardingStep }) {
   return (
-    <ol aria-label="Progreso del registro" className="grid grid-cols-3 gap-2">
+    <ol aria-label="Progreso del registro" className="grid grid-cols-2 gap-2">
       {steps.map((item) => {
         const isCurrent = item.number === step
         const isComplete = item.number < step
@@ -79,47 +79,8 @@ function CommunityOnboardingProgress({ step }: { step: OnboardingStep }) {
   )
 }
 
-function CommunityCreatedState({ community }: { community: Community }) {
-  return (
-    <main className="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-      <div className="mx-auto w-full max-w-2xl">
-        <Card>
-          <CardHeader className="items-center text-center">
-            <div className="mb-2 flex size-12 items-center justify-center rounded-full bg-muted text-foreground">
-              <CircleCheck aria-hidden="true" className="size-6" />
-            </div>
-            <Badge variant="secondary">Comunidad registrada</Badge>
-            <CardTitle
-              aria-level={2}
-              className="text-2xl sm:text-3xl"
-              role="heading"
-            >
-              {community.name} está lista
-            </CardTitle>
-            <CardDescription className="max-w-lg text-base">
-              Ya puedes administrar esta comunidad en PoliLink y preparar sus
-              próximas actividades.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex flex-col gap-3 sm:flex-row sm:justify-center">
-            <Button asChild>
-              <Link to={appRoutes.myCommunities}>
-                Ir a mis comunidades
-                <ArrowRight aria-hidden="true" />
-              </Link>
-            </Button>
-            <Button asChild variant="outline">
-              <Link to={appRoutes.events}>Explorar eventos</Link>
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    </main>
-  )
-}
-
 export function CommunityOnboardingPage() {
-  const createCommunity = useCreateCommunity()
+  const submitCommunityCreationRequest = useSubmitCommunityCreationRequest()
   const navigate = useNavigate()
   const [step, setStep] = useState<OnboardingStep>(1)
   const [isConfirmed, setIsConfirmed] = useState(false)
@@ -127,27 +88,24 @@ export function CommunityOnboardingPage() {
     null,
   )
   const [formError, setFormError] = useState<string | null>(null)
-  const [createdCommunity, setCreatedCommunity] = useState<Community | null>(
-    null,
-  )
+  const [isExitDialogOpen, setIsExitDialogOpen] = useState(false)
   const form = useForm<CommunityCreatePayload>({
     defaultValues: {
       description: '',
+      image: null,
       name: '',
     },
     resolver: zodResolver(communityCreatePayloadSchema),
   })
-
-  if (createdCommunity) {
-    return <CommunityCreatedState community={createdCommunity} />
-  }
+  const selectedImage = form.watch('image')
+  const hasUnsavedDetails = form.formState.isDirty || Boolean(selectedImage)
 
   const handleDetailsContinue = async () => {
-    const isValid = await form.trigger(['name', 'description'])
+    const isValid = await form.trigger(['name', 'description', 'image'])
 
     if (isValid) {
       setFormError(null)
-      setStep(3)
+      setStep(2)
     }
   }
 
@@ -163,35 +121,44 @@ export function CommunityOnboardingPage() {
     setFormError(null)
 
     try {
-      const community = await createCommunity.mutateAsync({
+      const request = await submitCommunityCreationRequest.mutateAsync({
         description: payload.description?.trim() || null,
+        image: payload.image ?? null,
         name: payload.name.trim(),
       })
 
-      setCreatedCommunity(community)
+      navigate(appRoutes.communityRequests, {
+        replace: true,
+        state: {
+          submittedRequest: {
+            id: request.id,
+            name: request.name,
+          },
+        },
+      })
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
       setFormError(
         getCommunityErrorMessage(
           error,
-          'No pudimos registrar la comunidad. Intenta nuevamente.',
+          'No pudimos enviar la solicitud. Intenta nuevamente.',
         ),
       )
 
       if (error instanceof ApiError && error.status === 422) {
-        setStep(2)
+        setStep(1)
       }
     }
   }
 
   const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-    if (step === 2) {
+    if (step === 1) {
       event.preventDefault()
       void handleDetailsContinue()
       return
     }
 
-    if (step === 3) {
+    if (step === 2) {
       void form.handleSubmit(handleCreate)(event)
     }
   }
@@ -199,13 +166,37 @@ export function CommunityOnboardingPage() {
   const handleBack = () => {
     setFormError(null)
     setConfirmationError(null)
-    setStep((currentStep) => (currentStep === 3 ? 2 : 1))
+    setIsConfirmed(false)
+    setStep(1)
+  }
+
+  const handleExitRequest = () => {
+    if (hasUnsavedDetails) {
+      setIsExitDialogOpen(true)
+      return
+    }
+
+    navigate(appRoutes.organize)
+  }
+
+  const handleExit = () => {
+    setIsExitDialogOpen(false)
+    navigate(appRoutes.organize)
   }
 
   return (
     <main className="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="mx-auto w-full max-w-3xl space-y-8">
         <header className="max-w-2xl space-y-3">
+          <Button
+            className="-ml-2"
+            onClick={handleExitRequest}
+            type="button"
+            variant="ghost"
+          >
+            <ArrowLeft aria-hidden="true" />
+            Volver a organizar
+          </Button>
           <p className="text-sm font-medium text-muted-foreground">
             ESPOL · Organiza una comunidad
           </p>
@@ -225,64 +216,6 @@ export function CommunityOnboardingPage() {
             {step === 1 && (
               <>
                 <CardHeader>
-                  <div className="mb-2 flex size-10 items-center justify-center rounded-full bg-muted text-foreground">
-                    <UsersRound aria-hidden="true" className="size-5" />
-                  </div>
-                  <CardTitle aria-level={2} role="heading">
-                    Cuéntanos cómo quieres participar
-                  </CardTitle>
-                  <CardDescription>
-                    PoliLink ayuda a las comunidades estudiantiles a compartir
-                    sus actividades.
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <Button
-                    className="h-auto w-full justify-between whitespace-normal p-4 text-left"
-                    onClick={() => setStep(2)}
-                    type="button"
-                  >
-                    <span>
-                      <span className="block font-medium">
-                        Registrar una comunidad nueva
-                      </span>
-                      <span className="mt-1 block text-sm font-normal text-primary-foreground/80">
-                        Para quienes forman parte de una comunidad y coordinan
-                        sus actividades.
-                      </span>
-                    </span>
-                    <ArrowRight aria-hidden="true" />
-                  </Button>
-
-                  <Button
-                    className="h-auto w-full justify-between whitespace-normal p-4 text-left"
-                    disabled
-                    type="button"
-                    variant="outline"
-                  >
-                    <span>
-                      <span className="block font-medium">
-                        Mi comunidad ya está en PoliLink
-                      </span>
-                      <span className="mt-1 block text-sm font-normal text-muted-foreground">
-                        Esta opción estará disponible próximamente.
-                      </span>
-                    </span>
-                    <Badge variant="secondary">Próximamente</Badge>
-                  </Button>
-
-                  <Button asChild className="w-full" variant="ghost">
-                    <Link to={appRoutes.events}>
-                      Solo quiero explorar eventos
-                    </Link>
-                  </Button>
-                </CardContent>
-              </>
-            )}
-
-            {step === 2 && (
-              <>
-                <CardHeader>
                   <CardTitle aria-level={2} role="heading">
                     Información básica
                   </CardTitle>
@@ -294,23 +227,25 @@ export function CommunityOnboardingPage() {
                 <CardContent className="space-y-6">
                   {formError && (
                     <Alert variant="destructive">
-                      <AlertTitle>No pudimos registrar la comunidad</AlertTitle>
+                      <AlertTitle>No pudimos enviar la solicitud</AlertTitle>
                       <AlertDescription>{formError}</AlertDescription>
                     </Alert>
                   )}
                   <CommunityFormFields
                     errors={form.formState.errors}
                     register={form.register}
+                    selectedImage={selectedImage}
+                    setValue={form.setValue}
                   />
                 </CardContent>
               </>
             )}
 
-            {step === 3 && (
+            {step === 2 && (
               <>
                 <CardHeader>
                   <CardTitle aria-level={2} role="heading">
-                    Revisa antes de continuar
+                    Revisa antes de enviar
                   </CardTitle>
                   <CardDescription>
                     Confirma que la información representa a la comunidad que
@@ -320,7 +255,7 @@ export function CommunityOnboardingPage() {
                 <CardContent className="space-y-6">
                   {formError && (
                     <Alert variant="destructive">
-                      <AlertTitle>No pudimos registrar la comunidad</AlertTitle>
+                      <AlertTitle>No pudimos enviar la solicitud</AlertTitle>
                       <AlertDescription>{formError}</AlertDescription>
                     </Alert>
                   )}
@@ -337,6 +272,16 @@ export function CommunityOnboardingPage() {
                       {form.getValues('description') ||
                         'Sin descripción registrada.'}
                     </p>
+                    {selectedImage && (
+                      <>
+                        <p className="mt-4 text-sm text-muted-foreground">
+                          Imagen
+                        </p>
+                        <p className="mt-1 truncate text-sm">
+                          {selectedImage.name}
+                        </p>
+                      </>
+                    )}
                   </div>
 
                   <label className="flex cursor-pointer items-start gap-3 rounded-lg border p-4 text-sm leading-relaxed transition-colors hover:bg-muted/50">
@@ -372,49 +317,62 @@ export function CommunityOnboardingPage() {
               </>
             )}
 
-            <div className="flex flex-col-reverse gap-2 border-t bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-              <Button
-                disabled={step === 1 || createCommunity.isPending}
-                onClick={handleBack}
-                type="button"
-                variant="ghost"
-              >
-                <ArrowLeft aria-hidden="true" />
-                Atrás
-              </Button>
-              {step === 1 && (
-                <Button asChild variant="outline">
-                  <Link to={appRoutes.organize}>Cancelar</Link>
+            <div
+              className={`flex flex-col-reverse gap-2 border-t bg-muted/20 p-4 sm:flex-row sm:items-center ${step === 1 ? 'sm:justify-end' : 'sm:justify-between'}`}
+            >
+              {step === 2 && (
+                <Button
+                  disabled={submitCommunityCreationRequest.isPending}
+                  onClick={handleBack}
+                  type="button"
+                  variant="ghost"
+                >
+                  <ArrowLeft aria-hidden="true" />
+                  Editar información
                 </Button>
               )}
-              {step === 2 && (
+              {step === 1 && (
                 <Button type="submit">
                   Revisar información
                   <ArrowRight aria-hidden="true" />
                 </Button>
               )}
-              {step === 3 && (
-                <div className="flex flex-col-reverse gap-2 sm:flex-row">
-                  <Button
-                    onClick={() => navigate(appRoutes.organize)}
-                    type="button"
-                    variant="outline"
-                  >
-                    Cancelar
-                  </Button>
-                  <Button disabled={createCommunity.isPending} type="submit">
-                    {createCommunity.isPending
-                      ? 'Registrando comunidad…'
-                      : 'Registrar comunidad'}
-                    {!createCommunity.isPending && (
-                      <CircleCheck aria-hidden="true" />
-                    )}
-                  </Button>
-                </div>
+              {step === 2 && (
+                <Button
+                  disabled={submitCommunityCreationRequest.isPending}
+                  type="submit"
+                >
+                  {submitCommunityCreationRequest.isPending
+                    ? 'Enviando solicitud…'
+                    : 'Enviar solicitud'}
+                  {!submitCommunityCreationRequest.isPending && (
+                    <CircleCheck aria-hidden="true" />
+                  )}
+                </Button>
               )}
             </div>
           </Card>
         </form>
+
+        <Dialog onOpenChange={setIsExitDialogOpen} open={isExitDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>¿Salir del registro?</DialogTitle>
+              <DialogDescription>
+                Perderás la información ingresada y tendrás que comenzar
+                nuevamente.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <DialogClose asChild>
+                <Button variant="outline">Continuar registrando</Button>
+              </DialogClose>
+              <Button onClick={handleExit} variant="destructive">
+                Salir
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </main>
   )

@@ -1,4 +1,9 @@
-import { ArrowRight, CalendarPlus, UsersRound } from 'lucide-react'
+import {
+  ArrowRight,
+  CalendarPlus,
+  ClipboardList,
+  UsersRound,
+} from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
@@ -96,25 +101,49 @@ export function OrganizePage() {
           </div>
         </section>
 
-        <section className="flex flex-col gap-3 rounded-xl border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h2 className="font-heading text-base font-medium">
-              {isOrganizer
-                ? '¿Quieres revisar tus comunidades?'
-                : '¿Prefieres descubrir actividades primero?'}
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {isOrganizer
-                ? 'Consulta las comunidades que ya administras en PoliLink.'
-                : 'Explora el catálogo público antes de comenzar.'}
-            </p>
-          </div>
-          <Button asChild variant="outline">
-            <Link to={isOrganizer ? appRoutes.myCommunities : appRoutes.events}>
-              {isOrganizer ? 'Ver mis comunidades' : 'Explorar eventos'}
-            </Link>
-          </Button>
-        </section>
+        <div className="grid gap-4 md:grid-cols-2">
+          <section className="flex flex-col gap-3 rounded-xl border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div>
+              <h2 className="font-heading text-base font-medium">
+                {isOrganizer
+                  ? '¿Quieres revisar tus comunidades?'
+                  : '¿Prefieres descubrir actividades primero?'}
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {isOrganizer
+                  ? 'Consulta las comunidades que ya administras en PoliLink.'
+                  : 'Explora el catálogo público antes de comenzar.'}
+              </p>
+            </div>
+            <Button asChild variant="outline">
+              <Link
+                to={isOrganizer ? appRoutes.myCommunities : appRoutes.events}
+              >
+                {isOrganizer ? 'Ver mis comunidades' : 'Explorar eventos'}
+              </Link>
+            </Button>
+          </section>
+
+          <section className="flex flex-col gap-3 rounded-xl border border-dashed p-5 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-3">
+              <ClipboardList
+                aria-hidden="true"
+                className="mt-0.5 size-5 shrink-0 text-muted-foreground"
+              />
+              <div>
+                <h2 className="font-heading text-base font-medium">
+                  ¿Ya enviaste una solicitud?
+                </h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Consulta su estado y el historial de tus propuestas.
+                </p>
+              </div>
+            </div>
+            <Button asChild variant="outline">
+              <Link to={appRoutes.communityRequests}>Ver mis solicitudes</Link>
+            </Button>
+          </section>
+        </div>
       </div>
     </main>
   )

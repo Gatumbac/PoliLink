@@ -10,6 +10,7 @@ import { AuthLayout } from '@/features/auth/layouts/AuthLayout'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
 import { RequireAnonymous, RequireAuth } from '@/features/auth/route-guards'
+import { CommunityCreationRequestsPage } from '@/features/communities/pages/CommunityCreationRequestsPage'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
@@ -68,6 +69,17 @@ export const router = createBrowserRouter([
             loadingFallback={<AuthLoadingState />}
           >
             <CommunityOnboardingPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.communityRequests.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityCreationRequestsPage />
           </RequireAuth>
         ),
       },

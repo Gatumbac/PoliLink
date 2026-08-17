@@ -151,6 +151,18 @@ What makes Lovable's visual system distinctive is its opacity-driven depth model
 - Soft gradient backgrounds behind hero content (warm multi-color wash)
 - Gallery-style presentation for template/project showcases
 
+### Community Image Uploader
+- Use a warm secondary surface with a visible 2px dashed border instead of the
+  browser's native file input.
+- Support click, keyboard activation, and drag-and-drop with a visible active
+  state.
+- Show community logos in a square preview with `object-contain` so the mark is
+  not cropped.
+- Display the selected filename, size, and Spanish actions to replace or
+  remove the image.
+- Keep the existing accepted formats (JPG, PNG, WebP) and 5 MB limit visible
+  beside the uploader.
+
 ### Distinctive Components
 
 **AI Chat Input**

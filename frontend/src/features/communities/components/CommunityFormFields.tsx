@@ -1,5 +1,10 @@
-import type { FieldErrors, UseFormRegister } from 'react-hook-form'
+import type {
+  FieldErrors,
+  UseFormRegister,
+  UseFormSetValue,
+} from 'react-hook-form'
 
+import { CommunityImageUploader } from '@/features/communities/components/CommunityImageUploader'
 import type { CommunityCreatePayload } from '@/features/communities/model/community.schemas'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
@@ -8,11 +13,15 @@ import { Textarea } from '@/shared/ui/textarea'
 type CommunityFormFieldsProps = {
   errors: FieldErrors<CommunityCreatePayload>
   register: UseFormRegister<CommunityCreatePayload>
+  selectedImage: CommunityCreatePayload['image']
+  setValue: UseFormSetValue<CommunityCreatePayload>
 }
 
 export function CommunityFormFields({
   errors,
   register,
+  selectedImage,
+  setValue,
 }: CommunityFormFieldsProps) {
   return (
     <FieldGroup>
@@ -47,6 +56,20 @@ export function CommunityFormFields({
           id="community-description-error"
           errors={[errors.description]}
         />
+      </Field>
+
+      <Field data-invalid={Boolean(errors.image)}>
+        <FieldLabel htmlFor="community-image">
+          Imagen de la comunidad{' '}
+          <span className="font-normal text-muted-foreground">(opcional)</span>
+        </FieldLabel>
+        <CommunityImageUploader
+          error={errors.image}
+          inputId="community-image"
+          selectedImage={selectedImage}
+          setValue={setValue}
+        />
+        <FieldError id="community-image-error" errors={[errors.image]} />
       </Field>
     </FieldGroup>
   )

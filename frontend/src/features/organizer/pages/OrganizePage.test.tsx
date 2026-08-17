@@ -54,6 +54,9 @@ describe('organize page', () => {
       screen.getByRole('link', { name: 'Comenzar registro' }),
     ).toHaveAttribute('href', appRoutes.createCommunity)
     expect(
+      screen.getByRole('link', { name: 'Ver mis solicitudes' }),
+    ).toHaveAttribute('href', appRoutes.communityRequests)
+    expect(
       screen.getByRole('button', { name: /Disponible próximamente/ }),
     ).toBeDisabled()
   })

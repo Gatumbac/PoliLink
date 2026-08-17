@@ -56,17 +56,13 @@ export function useMyCommunityCreationRequests(
 
 export function useSubmitCommunityCreationRequest() {
   const queryClient = useQueryClient()
-  const { refresh } = useAuth()
 
   return useMutation({
     mutationFn: communityCreationRequestsApi.create,
     onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: communityQueryKeys.creationRequestsRoot(),
-        }),
-        refresh(),
-      ])
+      await queryClient.invalidateQueries({
+        queryKey: communityQueryKeys.creationRequestsRoot(),
+      })
     },
   })
 }

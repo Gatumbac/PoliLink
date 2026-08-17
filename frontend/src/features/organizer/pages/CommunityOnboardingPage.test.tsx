@@ -29,6 +29,19 @@ const community = {
   rejection_reason: null,
 }
 
+function requestPage(data: unknown[] = []) {
+  return {
+    data,
+    links: { first: null, last: null, prev: null, next: null },
+    meta: {
+      current_page: 1,
+      last_page: 1,
+      per_page: 12,
+      total: data.length,
+    },
+  }
+}
+
 function createAuthValue(
   overrides: Partial<AuthContextValue> = {},
 ): AuthContextValue {
@@ -67,6 +80,11 @@ function renderOnboarding() {
             element={<CommunityOnboardingPage />}
             path={appRoutes.createCommunity}
           />
+          <Route element={<div>organize page</div>} path={appRoutes.organize} />
+          <Route
+            element={<div>requests page</div>}
+            path={appRoutes.communityRequests}
+          />
           <Route
             element={<div>managed communities</div>}
             path={appRoutes.myCommunities}
@@ -78,9 +96,6 @@ function renderOnboarding() {
 }
 
 async function fillCommunityDetails(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(
-    screen.getByRole('button', { name: /Registrar una comunidad nueva/ }),
-  )
   await user.type(
     screen.getByRole('textbox', { name: 'Nombre de la comunidad' }),
     'Club de Robótica',
@@ -96,11 +111,14 @@ describe('community onboarding page', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     mockedUseAuth.mockReturnValue(createAuthValue())
+    server.use(
+      http.get(`${apiUrl}/me/community-creation-requests`, () =>
+        HttpResponse.json(requestPage()),
+      ),
+    )
   })
 
-  it('guides a student through the three steps and registers the community only after confirmation', async () => {
-    const refresh = vi.fn(async () => undefined)
-    mockedUseAuth.mockReturnValue(createAuthValue({ refresh }))
+  it('guides a student through the two steps and submits only after confirmation', async () => {
     let createRequests = 0
     document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
 
@@ -127,11 +145,9 @@ describe('community onboarding page', () => {
     await fillCommunityDetails(user)
 
     expect(
-      screen.getByRole('heading', { name: 'Revisa antes de continuar' }),
+      screen.getByRole('heading', { name: 'Revisa antes de enviar' }),
     ).toBeInTheDocument()
-    await user.click(
-      screen.getByRole('button', { name: 'Registrar comunidad' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }))
     expect(
       screen.getByText(
         'Confirma que formas parte de esta comunidad para continuar.',
@@ -144,24 +160,90 @@ describe('community onboarding page', () => {
         name: 'Confirmo que formo parte de esta comunidad y puedo representarla en PoliLink.',
       }),
     )
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }))
+
+    expect(await screen.findByText('requests page')).toBeInTheDocument()
+    expect(createRequests).toBe(1)
+  })
+
+  it('previews and submits an optional image as multipart form data', async () => {
+    document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+    const image = new File(['logo'], 'logo.webp', { type: 'image/webp' })
+
+    server.use(
+      http.post(
+        `${apiUrl}/community-creation-requests`,
+        async ({ request }) => {
+          expect(request.headers.get('Content-Type')).toMatch(
+            /^multipart\/form-data; boundary=/,
+          )
+
+          const formData = await request.formData()
+
+          expect(formData.get('name')).toBe('Club de Robótica')
+          expect(formData.get('image')).toMatchObject({ type: 'image/webp' })
+
+          return HttpResponse.json({ data: community }, { status: 201 })
+        },
+      ),
+    )
+
+    const user = userEvent.setup()
+    renderOnboarding()
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Nombre de la comunidad' }),
+      'Club de Robótica',
+    )
+    await user.type(
+      screen.getByRole('textbox', { name: /Descripción/ }),
+      'Comunidad de robótica de ESPOL.',
+    )
+
+    await user.upload(screen.getByLabelText(/Imagen de la comunidad/), image)
+    expect(screen.getByAltText('Vista previa de logo.webp')).toBeInTheDocument()
+
     await user.click(
-      screen.getByRole('button', { name: 'Registrar comunidad' }),
+      screen.getByRole('button', { name: 'Revisar información' }),
+    )
+
+    await user.click(screen.getByRole('checkbox', { name: /Confirmo/ }))
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }))
+
+    expect(await screen.findByText('requests page')).toBeInTheDocument()
+  })
+
+  it('shows the image validation error before moving to confirmation', async () => {
+    const user = userEvent.setup({ applyAccept: false })
+    const invalidImage = new File(['logo'], 'club-logo.gif', {
+      type: 'image/gif',
+    })
+    renderOnboarding()
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Nombre de la comunidad' }),
+      'Club de Robótica',
+    )
+    await user.upload(
+      screen.getByLabelText('Imagen de la comunidad'),
+      invalidImage,
+    )
+    await user.click(
+      screen.getByRole('button', { name: 'Revisar información' }),
     )
 
     expect(
-      await screen.findByText('Club de Robótica está lista'),
+      await screen.findByText('La imagen debe ser JPG, PNG o WebP.'),
     ).toBeInTheDocument()
-    expect(refresh).toHaveBeenCalledOnce()
-    expect(createRequests).toBe(1)
+    expect(
+      screen.queryByRole('heading', { name: 'Revisa antes de enviar' }),
+    ).not.toBeInTheDocument()
   })
 
   it('validates the community details before moving to confirmation', async () => {
     const user = userEvent.setup()
     renderOnboarding()
 
-    await user.click(
-      screen.getByRole('button', { name: /Registrar una comunidad nueva/ }),
-    )
     await user.click(
       screen.getByRole('button', { name: 'Revisar información' }),
     )
@@ -172,6 +254,63 @@ describe('community onboarding page', () => {
     expect(
       screen.queryByRole('heading', { name: 'Revisa antes de continuar' }),
     ).not.toBeInTheDocument()
+  })
+
+  it('returns to organize directly when the first step is empty', async () => {
+    const user = userEvent.setup()
+    renderOnboarding()
+
+    expect(
+      screen.queryByRole('button', { name: 'Atrás' }),
+    ).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Volver a organizar' }))
+
+    expect(screen.getByText('organize page')).toBeInTheDocument()
+  })
+
+  it('confirms before leaving when the form has unsaved details', async () => {
+    const user = userEvent.setup()
+    renderOnboarding()
+
+    await user.type(
+      screen.getByRole('textbox', { name: 'Nombre de la comunidad' }),
+      'Club de Robótica',
+    )
+    await user.click(screen.getByRole('button', { name: 'Volver a organizar' }))
+
+    expect(
+      screen.getByRole('heading', { name: '¿Salir del registro?' }),
+    ).toBeInTheDocument()
+    await user.click(
+      screen.getByRole('button', { name: 'Continuar registrando' }),
+    )
+    expect(
+      screen.getByRole('textbox', { name: 'Nombre de la comunidad' }),
+    ).toHaveValue('Club de Robótica')
+
+    await user.click(screen.getByRole('button', { name: 'Volver a organizar' }))
+    await user.click(screen.getByRole('button', { name: 'Salir' }))
+
+    expect(screen.getByText('organize page')).toBeInTheDocument()
+  })
+
+  it('uses the second-step actions to edit or abandon the registration', async () => {
+    const user = userEvent.setup()
+    renderOnboarding()
+    await fillCommunityDetails(user)
+
+    await user.click(screen.getByRole('button', { name: 'Editar información' }))
+    expect(
+      screen.getByRole('heading', { name: 'Información básica' }),
+    ).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: 'Revisar información' }),
+    )
+    await user.click(screen.getByRole('button', { name: 'Volver a organizar' }))
+    expect(
+      screen.getByRole('heading', { name: '¿Salir del registro?' }),
+    ).toBeInTheDocument()
   })
 
   it('returns to the details step after a backend validation error', async () => {
@@ -194,9 +333,7 @@ describe('community onboarding page', () => {
         name: 'Confirmo que formo parte de esta comunidad y puedo representarla en PoliLink.',
       }),
     )
-    await user.click(
-      screen.getByRole('button', { name: 'Registrar comunidad' }),
-    )
+    await user.click(screen.getByRole('button', { name: 'Enviar solicitud' }))
 
     await waitFor(() => {
       expect(

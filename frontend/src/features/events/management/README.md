@@ -24,8 +24,12 @@ These endpoints are protected by Sanctum. A `401` means the session is absent;
 are `422` with Laravel’s field-level `errors` object.
 
 Authenticated students discover the organization experience from
-`/organizar`, then use the three-step onboarding at `/crear-comunidad` to
-submit a pending community proposal. Existing organizers use
+`/organizar`, then use the two-step onboarding at `/crear-comunidad` to
+submit a pending community proposal. The global `Volver a organizar` action
+returns to the organizer entry point and confirms before discarding entered
+data; in the second step, `Editar información` returns to the first step.
+After submission, the frontend redirects to `/mis-solicitudes`, where users
+can review pending, approved, and rejected proposals. Existing organizers use
 `/mis-comunidades` to see their managed communities and start the next
 management flows. Public community links must use `slug`, while membership,
 image, event filters, and `community_id` operations continue to use numeric

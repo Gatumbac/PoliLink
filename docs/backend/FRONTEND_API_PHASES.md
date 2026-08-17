@@ -187,8 +187,9 @@ directamente.
 
 #### Fase 3.1 — Fundación del organizador
 
-- Crear las rutas protegidas `/organizar`, `/crear-comunidad` y
-  `/mis-comunidades`, con `/organizador` como redirección heredada.
+- Crear las rutas protegidas `/organizar`, `/crear-comunidad`,
+  `/mis-solicitudes` y `/mis-comunidades`, con `/organizador` como redirección
+  heredada.
 - Añadir el cliente API de comunidades, claves de consulta y estados comunes
   de carga, sesión expirada y error.
 
@@ -204,9 +205,11 @@ pendiente de la verificación navegador → Laravel.
 - Consumir `GET /me/communities` y mostrar las comunidades administradas.
 - Implementar el panel separado en `/mis-comunidades` con estado vacío y
   enlace hacia el onboarding.
-- Implementar el onboarding de tres pasos en `/crear-comunidad` para
-  `POST /community-creation-requests`, con validación, imagen opcional,
-  confirmación y estado `pending`.
+- Implementar el onboarding de dos pasos en `/crear-comunidad` para
+  `POST /community-creation-requests`, con validación, imagen opcional y
+  confirmación. Después del envío, redirigir a `/mis-solicitudes`.
+- Implementar `/mis-solicitudes` como vista independiente para listar,
+  paginar y consultar el estado de las solicitudes propias.
 - Mostrar `slug` en el modelo de comunidad y construir los enlaces públicos
   con `/comunidades/:slug`; no usar el `id` en la URL pública.
 - Mantener el `id` numérico para membresías, imágenes, filtros y

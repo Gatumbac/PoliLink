@@ -6,6 +6,7 @@ export const appRoutes = {
   eventDetail: (eventId: number | string) => `/eventos/${eventId}`,
   organize: '/organizar',
   createCommunity: '/crear-comunidad',
+  communityRequests: '/mis-solicitudes',
   myCommunities: '/mis-comunidades',
   legacyOrganizer: '/organizador',
   uiPreview: '/vista-previa',
