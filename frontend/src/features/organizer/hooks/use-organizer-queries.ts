@@ -69,3 +69,19 @@ export function useUpdateOrganizerEvent() {
     },
   })
 }
+
+export function useCancelOrganizerEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: organizerEventsApi.cancel,
+    onSuccess: () => {
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: organizerQueryKeys.eventsRoot(),
+        }),
+        queryClient.invalidateQueries({ queryKey: eventQueryKeys.all }),
+      ]).catch(() => undefined)
+    },
+  })
+}

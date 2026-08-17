@@ -169,6 +169,11 @@ export const organizerEventsApi = {
     ).data
   },
 
+  cancel: async (eventId: number): Promise<Event> =>
+    eventEnvelopeSchema.parse(
+      await request(`/events/${eventId}/cancel`, { method: 'PATCH' }),
+    ).data,
+
   uploadImage: async (eventId: number, image: File): Promise<Event> => {
     const formData = new FormData()
     formData.append('image', image)

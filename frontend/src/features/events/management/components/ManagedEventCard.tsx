@@ -3,6 +3,7 @@ import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { EventImage } from '@/features/events/components/EventImage'
+import { CancelEventDialog } from '@/features/events/management/components/CancelEventDialog'
 import type { Event } from '@/features/events/model/event.schemas'
 import {
   formatEventCapacity,
@@ -83,7 +84,7 @@ export function ManagedEventCard({ event }: ManagedEventCardProps) {
             </div>
           </div>
           {canEdit && (
-            <div className="flex justify-end border-t pt-3">
+            <div className="flex flex-wrap justify-end gap-2 border-t pt-3">
               <Button asChild size="sm" variant="outline">
                 <Link
                   aria-label={`Editar evento ${event.title}`}
@@ -93,6 +94,7 @@ export function ManagedEventCard({ event }: ManagedEventCardProps) {
                   Editar evento
                 </Link>
               </Button>
+              <CancelEventDialog event={event} />
             </div>
           )}
         </div>
