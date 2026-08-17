@@ -2,10 +2,13 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
+use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -21,13 +24,13 @@ class ReferenceDataApiTest extends TestCase
             ->assertOk()
             ->assertJsonCount(6, 'data')
             ->assertJsonStructure(['data' => [['id', 'code', 'name']]])
-            ->assertJsonPath('data.0.name', 'Cultural');
+            ->assertJsonPath('data.0.name', 'Charla');
 
         $this->getJson('/api/event-modalities')
             ->assertOk()
             ->assertJsonCount(3, 'data')
             ->assertJsonStructure(['data' => [['id', 'code', 'name']]])
-            ->assertJsonPath('data.0.name', 'Hybrid');
+            ->assertJsonPath('data.0.name', 'Híbrida');
 
         $this->getJson('/api/locations')
             ->assertOk()
@@ -39,31 +42,37 @@ class ReferenceDataApiTest extends TestCase
     public function test_communities_endpoint_includes_only_communities_with_published_events(): void
     {
         $this->seed();
-        $hiddenCommunity = Community::factory()->create(['name' => 'Comunidad sin publicación']);
+        $hiddenCommunity = Community::factory()->create([
+            'name' => 'Comunidad inactiva',
+            'is_active' => false,
+        ]);
         $organizer = $this->organizer();
-        $assignment = CommunityOrganizer::factory()->create([
+        CommunityMembership::factory()->create([
             'community_id' => $hiddenCommunity->id,
             'user_id' => $organizer->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
         $event = Event::query()->where('title', 'Hackathon TAWS')->sole();
 
         Event::factory()->create([
-            'community_organizer_id' => $assignment->id,
+            'community_id' => $hiddenCommunity->id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Published->value,
         ]);
 
         $this->getJson('/api/communities')
             ->assertOk()
             ->assertJsonCount(1, 'data')
             ->assertJsonPath('data.0.name', 'TAWS')
-            ->assertJsonStructure(['data' => [['id', 'name', 'description']]]);
+            ->assertJsonPath('data.0.slug', 'taws')
+            ->assertJsonStructure(['data' => [['id', 'name', 'slug', 'description', 'image_url']]]);
     }
 
     private function organizer()
     {
-        return \App\Models\User::query()->where('email', 'organizer@polilink.test')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 }

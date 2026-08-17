@@ -19,13 +19,34 @@ Importa el archivo `docs/api/PoliLink.postman_collection.json` desde
 
 1. Ejecuta una ruta del grupo Público.
 2. Obtén la cookie CSRF.
-3. Ejecuta Login Gabriel y luego Crear mi comunidad y obtener rol organizador.
-   Usa un `newCommunityName` único; la colección guarda su ID en `communityId`.
-4. Ejecuta Mis comunidades, Crear evento, Editar evento creado y Cancelar
-   evento creado.
+3. Ejecuta Login Gabriel y luego Proponer mi comunidad.
+   Usa un `newCommunityName` único; la colección guarda la propuesta en
+   `communityCreationRequestId`.
+4. Inicia sesión como administrador, ejecuta Listar propuestas de comunidades y
+   luego Aprobar propuesta de comunidad. La colección guarda la comunidad creada
+   en `communityId`.
+5. Ejecuta Login solicitante después de aprobar y luego Mis comunidades, Crear
+   evento, Editar evento creado y Cancelar evento creado.
 
 Crear evento guarda automáticamente el ID retornado en eventId; las dos
 solicitudes siguientes usan ese valor.
+
+## Recorrido de membresías
+
+1. Usa un usuario autenticado que no tenga una membresía activa en la
+   comunidad objetivo.
+2. Ejecuta Descubrir comunidades para localizar una comunidad y conserva su ID
+   en `membershipCommunityId`.
+3. Ejecuta Solicitar unirme a la comunidad; debe responder `201` y crear
+   `pending/member`.
+4. Ejecuta Mis membresías para consultar el estado y la metadata de paginación.
+5. Ejecuta Cancelar solicitud o abandonar comunidad; debe responder `200` y
+   dejar el estado `left`.
+6. Vuelve a ejecutar Solicitar unirme para evidenciar la reactivación a
+   `pending/member` con respuesta `200`.
+
+La colección incluye la aprobación administrativa de propuestas; todavía no
+incluye aprobación de membresías ni asignación de tutor.
 
 ## Recorrido de Darwin
 
@@ -49,11 +70,11 @@ solicitudes siguientes usan ese valor.
 
 - Usuario de la colección: gatumbac@espol.edu.ec y password.
 - La comunidad creada obtiene su ID automáticamente; no depende de TAWS ni del ID 1.
-- Categoría Hackathon: ID 3.
+- Categoría Hackatón: ID 3.
 - Modalidad presencial: ID 1.
 - Ubicación Campus Gustavo Galindo: ID 1.
-- Usuarios semilla de inscripciones: student@polilink.test y
-  organizer@polilink.test, ambos con password. El estudiante semilla ya tiene
+- Usuarios semilla de inscripciones: student@espol.edu.ec y
+  organizer@espol.edu.ec, ambos con password. El estudiante semilla ya tiene
   una inscripción activa en Hackathon TAWS, por lo que el recorrido de Darwin
   usa un estudiante nuevo para capturar la inscripción `201`.
 

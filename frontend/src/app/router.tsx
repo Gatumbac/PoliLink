@@ -1,0 +1,105 @@
+import { createBrowserRouter, Navigate } from 'react-router'
+
+import { AppLayout } from '@/app/layouts/AppLayout'
+import { NotFoundPage } from '@/app/pages/NotFoundPage'
+import { UiPreviewPage } from '@/app/pages/UiPreviewPage'
+import { appRoutePatterns, appRoutes } from '@/app/routes'
+import { AuthLoadingState } from '@/features/auth/components/AuthLoadingState'
+import { AuthRouteError } from '@/features/auth/components/AuthRouteError'
+import { AuthLayout } from '@/features/auth/layouts/AuthLayout'
+import { LoginPage } from '@/features/auth/pages/LoginPage'
+import { RegisterPage } from '@/features/auth/pages/RegisterPage'
+import { RequireAnonymous, RequireAuth } from '@/features/auth/route-guards'
+import { CommunityCreationRequestsPage } from '@/features/communities/pages/CommunityCreationRequestsPage'
+import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
+import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
+import { LandingPage } from '@/features/events/landing/pages/LandingPage'
+import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
+import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
+import { OrganizerPage } from '@/features/organizer/pages/OrganizerPage'
+
+export const router = createBrowserRouter([
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: appRoutes.login.slice(1),
+        element: (
+          <RequireAnonymous loadingFallback={<AuthLoadingState />}>
+            <LoginPage />
+          </RequireAnonymous>
+        ),
+      },
+      {
+        path: appRoutes.register.slice(1),
+        element: (
+          <RequireAnonymous loadingFallback={<AuthLoadingState />}>
+            <RegisterPage />
+          </RequireAnonymous>
+        ),
+      },
+    ],
+  },
+  {
+    path: '/',
+    element: <AppLayout />,
+    children: [
+      { index: true, element: <LandingPage /> },
+      { path: appRoutes.events.slice(1), element: <EventCatalogPage /> },
+      {
+        path: appRoutePatterns.eventDetail,
+        element: <EventDetailPage />,
+      },
+      {
+        path: appRoutes.organize.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <OrganizePage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.createCommunity.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityOnboardingPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.communityRequests.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityCreationRequestsPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.myCommunities.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <OrganizerPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.legacyOrganizer.slice(1),
+        element: <Navigate replace to={appRoutes.organize} />,
+      },
+      { path: appRoutes.uiPreview.slice(1), element: <UiPreviewPage /> },
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+])

@@ -2,11 +2,11 @@
 
 namespace Database\Factories;
 
-use App\Models\CommunityOrganizer;
+use App\Enums\EventStatus;
+use App\Models\Community;
 use App\Models\Event;
 use App\Models\EventCategory;
 use App\Models\EventModality;
-use App\Models\EventStatus;
 use App\Models\Location;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -18,11 +18,11 @@ class EventFactory extends Factory
     public function definition(): array
     {
         return [
-            'community_organizer_id' => CommunityOrganizer::factory(),
+            'community_id' => Community::factory(),
             'event_category_id' => EventCategory::factory(),
             'event_modality_id' => EventModality::factory(),
             'location_id' => Location::factory(),
-            'event_status_id' => EventStatus::factory(),
+            'status' => EventStatus::Published->value,
             'title' => fake()->sentence(4),
             'description' => fake()->paragraph(),
             'starts_at' => fake()->dateTimeBetween('+1 day', '+1 year'),

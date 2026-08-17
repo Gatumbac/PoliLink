@@ -11,15 +11,21 @@
     { "key": "email", "value": "gatumbac@espol.edu.ec" },
     { "key": "firstName", "value": "Gabriel" },
     { "key": "lastName", "value": "Tumbaco" },
-    { "key": "newStudentEmail", "value": "cambia-este-correo@example.test" },
+    { "key": "newStudentEmail", "value": "cambia-este-correo@espol.edu.ec" },
     { "key": "newCommunityName", "value": "Comunidad Gabriel Agosto" },
     { "key": "password", "value": "password" },
+    { "key": "adminEmail", "value": "admin@espol.edu.ec" },
+    { "key": "adminPassword", "value": "admin" },
+    { "key": "communityCreationRequestId", "value": "" },
     { "key": "communityId", "value": "1" },
+    { "key": "communitySlug", "value": "taws" },
+    { "key": "membershipCommunityId", "value": "1" },
+    { "key": "membershipCommunitySlug", "value": "taws" },
     { "key": "eventCategoryId", "value": "3" },
     { "key": "eventModalityId", "value": "1" },
     { "key": "locationId", "value": "1" },
     { "key": "eventId", "value": "1" },
-    { "key": "organizerEmail", "value": "organizer@polilink.test" },
+    { "key": "organizerEmail", "value": "organizer@espol.edu.ec" },
     { "key": "registrationEventId", "value": "" }
   ],
   "event": [],
@@ -35,6 +41,69 @@
         { "name": "Modalidades", "request": { "method": "GET", "url": "{{baseUrl}}/api/event-modalities" } },
         { "name": "Ubicaciones", "request": { "method": "GET", "url": "{{baseUrl}}/api/locations" } },
         { "name": "Comunidades públicas", "request": { "method": "GET", "url": "{{baseUrl}}/api/communities" } }
+      ]
+    },
+    {
+      "name": "Membresías propias",
+      "item": [
+        {
+          "name": "Descubrir comunidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/communities/discover?search=TAWS&per_page=12"
+          }
+        },
+        {
+          "name": "Perfil de comunidad",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" }
+            ],
+            "url": "{{baseUrl}}/api/communities/{{membershipCommunitySlug}}"
+          }
+        },
+        {
+          "name": "Solicitar unirme a la comunidad",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/communities/{{membershipCommunityId}}/membership-requests"
+          }
+        },
+        {
+          "name": "Mis membresías",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/me/memberships?per_page=12"
+          }
+        },
+        {
+          "name": "Cancelar solicitud o abandonar comunidad",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/communities/{{membershipCommunityId}}/membership-requests"
+          }
+        }
       ]
     },
     {
@@ -129,7 +198,7 @@
       "name": "02. Comunidad y eventos autenticados",
       "item": [
         {
-          "name": "Crear mi comunidad y obtener rol organizador",
+          "name": "Proponer mi comunidad",
           "request": {
             "method": "POST",
             "header": [
@@ -139,8 +208,8 @@
               { "key": "Referer", "value": "http://localhost:5173/" },
               { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
             ],
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"{{newCommunityName}}\",\n  \"description\": \"Comunidad creada desde Postman para probar PoliLink.\"\n}" },
-            "url": "{{baseUrl}}/api/communities"
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"{{newCommunityName}}\",\n  \"description\": \"Propuesta creada desde Postman para probar PoliLink.\"\n}" },
+            "url": "{{baseUrl}}/api/community-creation-requests"
           },
           "event": [
             {
@@ -148,12 +217,80 @@
               "script": {
                 "type": "text/javascript",
                 "exec": [
-                  "const community = pm.response.json().data;",
-                  "if (community?.id) pm.collectionVariables.set('communityId', String(community.id));"
+                  "const creationRequest = pm.response.json().data;",
+                  "if (creationRequest?.id) pm.collectionVariables.set('communityCreationRequestId', String(creationRequest.id));"
                 ]
               }
             }
           ]
+        },
+        {
+          "name": "Login administrador",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{adminEmail}}\",\n  \"password\": \"{{adminPassword}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Listar propuestas de comunidades",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" }
+            ],
+            "url": "{{baseUrl}}/api/admin/community-creation-requests?status=pending&per_page=12"
+          }
+        },
+        {
+          "name": "Aprobar propuesta de comunidad",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "url": "{{baseUrl}}/api/admin/community-creation-requests/{{communityCreationRequestId}}/approve"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const community = pm.response.json().data?.community;",
+                  "if (community?.id) pm.collectionVariables.set('communityId', String(community.id));",
+                  "if (community?.slug) { pm.collectionVariables.set('communitySlug', community.slug); pm.collectionVariables.set('membershipCommunitySlug', community.slug); }"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Login solicitante después de aprobar",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Accept", "value": "application/json" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Origin", "value": "http://localhost:5173" },
+              { "key": "Referer", "value": "http://localhost:5173/" },
+              { "key": "X-XSRF-TOKEN", "value": "{{xsrfToken}}" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"{{email}}\",\n  \"password\": \"{{password}}\"\n}" },
+            "url": "{{baseUrl}}/api/auth/login"
+          }
         },
         {
           "name": "Mis comunidades",

@@ -2,11 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\RegistrationStatus;
 use App\Models\Event;
-use App\Models\EventStatus;
 use App\Models\Registration;
-use App\Models\RegistrationStatus;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -26,23 +25,23 @@ class RegistrationApiTest extends TestCase
         $this->getJson('/api/me/registrations')->assertUnauthorized();
     }
 
-    public function test_only_students_can_register_or_cancel(): void
+    public function test_any_authenticated_user_can_register_and_cancel(): void
     {
         $this->seed();
         $event = $this->seededEvent();
         $organizer = $this->organizer();
 
-        $this->authenticatedPost($organizer, "/api/events/{$event->id}/registrations")->assertForbidden();
-        $this->authenticatedDelete($organizer, "/api/events/{$event->id}/registrations")->assertForbidden();
+        $this->authenticatedPost($organizer, "/api/events/{$event->id}/registrations")->assertCreated();
+        $this->authenticatedDelete($organizer, "/api/events/{$event->id}/registrations")->assertOk();
     }
 
-    public function test_student_can_register_for_a_published_event(): void
+    public function test_user_can_register_for_a_published_event(): void
     {
         $this->seed();
         $event = $this->seededEvent();
-        $newStudent = $this->createStudent('new-student@polilink.test');
+        $newUser = $this->createUser('new-user@espol.edu.ec');
 
-        $response = $this->authenticatedPost($newStudent, "/api/events/{$event->id}/registrations");
+        $response = $this->authenticatedPost($newUser, "/api/events/{$event->id}/registrations");
 
         $response
             ->assertCreated()
@@ -50,7 +49,7 @@ class RegistrationApiTest extends TestCase
 
         $this->assertDatabaseHas('registrations', [
             'event_id' => $event->id,
-            'student_id' => $newStudent->id,
+            'user_id' => $newUser->id,
         ]);
     }
 
@@ -68,11 +67,11 @@ class RegistrationApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
-        $newStudent = $this->createStudent('late-student@polilink.test');
+        $newUser = $this->createUser('late-user@espol.edu.ec');
 
-        $this->authenticatedPost($newStudent, "/api/events/{$event->id}/registrations")->assertConflict();
+        $this->authenticatedPost($newUser, "/api/events/{$event->id}/registrations")->assertConflict();
     }
 
     public function test_registration_when_event_is_full_is_rejected(): void
@@ -80,12 +79,12 @@ class RegistrationApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         $event->update(['capacity' => 1]);
-        $secondStudent = $this->createStudent('second-student@polilink.test');
+        $secondUser = $this->createUser('second-user@espol.edu.ec');
 
-        $this->authenticatedPost($secondStudent, "/api/events/{$event->id}/registrations")->assertConflict();
+        $this->authenticatedPost($secondUser, "/api/events/{$event->id}/registrations")->assertConflict();
     }
 
-    public function test_student_can_cancel_an_active_registration(): void
+    public function test_user_can_cancel_an_active_registration(): void
     {
         $this->seed();
         $event = $this->seededEvent();
@@ -99,8 +98,8 @@ class RegistrationApiTest extends TestCase
 
         $this->assertDatabaseHas('registrations', [
             'event_id' => $event->id,
-            'student_id' => $student->id,
-            'registration_status_id' => RegistrationStatus::query()->where('code', 'cancelled')->sole()->id,
+            'user_id' => $student->id,
+            'status' => RegistrationStatus::Cancelled->value,
         ]);
     }
 
@@ -108,9 +107,9 @@ class RegistrationApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $newStudent = $this->createStudent('unregistered-student@polilink.test');
+        $newUser = $this->createUser('unregistered-user@espol.edu.ec');
 
-        $this->authenticatedDelete($newStudent, "/api/events/{$event->id}/registrations")->assertNotFound();
+        $this->authenticatedDelete($newUser, "/api/events/{$event->id}/registrations")->assertNotFound();
     }
 
     public function test_cancelled_registration_is_reactivated_on_new_registration(): void
@@ -129,7 +128,7 @@ class RegistrationApiTest extends TestCase
 
         $this->assertSame(1, Registration::query()
             ->where('event_id', $event->id)
-            ->where('student_id', $student->id)
+            ->where('user_id', $student->id)
             ->count());
     }
 
@@ -144,7 +143,7 @@ class RegistrationApiTest extends TestCase
         $response
             ->assertOk()
             ->assertJsonCount(1, 'data')
-            ->assertJsonPath('data.0.student.email', 'student@polilink.test')
+            ->assertJsonPath('data.0.user.email', 'student@espol.edu.ec')
             ->assertJsonPath('summary.capacity', 50)
             ->assertJsonPath('summary.active_registrations', 1)
             ->assertJsonPath('summary.available_capacity', 49);
@@ -154,11 +153,10 @@ class RegistrationApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $otherOrganizer = User::factory()->create();
-        $otherOrganizer->roles()->attach(Role::query()->where('code', 'organizer')->sole());
+        $otherUser = User::factory()->create();
         $student = $this->student();
 
-        $this->authenticatedGet($otherOrganizer, "/api/events/{$event->id}/registrations")->assertForbidden();
+        $this->authenticatedGet($otherUser, "/api/events/{$event->id}/registrations")->assertForbidden();
         $this->authenticatedGet($student, "/api/events/{$event->id}/registrations")->assertForbidden();
     }
 
@@ -178,25 +176,22 @@ class RegistrationApiTest extends TestCase
 
     private function organizer(): User
     {
-        return User::query()->where('email', 'organizer@polilink.test')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 
     private function student(): User
     {
-        return User::query()->where('email', 'student@polilink.test')->sole();
+        return User::query()->where('email', 'student@espol.edu.ec')->sole();
     }
 
     private function seededEvent(): Event
     {
-        return Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
+        return Event::query()->with('community')->where('title', 'Hackathon TAWS')->sole();
     }
 
-    private function createStudent(string $email): User
+    private function createUser(string $email): User
     {
-        $student = User::factory()->create(['email' => $email]);
-        $student->roles()->attach(Role::query()->where('code', 'student')->sole());
-
-        return $student;
+        return User::factory()->create(['email' => $email]);
     }
 
     private function authenticatedPost(User $user, string $uri, array $payload = [])

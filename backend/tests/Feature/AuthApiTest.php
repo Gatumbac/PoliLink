@@ -10,24 +10,24 @@ class AuthApiTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_student_can_register_with_the_student_role(): void
+    public function test_user_can_register_without_a_global_community_role(): void
     {
         $this->seed();
 
         $this->csrfPost('/api/auth/register', [
             'first_name' => 'Ana',
             'last_name' => 'Torres',
-            'email' => 'ana@example.test',
+            'email' => 'ana@espol.edu.ec',
             'password' => 'password123',
             'password_confirmation' => 'password123',
         ])
             ->assertCreated()
-            ->assertJsonPath('data.email', 'ana@example.test')
-            ->assertJsonPath('data.roles.0.code', 'student');
+            ->assertJsonPath('data.email', 'ana@espol.edu.ec')
+            ->assertJsonPath('data.is_admin', false)
+            ->assertJsonPath('data.community_memberships', []);
 
-        $user = User::query()->where('email', 'ana@example.test')->sole();
-        $this->assertTrue($user->roles()->where('code', 'student')->exists());
-        $this->assertFalse($user->roles()->where('code', 'organizer')->exists());
+        $user = User::query()->where('email', 'ana@espol.edu.ec')->sole();
+        $this->assertFalse($user->is_admin);
 
         $this->assertAuthenticatedAs($user, 'web');
     }
@@ -39,7 +39,7 @@ class AuthApiTest extends TestCase
         $this->csrfPost('/api/auth/register', [
             'first_name' => 'Ana',
             'last_name' => 'Torres',
-            'email' => 'student@polilink.test',
+            'email' => 'student@espol.edu.ec',
             'password' => 'password123',
             'password_confirmation' => 'different',
         ])
@@ -47,20 +47,20 @@ class AuthApiTest extends TestCase
             ->assertJsonValidationErrors(['email', 'password']);
     }
 
-    public function test_student_can_login_and_an_authenticated_user_can_read_me(): void
+    public function test_user_can_login_and_an_authenticated_user_can_read_me(): void
     {
         $this->seed();
 
         $this->csrfPost('/api/auth/login', [
-            'email' => 'student@polilink.test',
+            'email' => 'student@espol.edu.ec',
             'password' => 'password',
         ])
             ->assertOk()
-            ->assertJsonPath('data.roles.0.code', 'student');
+            ->assertJsonPath('data.is_admin', false);
 
         $this->assertAuthenticated('web');
 
-        $student = User::query()->where('email', 'student@polilink.test')->sole();
+        $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
         $this->actingAs($student, 'web')
             ->statefulGet('/api/auth/me')
             ->assertOk()
@@ -70,7 +70,7 @@ class AuthApiTest extends TestCase
     public function test_authenticated_user_can_logout(): void
     {
         $this->seed();
-        $student = User::query()->where('email', 'student@polilink.test')->sole();
+        $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
 
         $this->actingAs($student, 'web')
             ->csrfDelete('/api/auth/logout')
@@ -83,7 +83,7 @@ class AuthApiTest extends TestCase
     {
         $this->seed();
         $payload = [
-            'email' => 'student@polilink.test',
+            'email' => 'student@espol.edu.ec',
             'password' => 'incorrect-password',
         ];
 
@@ -92,6 +92,76 @@ class AuthApiTest extends TestCase
         }
 
         $this->csrfPost('/api/auth/login', $payload)->assertTooManyRequests();
+    }
+
+    public function test_registration_rejects_non_espol_email(): void
+    {
+        $this->seed();
+
+        $this->csrfPost('/api/auth/register', [
+            'first_name' => 'Ana',
+            'last_name' => 'Torres',
+            'email' => 'ana@gmail.com',
+            'password' => 'password123',
+            'password_confirmation' => 'password123',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertDatabaseMissing('users', ['email' => 'ana@gmail.com']);
+    }
+
+    public function test_login_rejects_non_espol_email_before_authentication(): void
+    {
+        $this->seed();
+
+        $this->csrfPost('/api/auth/login', [
+            'email' => 'student@gmail.com',
+            'password' => 'password',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['email']);
+
+        $this->assertGuest('web');
+    }
+
+    public function test_registration_requires_matching_password_confirmation(): void
+    {
+        $this->seed();
+
+        $this->csrfPost('/api/auth/register', [
+            'first_name' => 'Ana',
+            'last_name' => 'Torres',
+            'email' => 'new-student@espol.edu.ec',
+            'password' => 'password123',
+            'password_confirmation' => 'different-password',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'new-student@espol.edu.ec',
+        ]);
+        $this->assertGuest('web');
+    }
+
+    public function test_registration_requires_password_confirmation(): void
+    {
+        $this->seed();
+
+        $this->csrfPost('/api/auth/register', [
+            'first_name' => 'Ana',
+            'last_name' => 'Torres',
+            'email' => 'missing-confirmation@espol.edu.ec',
+            'password' => 'password123',
+        ])
+            ->assertUnprocessable()
+            ->assertJsonValidationErrors(['password']);
+
+        $this->assertDatabaseMissing('users', [
+            'email' => 'missing-confirmation@espol.edu.ec',
+        ]);
+        $this->assertGuest('web');
     }
 
     public function test_csrf_cookie_endpoint_is_available(): void

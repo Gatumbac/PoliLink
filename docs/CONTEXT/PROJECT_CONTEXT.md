@@ -10,7 +10,8 @@ El problema observado es que los eventos se difunden de forma dispersa, principa
 
 - Público: estudiantes, clubes y organizaciones estudiantiles de ESPOL.
 - Los organizadores publican directamente sus eventos; no existe flujo de aprobación administrativa.
-- Cada evento tiene título, descripción, categoría, fecha, hora, ubicación, modalidad, cupos y comunidad responsable.
+- Un administrador del sistema mantiene las categorías, modalidades y ubicaciones disponibles; esta función no modera eventos.
+- Cada evento tiene título, descripción, imagen de portada opcional, categoría, fecha, hora, ubicación, modalidad, cupos y comunidad responsable.
 - Los estudiantes consultan, filtran, se inscriben y cancelan su inscripción para reservar o liberar un cupo.
 - No incluir: integración con sistemas institucionales, pagos, QR, validación de asistencia, correos ni calendario institucional. Son trabajo futuro.
 

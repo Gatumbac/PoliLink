@@ -4,9 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\EventCategory;
 use App\Models\EventModality;
-use App\Models\EventStatus;
 use App\Models\Location;
-use App\Models\RegistrationStatus;
 use Illuminate\Database\Seeder;
 
 class EventReferenceSeeder extends Seeder
@@ -14,22 +12,36 @@ class EventReferenceSeeder extends Seeder
     public function run(): void
     {
         foreach ([
-            'workshop' => 'Workshop',
-            'talk' => 'Talk',
-            'hackathon' => 'Hackathon',
-            'fair' => 'Fair',
-            'cultural' => 'Cultural',
-            'sports' => 'Sports',
-        ] as $code => $name) {
-            EventCategory::query()->updateOrCreate(['code' => $code], ['name' => $name]);
+            'workshop' => ['name' => 'Taller', 'legacy_name' => 'Workshop'],
+            'talk' => ['name' => 'Charla', 'legacy_name' => 'Talk'],
+            'hackathon' => ['name' => 'Hackatón', 'legacy_name' => 'Hackathon'],
+            'fair' => ['name' => 'Feria', 'legacy_name' => 'Fair'],
+            'cultural' => ['name' => 'Cultural', 'legacy_name' => 'Cultural'],
+            'sports' => ['name' => 'Deportes', 'legacy_name' => 'Sports'],
+        ] as $code => $catalog) {
+            $category = EventCategory::query()->firstOrCreate(
+                ['code' => $code],
+                ['name' => $catalog['name'], 'is_active' => true],
+            );
+
+            if ($category->name === $catalog['legacy_name']) {
+                $category->update(['name' => $catalog['name']]);
+            }
         }
 
         foreach ([
-            'in_person' => 'In person',
-            'virtual' => 'Virtual',
-            'hybrid' => 'Hybrid',
-        ] as $code => $name) {
-            EventModality::query()->updateOrCreate(['code' => $code], ['name' => $name]);
+            'in_person' => ['name' => 'Presencial', 'legacy_name' => 'In person'],
+            'virtual' => ['name' => 'Virtual', 'legacy_name' => 'Virtual'],
+            'hybrid' => ['name' => 'Híbrida', 'legacy_name' => 'Hybrid'],
+        ] as $code => $catalog) {
+            $modality = EventModality::query()->firstOrCreate(
+                ['code' => $code],
+                ['name' => $catalog['name'], 'is_active' => true],
+            );
+
+            if ($modality->name === $catalog['legacy_name']) {
+                $modality->update(['name' => $catalog['name']]);
+            }
         }
 
         foreach ([
@@ -38,21 +50,11 @@ class EventReferenceSeeder extends Seeder
             'Aula A-101',
             'Google Meet',
         ] as $name) {
-            Location::query()->updateOrCreate(['name' => $name]);
+            Location::query()->firstOrCreate(
+                ['name' => $name],
+                ['is_active' => true],
+            );
         }
 
-        foreach ([
-            'published' => 'Published',
-            'cancelled' => 'Cancelled',
-        ] as $code => $name) {
-            EventStatus::query()->updateOrCreate(['code' => $code], ['name' => $name]);
-        }
-
-        foreach ([
-            'active' => 'Active',
-            'cancelled' => 'Cancelled',
-        ] as $code => $name) {
-            RegistrationStatus::query()->updateOrCreate(['code' => $code], ['name' => $name]);
-        }
     }
 }

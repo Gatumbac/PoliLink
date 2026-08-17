@@ -2,11 +2,12 @@
 
 namespace Tests\Feature;
 
+use App\Enums\EventStatus;
+use App\Enums\MembershipStatus;
 use App\Models\Community;
-use App\Models\CommunityOrganizer;
+use App\Models\CommunityMembership;
+use App\Models\CommunityRole;
 use App\Models\Event;
-use App\Models\EventStatus;
-use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -20,15 +21,15 @@ class EventApiTest extends TestCase
         $this->seed();
         $event = $this->seededEvent();
         Event::factory()->create([
-            'community_organizer_id' => $event->community_organizer_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
             'title' => 'Evento cancelado',
         ]);
 
-        $response = $this->getJson('/api/events?search=Hackathon&date=2026-08-20&category=hackathon&modality=in_person&community_id='.$event->communityOrganizer->community_id);
+        $response = $this->getJson('/api/events?search=Hackathon&date=2026-08-20&category=hackathon&modality=in_person&community_id='.$event->community_id);
 
         $response
             ->assertOk()
@@ -36,6 +37,7 @@ class EventApiTest extends TestCase
             ->assertJsonPath('data.0.id', $event->id)
             ->assertJsonPath('data.0.available_capacity', 49)
             ->assertJsonPath('data.0.community.name', 'TAWS')
+            ->assertJsonPath('data.0.community.slug', 'taws')
             ->assertJsonPath('data.0.category.code', 'hackathon')
             ->assertJsonPath('meta.per_page', 12);
     }
@@ -50,9 +52,19 @@ class EventApiTest extends TestCase
             ->assertJsonPath('data.id', $event->id);
 
         $event->update([
-            'event_status_id' => EventStatus::query()->where('code', 'cancelled')->sole()->id,
+            'status' => EventStatus::Cancelled->value,
         ]);
 
+        $this->getJson("/api/events/{$event->id}")->assertNotFound();
+    }
+
+    public function test_public_catalogue_hides_events_from_inactive_communities(): void
+    {
+        $this->seed();
+        $event = $this->seededEvent();
+        $event->community->update(['is_active' => false]);
+
+        $this->getJson('/api/events')->assertOk()->assertJsonMissing(['id' => $event->id]);
         $this->getJson("/api/events/{$event->id}")->assertNotFound();
     }
 
@@ -65,8 +77,27 @@ class EventApiTest extends TestCase
 
         $response
             ->assertCreated()
+            ->assertJsonStructure([
+                'data' => [
+                    'id',
+                    'title',
+                    'description',
+                    'image_url',
+                    'starts_at',
+                    'capacity',
+                    'available_capacity',
+                    'category',
+                    'modality',
+                    'location',
+                    'community',
+                    'status',
+                    'created_at',
+                    'updated_at',
+                ],
+            ])
             ->assertJsonPath('data.status.code', 'published')
-            ->assertJsonPath('data.community.name', 'TAWS');
+            ->assertJsonPath('data.community.name', 'TAWS')
+            ->assertJsonPath('data.image_url', null);
 
         $this->assertDatabaseHas('events', ['title' => 'Taller Laravel']);
     }
@@ -74,7 +105,7 @@ class EventApiTest extends TestCase
     public function test_event_creation_requires_authentication_and_a_managed_community(): void
     {
         $this->seed();
-        $student = User::query()->where('email', 'student@polilink.test')->sole();
+        $student = User::query()->where('email', 'student@espol.edu.ec')->sole();
         $organizer = $this->organizer();
         $unmanagedCommunity = Community::factory()->create();
 
@@ -88,6 +119,37 @@ class EventApiTest extends TestCase
             'capacity' => 0,
         ]))->assertUnprocessable();
 
+    }
+
+    public function test_inactive_community_blocks_organizer_event_management(): void
+    {
+        $this->seed();
+        $organizer = $this->organizer();
+        $event = $this->seededEvent();
+
+        $event->community->update(['is_active' => false]);
+
+        $this->authenticatedPost($organizer, '/api/events', $this->eventPayload())
+            ->assertUnprocessable();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
+            'title' => 'Cambio no permitido',
+        ])->assertForbidden();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")
+            ->assertForbidden();
+    }
+
+    public function test_tutor_cannot_create_an_event(): void
+    {
+        $this->seed();
+        $tutor = User::query()->where('email', 'student@espol.edu.ec')->sole();
+        $membership = $tutor->memberships()->firstOrFail();
+        $membership->update([
+            'community_role_id' => CommunityRole::query()->where('code', 'tutor')->sole()->id,
+        ]);
+
+        $this->authenticatedPost($tutor, '/api/events', $this->eventPayload())->assertForbidden();
     }
 
     public function test_event_writes_require_authentication(): void
@@ -106,9 +168,11 @@ class EventApiTest extends TestCase
         $organizer = $this->organizer();
         $event = $this->seededEvent();
         $secondCommunity = Community::factory()->create();
-        CommunityOrganizer::factory()->create([
+        CommunityMembership::factory()->create([
             'community_id' => $secondCommunity->id,
             'user_id' => $organizer->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'organizer')->sole()->id,
+            'status' => MembershipStatus::Active->value,
         ]);
 
         $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
@@ -124,10 +188,15 @@ class EventApiTest extends TestCase
     {
         $this->seed();
         $event = $this->seededEvent();
-        $otherOrganizer = User::factory()->create();
-        $otherOrganizer->roles()->attach(Role::query()->where('code', 'organizer')->sole());
+        $otherMember = User::factory()->create();
+        CommunityMembership::factory()->create([
+            'community_id' => $event->community_id,
+            'user_id' => $otherMember->id,
+            'community_role_id' => CommunityRole::query()->where('code', 'member')->sole()->id,
+            'status' => MembershipStatus::Active->value,
+        ]);
 
-        $this->authenticatedPatch($otherOrganizer, "/api/events/{$event->id}", [
+        $this->authenticatedPatch($otherMember, "/api/events/{$event->id}", [
             'title' => 'Cambio no permitido',
         ])->assertForbidden();
     }
@@ -145,14 +214,28 @@ class EventApiTest extends TestCase
         $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")->assertConflict();
     }
 
+    public function test_cancelled_events_reject_organizer_updates(): void
+    {
+        $this->seed();
+        $event = $this->seededEvent();
+        $organizer = $this->organizer();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}/cancel")
+            ->assertOk();
+
+        $this->authenticatedPatch($organizer, "/api/events/{$event->id}", [
+            'title' => 'Cambio no permitido',
+        ])->assertConflict();
+    }
+
     private function organizer(): User
     {
-        return User::query()->where('email', 'organizer@polilink.test')->sole();
+        return User::query()->where('email', 'organizer@espol.edu.ec')->sole();
     }
 
     private function seededEvent(): Event
     {
-        return Event::query()->with('communityOrganizer')->where('title', 'Hackathon TAWS')->sole();
+        return Event::query()->with('community')->where('title', 'Hackathon TAWS')->sole();
     }
 
     private function eventPayload(array $overrides = []): array
@@ -160,7 +243,7 @@ class EventApiTest extends TestCase
         $event = $this->seededEvent();
 
         return [
-            'community_id' => $event->communityOrganizer->community_id,
+            'community_id' => $event->community_id,
             'event_category_id' => $event->event_category_id,
             'event_modality_id' => $event->event_modality_id,
             'location_id' => $event->location_id,

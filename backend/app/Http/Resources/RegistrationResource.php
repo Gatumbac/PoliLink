@@ -13,16 +13,16 @@ class RegistrationResource extends JsonResource
             'id' => $this->id,
             'registered_at' => $this->registered_at?->toISOString(),
             'cancelled_at' => $this->cancelled_at?->toISOString(),
-            'status' => $this->whenLoaded('status', fn () => [
-                'code' => $this->status->code,
-                'name' => $this->status->name,
-            ]),
+            'status' => [
+                'code' => $this->status->value,
+                'name' => $this->status->label(),
+            ],
             'event' => $this->whenLoaded('event', fn () => new EventResource($this->event)),
-            'student' => $this->whenLoaded('student', fn () => [
-                'id' => $this->student->id,
-                'first_name' => $this->student->first_name,
-                'last_name' => $this->student->last_name,
-                'email' => $this->student->email,
+            'user' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user->id,
+                'first_name' => $this->user->first_name,
+                'last_name' => $this->user->last_name,
+                'email' => $this->user->email,
             ]),
         ];
     }

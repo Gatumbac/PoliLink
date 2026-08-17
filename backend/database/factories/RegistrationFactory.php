@@ -2,9 +2,9 @@
 
 namespace Database\Factories;
 
+use App\Enums\RegistrationStatus;
 use App\Models\Event;
 use App\Models\Registration;
-use App\Models\RegistrationStatus;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -17,8 +17,8 @@ class RegistrationFactory extends Factory
     {
         return [
             'event_id' => Event::factory(),
-            'student_id' => User::factory(),
-            'registration_status_id' => RegistrationStatus::factory(),
+            'user_id' => User::factory(),
+            'status' => RegistrationStatus::Active->value,
             'registered_at' => now(),
             'cancelled_at' => null,
         ];

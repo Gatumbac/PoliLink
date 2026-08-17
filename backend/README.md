@@ -43,6 +43,7 @@ Finalmente:
 
 ```bash
 php artisan migrate
+php artisan storage:link
 php artisan serve
 ```
 
@@ -65,21 +66,54 @@ backend/
 
 Las tablas principales son:
 
-- users: usuarios locales con rol student u organizer.
-- communities: clubes u organizaciones responsables de eventos.
-- events: información, capacidad, modalidad y estado de cada evento.
-- registrations: relación entre estudiantes y eventos, con restricción de inscripción duplicada.
+- users: cuentas locales con el indicador global `is_admin`.
+- communities: clubes u organizaciones responsables de eventos, con estado
+  `is_active` y logo opcional.
+- community_creation_requests: propuestas pendientes de aprobación de un
+  administrador; al aprobarse crean la comunidad y el organizer inicial.
+- community_memberships: relación única entre un usuario y una comunidad, con
+  rol `member`, `organizer` o `tutor` y estado de membresía basado en enum.
+- events: información, capacidad, modalidad, estado e imagen de portada
+  opcional de cada evento, relacionada directamente con una comunidad.
+- registrations: relación entre usuarios y eventos, con estado basado en enum y restricción de
+  inscripción duplicada.
 
 Para recrear la base local con datos de prueba:
 
     php artisan migrate:fresh --seed
 
-El seeder crea los usuarios organizer@polilink.test y student@polilink.test, una comunidad, un evento y una inscripción.
+El seeder crea los usuarios organizer@espol.edu.ec, student@espol.edu.ec y
+admin@espol.edu.ec, asigna una membresía de organizador y otra de miembro,
+además de una comunidad, una propuesta pendiente, un evento y una inscripción.
+La cuenta demo de administración usa la contraseña `admin`.
 
 ## Estado
 
 Están implementados los modelos, migraciones, catálogos, gestión de eventos,
-panel temporal y autenticado de organizador, onboarding de comunidades y
-autenticación local con Laravel Sanctum. El módulo de inscripciones permanece
-asignado a Darwin Díaz. Consultar `../docs/api/API.md` para el contrato completo y
-la prueba manual de autenticación.
+panel temporal y autenticado de organizador, propuestas y aprobación
+administrativa de comunidades, imágenes de comunidades y
+autenticación local con Laravel Sanctum. También están implementadas las
+inscripciones autenticadas: registrar, cancelar y reactivar una inscripción,
+validar cupos y duplicados, consultar inscritos como organizador responsable y
+consultar las inscripciones activas del usuario. La cuenta con `is_admin` puede
+administrar categorías, modalidades y ubicaciones mediante las rutas protegidas
+de catálogo; los estados del sistema no se editan desde la API.
+
+## Provisión adicional del administrador
+
+La cuenta demo inicial se crea automáticamente con `migrate:fresh --seed`:
+
+    admin@espol.edu.ec / admin
+
+Para habilitar la administración global de otra cuenta ESPOL sin cambiar su
+contraseña, se puede usar:
+
+    php artisan polilink:provision-admin admin@espol.edu.ec
+
+El comando solicita la contraseña solo cuando debe crear una cuenta nueva. La
+contraseña `admin` es únicamente para la demo académica; no debe reutilizarse
+en producción. No se asigna `is_admin` desde el registro público y la
+administración global no otorga permisos de organizador automáticamente.
+
+Consultar `../docs/api/API.md` para el contrato completo y
+`../docs/api/POSTMAN.md` para el recorrido manual con cookies de Sanctum.

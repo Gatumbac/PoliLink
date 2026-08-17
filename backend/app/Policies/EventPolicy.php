@@ -2,29 +2,24 @@
 
 namespace App\Policies;
 
+use App\Models\Community;
 use App\Models\Event;
 use App\Models\User;
 
 class EventPolicy
 {
-    public function create(User $user): bool
+    public function create(User $user, Community $community): bool
     {
-        return $this->isOrganizer($user);
+        return $user->isActiveOrganizerOf($community->id);
     }
 
     public function update(User $user, Event $event): bool
     {
-        return $this->isOrganizer($user)
-            && $event->communityOrganizer()->where('user_id', $user->id)->exists();
+        return $user->isActiveOrganizerOf($event->community_id);
     }
 
     public function cancel(User $user, Event $event): bool
     {
         return $this->update($user, $event);
-    }
-
-    private function isOrganizer(User $user): bool
-    {
-        return $user->roles()->where('code', 'organizer')->exists();
     }
 }

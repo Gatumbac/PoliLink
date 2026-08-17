@@ -12,95 +12,170 @@ class DatabaseSchemaTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_domain_tables_and_user_name_columns_are_migrated(): void
+    public function test_domain_tables_and_user_fields_use_the_new_membership_model(): void
     {
-        $this->assertTrue(Schema::hasColumns('users', ['first_name', 'last_name']));
+        $this->assertTrue(Schema::hasColumns('users', ['first_name', 'last_name', 'is_admin']));
+        $this->assertTrue(Schema::hasColumns('event_categories', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('event_modalities', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('locations', ['is_active']));
+        $this->assertTrue(Schema::hasColumns('communities', ['slug', 'is_active', 'image_path']));
+        $this->assertTrue(Schema::hasColumns('events', ['community_id', 'image_path', 'status']));
+        $this->assertTrue(Schema::hasColumns('registrations', ['user_id', 'status']));
+        $this->assertTrue(Schema::hasColumns('community_memberships', ['status']));
+        $this->assertTrue(Schema::hasColumns('community_creation_requests', ['slug', 'status']));
 
         foreach ([
-            'roles',
-            'role_user',
             'communities',
-            'community_organizers',
+            'community_roles',
+            'community_memberships',
+            'community_creation_requests',
             'event_categories',
             'event_modalities',
             'locations',
-            'event_statuses',
-            'registration_statuses',
             'events',
             'registrations',
         ] as $table) {
             $this->assertTrue(Schema::hasTable($table));
         }
+
+        foreach ([
+            'roles',
+            'role_user',
+            'community_organizers',
+            'event_statuses',
+            'registration_statuses',
+            'membership_statuses',
+            'community_creation_request_statuses',
+        ] as $removedTable) {
+            $this->assertFalse(Schema::hasTable($removedTable));
+        }
     }
 
-    public function test_role_and_community_organizer_relationships_are_unique(): void
+    public function test_membership_is_unique_per_user_and_community(): void
     {
         $userId = $this->createUser();
-        $roleId = DB::table('roles')->insertGetId([
-            'code' => 'organizer',
-            'name' => 'Organizer',
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
+            'slug' => 'taws',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
+        $roleId = $this->createReference('community_roles', 'member', 'Miembro');
 
-        DB::table('role_user')->insert([
-            'user_id' => $userId,
-            'role_id' => $roleId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        DB::table('community_organizers')->insert([
+        DB::table('community_memberships')->insert([
             'community_id' => $communityId,
             'user_id' => $userId,
+            'community_role_id' => $roleId,
+            'status' => 'active',
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
 
         $this->expectException(QueryException::class);
 
-        DB::table('role_user')->insert([
+        DB::table('community_memberships')->insert([
+            'community_id' => $communityId,
             'user_id' => $userId,
-            'role_id' => $roleId,
+            'community_role_id' => $roleId,
+            'status' => 'active',
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
-    public function test_registration_is_unique_per_event_and_student(): void
+    public function test_community_slugs_are_unique(): void
     {
-        $studentId = $this->createUser('student@polilink.test');
-        $organizerId = $this->createUser('organizer@polilink.test');
+        DB::table('communities')->insert([
+            'name' => 'Comunidad uno',
+            'slug' => 'comunidad',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+
+        $this->expectException(QueryException::class);
+
+        DB::table('communities')->insert([
+            'name' => 'Comunidad dos',
+            'slug' => 'comunidad',
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+    }
+
+    public function test_pending_community_creation_request_slugs_are_unique(): void
+    {
+        $userId = $this->createUser();
+        $attributes = [
+            'name' => 'Comunidad pendiente única',
+            'slug' => 'comunidad-pendiente-unica',
+            'description' => null,
+            'image_path' => null,
+            'requested_by' => $userId,
+            'status' => 'pending',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'rejection_reason' => null,
+            'community_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        DB::table('community_creation_requests')->insert($attributes);
+
+        $this->expectException(QueryException::class);
+
+        DB::table('community_creation_requests')->insert($attributes);
+    }
+
+    public function test_rejected_community_creation_request_names_can_be_reused(): void
+    {
+        $userId = $this->createUser();
+        $attributes = [
+            'name' => 'Comunidad reutilizable',
+            'slug' => 'comunidad-reutilizable',
+            'description' => null,
+            'image_path' => null,
+            'requested_by' => $userId,
+            'status' => 'rejected',
+            'reviewed_by' => null,
+            'reviewed_at' => null,
+            'rejection_reason' => 'Prueba',
+            'community_id' => null,
+            'created_at' => now(),
+            'updated_at' => now(),
+        ];
+
+        DB::table('community_creation_requests')->insert($attributes);
+        $attributes['status'] = 'pending';
+        DB::table('community_creation_requests')->insert($attributes);
+
+        $this->assertDatabaseCount('community_creation_requests', 2);
+    }
+
+    public function test_registration_is_unique_per_event_and_user(): void
+    {
+        $userId = $this->createUser('member@espol.edu.ec');
         $communityId = DB::table('communities')->insertGetId([
             'name' => 'TAWS',
+            'slug' => 'taws',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $communityOrganizerId = DB::table('community_organizers')->insertGetId([
-            'community_id' => $communityId,
-            'user_id' => $organizerId,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        $categoryId = $this->createReference('event_categories', 'hackathon', 'Hackathon');
-        $modalityId = $this->createReference('event_modalities', 'in_person', 'In person');
+        $categoryId = $this->createReference('event_categories', 'hackathon', 'Hackatón');
+        $modalityId = $this->createReference('event_modalities', 'in_person', 'Presencial');
         $locationId = DB::table('locations')->insertGetId([
             'name' => 'Campus Gustavo Galindo',
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-        $eventStatusId = $this->createReference('event_statuses', 'published', 'Published');
-        $registrationStatusId = $this->createReference('registration_statuses', 'active', 'Active');
         $eventId = DB::table('events')->insertGetId([
-            'community_organizer_id' => $communityOrganizerId,
+            'community_id' => $communityId,
             'event_category_id' => $categoryId,
             'event_modality_id' => $modalityId,
             'location_id' => $locationId,
-            'event_status_id' => $eventStatusId,
+            'status' => 'published',
             'title' => 'Hackathon TAWS',
             'description' => 'Evento de prueba.',
             'starts_at' => now()->addWeek(),
@@ -111,8 +186,8 @@ class DatabaseSchemaTest extends TestCase
 
         DB::table('registrations')->insert([
             'event_id' => $eventId,
-            'student_id' => $studentId,
-            'registration_status_id' => $registrationStatusId,
+            'user_id' => $userId,
+            'status' => 'active',
             'registered_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
@@ -122,33 +197,56 @@ class DatabaseSchemaTest extends TestCase
 
         DB::table('registrations')->insert([
             'event_id' => $eventId,
-            'student_id' => $studentId,
-            'registration_status_id' => $registrationStatusId,
+            'user_id' => $userId,
+            'status' => 'active',
             'registered_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
-    public function test_foreign_keys_reject_unknown_role_assignments(): void
+    public function test_foreign_keys_reject_unknown_membership_references(): void
     {
         $this->expectException(QueryException::class);
 
-        DB::table('role_user')->insert([
+        DB::table('community_memberships')->insert([
+            'community_id' => 999,
             'user_id' => 999,
-            'role_id' => 999,
+            'community_role_id' => 999,
+            'status' => 'active',
+            'requested_at' => now(),
             'created_at' => now(),
             'updated_at' => now(),
         ]);
     }
 
-    private function createUser(string $email = 'user@polilink.test'): int
+    public function test_status_columns_reject_values_outside_their_enums(): void
+    {
+        $this->seed();
+
+        foreach ([
+            ['table' => 'events', 'id' => DB::table('events')->value('id')],
+            ['table' => 'registrations', 'id' => DB::table('registrations')->value('id')],
+            ['table' => 'community_memberships', 'id' => DB::table('community_memberships')->value('id')],
+            ['table' => 'community_creation_requests', 'id' => DB::table('community_creation_requests')->value('id')],
+        ] as $target) {
+            try {
+                DB::table($target['table'])->where('id', $target['id'])->update(['status' => 'invalid']);
+                $this->fail("{$target['table']} accepted an invalid status.");
+            } catch (QueryException) {
+                $this->addToAssertionCount(1);
+            }
+        }
+    }
+
+    private function createUser(string $email = 'user@espol.edu.ec'): int
     {
         return DB::table('users')->insertGetId([
             'first_name' => 'Usuario',
             'last_name' => 'Prueba',
             'email' => $email,
             'password' => 'password',
+            'is_admin' => false,
             'created_at' => now(),
             'updated_at' => now(),
         ]);

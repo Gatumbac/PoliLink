@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Services\EventImageService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -13,6 +14,7 @@ class EventResource extends JsonResource
             'id' => $this->id,
             'title' => $this->title,
             'description' => $this->description,
+            'image_url' => app(EventImageService::class)->url($this->image_path),
             'starts_at' => $this->starts_at?->toISOString(),
             'capacity' => $this->capacity,
             'available_capacity' => $this->available_capacity,
@@ -32,17 +34,18 @@ class EventResource extends JsonResource
                 'description' => $this->location->description,
             ]),
             'community' => $this->when(
-                $this->relationLoaded('communityOrganizer') && $this->communityOrganizer->relationLoaded('community'),
+                $this->relationLoaded('community'),
                 fn () => [
-                    'id' => $this->communityOrganizer->community->id,
-                    'name' => $this->communityOrganizer->community->name,
-                    'description' => $this->communityOrganizer->community->description,
+                    'id' => $this->community->id,
+                    'name' => $this->community->name,
+                    'slug' => $this->community->slug,
+                    'description' => $this->community->description,
                 ],
             ),
-            'status' => $this->whenLoaded('status', fn () => [
-                'code' => $this->status->code,
-                'name' => $this->status->name,
-            ]),
+            'status' => [
+                'code' => $this->status->value,
+                'name' => $this->status->label(),
+            ],
             'created_at' => $this->created_at?->toISOString(),
             'updated_at' => $this->updated_at?->toISOString(),
         ];

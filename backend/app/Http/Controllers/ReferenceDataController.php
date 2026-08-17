@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\EventStatus;
 use App\Http\Resources\CommunityResource;
 use App\Http\Resources\EventCategoryResource;
 use App\Http\Resources\EventModalityResource;
@@ -16,21 +17,21 @@ class ReferenceDataController extends Controller
     public function categories()
     {
         return EventCategoryResource::collection(
-            EventCategory::query()->orderBy('name')->get(),
+            EventCategory::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 
     public function modalities()
     {
         return EventModalityResource::collection(
-            EventModality::query()->orderBy('name')->get(),
+            EventModality::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 
     public function locations()
     {
         return LocationResource::collection(
-            Location::query()->orderBy('name')->get(),
+            Location::query()->where('is_active', true)->orderBy('name')->get(),
         );
     }
 
@@ -38,7 +39,8 @@ class ReferenceDataController extends Controller
     {
         return CommunityResource::collection(
             Community::query()
-                ->whereHas('organizerAssignments.events.status', fn ($query) => $query->where('code', 'published'))
+                ->where('is_active', true)
+                ->whereHas('events', fn ($query) => $query->where('status', EventStatus::Published->value))
                 ->orderBy('name')
                 ->get(),
         );

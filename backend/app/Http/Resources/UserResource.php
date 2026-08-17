@@ -14,12 +14,26 @@ class UserResource extends JsonResource
             'first_name' => $this->first_name,
             'last_name' => $this->last_name,
             'email' => $this->email,
-            'roles' => $this->whenLoaded('roles', fn () => $this->roles
-                ->sortBy('code')
+            'is_admin' => (bool) $this->is_admin,
+            'community_memberships' => $this->whenLoaded('memberships', fn () => $this->memberships
+                ->sortBy(fn ($membership) => $membership->community?->name)
                 ->values()
-                ->map(fn ($role) => [
-                    'code' => $role->code,
-                    'name' => $role->name,
+                ->map(fn ($membership) => [
+                    'community' => [
+                        'id' => $membership->community->id,
+                        'name' => $membership->community->name,
+                        'slug' => $membership->community->slug,
+                    ],
+                    'role' => [
+                        'code' => $membership->role->code,
+                        'name' => $membership->role->name,
+                    ],
+                    'status' => [
+                        'code' => $membership->status->value,
+                        'name' => $membership->status->label(),
+                    ],
+                    'requested_at' => $membership->requested_at?->toISOString(),
+                    'reviewed_at' => $membership->reviewed_at?->toISOString(),
                 ])),
         ];
     }

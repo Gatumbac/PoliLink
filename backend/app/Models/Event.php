@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use App\Enums\EventStatus;
+use App\Enums\RegistrationStatus;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -9,13 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[Fillable([
-    'community_organizer_id',
+    'community_id',
     'event_category_id',
     'event_modality_id',
     'location_id',
-    'event_status_id',
+    'status',
     'title',
     'description',
+    'image_path',
     'starts_at',
     'capacity',
 ])]
@@ -28,12 +31,13 @@ class Event extends Model
         return [
             'starts_at' => 'datetime',
             'capacity' => 'integer',
+            'status' => EventStatus::class,
         ];
     }
 
-    public function communityOrganizer(): BelongsTo
+    public function community(): BelongsTo
     {
-        return $this->belongsTo(CommunityOrganizer::class);
+        return $this->belongsTo(Community::class);
     }
 
     public function category(): BelongsTo
@@ -51,11 +55,6 @@ class Event extends Model
         return $this->belongsTo(Location::class);
     }
 
-    public function status(): BelongsTo
-    {
-        return $this->belongsTo(EventStatus::class, 'event_status_id');
-    }
-
     public function registrations(): HasMany
     {
         return $this->hasMany(Registration::class);
@@ -63,10 +62,8 @@ class Event extends Model
 
     public function activeRegistrations(): HasMany
     {
-        return $this->hasMany(Registration::class)->whereHas(
-            'status',
-            fn ($query) => $query->where('code', 'active'),
-        );
+        return $this->hasMany(Registration::class)
+            ->where('status', RegistrationStatus::Active->value);
     }
 
     public function getAvailableCapacityAttribute(): int

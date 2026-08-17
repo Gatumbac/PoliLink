@@ -63,9 +63,10 @@ Las migraciones base ya crean las siguientes tablas:
 | `cache` y `cache_locks` | Caché y bloqueos de caché. |
 | `jobs`, `job_batches`, `failed_jobs` | Infraestructura para tareas en cola. |
 
-Todavía no existen las tablas de negocio `communities`, `events` ni
-`registrations`. La tabla `users` tampoco contiene aún el rol `student` u
-`organizer` definido para PoliLink.
+Las migraciones actuales ya crean las tablas de negocio `communities`,
+`community_memberships`, `events` y `registrations`. La tabla `users` usa
+`is_admin`; los roles `member`, `organizer` y `tutor` viven en la relación de
+membresía.
 
 ## 4. Eloquent: el ORM de Laravel
 
@@ -78,6 +79,7 @@ En el diseño futuro de PoliLink, la relación será:
 ```text
 User         <-> users
 Community    <-> communities
+Membership   <-> community_memberships
 Event        <-> events
 Registration <-> registrations
 ```
@@ -169,14 +171,11 @@ controladores del dominio.
 
 ## 8. Siguiente orden de implementación
 
-1. Agregar el rol de usuario mediante una migración.
-2. Crear migraciones para `communities`, `events` y `registrations`, con claves
-   foráneas, índices y restricciones contra inscripciones duplicadas.
-3. Crear los modelos Eloquent y sus relaciones.
-4. Crear controladores y validaciones de solicitudes.
-5. Definir las rutas en `routes/api.php` según `docs/api/API.md`.
-6. Agregar seeders y pruebas para reglas como cupos, eventos cancelados e
-   inscripciones duplicadas.
+1. Agregar endpoints para descubrir comunidades y solicitar membresías.
+2. Crear policies para que solo un `organizer` activo revise solicitudes y
+   asigne el rol `tutor`.
+3. Integrar las pantallas de membresías del frontend.
+4. Agregar pruebas para estados `pending`, `active`, `rejected` y `left`.
 
 ## Referencias internas
 
