@@ -55,14 +55,22 @@ primera interfaz funcional: `/iniciar-sesion`, `/registrarse`, redirecciones int
 seguras, validación de correos `@espol.edu.ec`, confirmación de contraseña,
 errores de validación, logout y menú de usuario en el encabezado.
 
+Los errores de API se clasifican y traducen en `src/shared/errors/`. Para
+estados de consulta usa `ApiErrorFeedback`, que incluye el mensaje genérico y
+la acción de reintento. Las features solo deben definir overrides cuando el
+contexto necesite una explicación distinta, como un evento inexistente o un
+conflicto específico. Los mensajes crudos del backend no deben mostrarse
+directamente.
+
 La verificación navegador → Laravel todavía debe ejecutarse con los servicios
 locales. La Fase 2 ya tiene integración de código para el catálogo público,
 los filtros, la paginación y el detalle de eventos en `/eventos` y
 `/eventos/:eventId`. La experiencia de comunidades incluye el onboarding en
 `/organizar`, la creación en `/crear-comunidad`, el seguimiento en
-`/mis-solicitudes` y el panel en `/mis-comunidades`.
-El panel de eventos, las inscripciones y sus recorridos responsive continúan
-pendientes.
+`/mis-solicitudes` y el panel en `/mis-comunidades`. El panel de eventos está
+disponible en `/mis-eventos` para consultar el historial paginado del
+organizador; la publicación, edición, cancelación y las inscripciones siguen
+en sus subfases correspondientes.
 
 Las rutas visibles del navegador usan español; los nombres de componentes,
 variables, hooks y servicios permanecen en inglés. Los endpoints `/api/...`

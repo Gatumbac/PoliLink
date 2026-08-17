@@ -1,6 +1,9 @@
-import { CalendarDays } from 'lucide-react'
+import { ArrowRight, CalendarDays } from 'lucide-react'
+import { Link } from 'react-router'
 
+import { appRoutes } from '@/app/routes'
 import { ManagedCommunitiesSection } from '@/features/organizer/components/ManagedCommunitiesSection'
+import { Button } from '@/shared/ui/button'
 import {
   Card,
   CardContent,
@@ -42,9 +45,12 @@ export function OrganizerPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <p className="text-sm text-muted-foreground">
-                El panel de eventos estará disponible en la siguiente etapa.
-              </p>
+              <Button asChild variant="outline">
+                <Link to={appRoutes.myEvents}>
+                  Ver mis eventos
+                  <ArrowRight aria-hidden="true" />
+                </Link>
+              </Button>
             </CardContent>
           </Card>
         </section>

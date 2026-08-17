@@ -16,22 +16,9 @@ import {
   updateCatalogPage,
   updateCatalogSearchParams,
 } from '@/features/events/catalog/model/catalog-filters'
-import { ApiError } from '@/shared/errors/api-error'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
-
-function getCatalogErrorMessage(error: unknown): string {
-  if (!(error instanceof ApiError)) {
-    return 'No se pudo cargar el catálogo de eventos.'
-  }
-
-  if (error.status === 0) return 'No se pudo conectar con la API de PoliLink.'
-  if (error.status === 422) {
-    return 'Los filtros enviados no son válidos. Revisa la búsqueda e inténtalo de nuevo.'
-  }
-
-  return 'No se pudo cargar el catálogo de eventos. Inténtalo de nuevo.'
-}
 
 export function EventCatalogPage() {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -137,21 +124,16 @@ export function EventCatalogPage() {
         {catalogQuery.isPending && <EventCatalogSkeleton />}
 
         {catalogQuery.isError && (
-          <Alert variant="destructive">
-            <AlertTitle>No se pudo cargar los eventos</AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center gap-3">
-              <span>{getCatalogErrorMessage(catalogQuery.error)}</span>
-              <Button
-                onClick={() => {
-                  void catalogQuery.refetch()
-                }}
-                size="sm"
-                variant="outline"
-              >
-                Reintentar
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <ApiErrorFeedback
+            error={catalogQuery.error}
+            isRetrying={catalogQuery.isFetching}
+            messageOverrides={{
+              validation:
+                'Los filtros enviados no son válidos. Revisa la búsqueda e inténtalo de nuevo.',
+            }}
+            onRetry={() => void catalogQuery.refetch()}
+            title="No se pudo cargar los eventos"
+          />
         )}
 
         {catalogQuery.isSuccess && eventPage && eventPage.data.length === 0 && (

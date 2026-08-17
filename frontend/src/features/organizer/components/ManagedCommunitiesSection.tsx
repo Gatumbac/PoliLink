@@ -1,9 +1,9 @@
-import { ArrowRight, Plus, RefreshCw, UsersRound } from 'lucide-react'
+import { ArrowRight, Plus, UsersRound } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { useManagedCommunities } from '@/features/organizer/hooks/use-organizer-queries'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -44,20 +44,12 @@ export function ManagedCommunitiesSection() {
 
   if (communitiesQuery.isError) {
     return (
-      <Alert variant="destructive">
-        <AlertTitle>No pudimos cargar tus comunidades</AlertTitle>
-        <AlertDescription className="flex flex-wrap items-center gap-3">
-          <span>Intenta nuevamente para consultar tus comunidades.</span>
-          <Button
-            onClick={() => void communitiesQuery.refetch()}
-            size="sm"
-            variant="outline"
-          >
-            <RefreshCw aria-hidden="true" />
-            Reintentar
-          </Button>
-        </AlertDescription>
-      </Alert>
+      <ApiErrorFeedback
+        error={communitiesQuery.error}
+        isRetrying={communitiesQuery.isFetching}
+        onRetry={() => void communitiesQuery.refetch()}
+        title="No pudimos cargar tus comunidades"
+      />
     )
   }
 

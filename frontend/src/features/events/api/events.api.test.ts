@@ -102,6 +102,34 @@ describe('public events API', () => {
 })
 
 describe('organizer events API', () => {
+  it('maps organizer event pagination to the Laravel query contract', async () => {
+    server.use(
+      http.get(`${apiUrl}/me/events`, ({ request }) => {
+        const query = new URL(request.url).searchParams
+
+        expect(query.get('page')).toBe('2')
+        expect(query.get('per_page')).toBe('12')
+
+        return HttpResponse.json({
+          data: [event],
+          meta: {
+            current_page: 2,
+            last_page: 3,
+            per_page: 12,
+            total: 25,
+          },
+        })
+      }),
+    )
+
+    await expect(
+      organizerEventsApi.list({ page: 2, perPage: 12 }),
+    ).resolves.toMatchObject({
+      data: [event],
+      meta: { current_page: 2, last_page: 3 },
+    })
+  })
+
   it('serializes event creation as multipart with an optional image', async () => {
     server.use(
       http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {

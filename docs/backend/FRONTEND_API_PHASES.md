@@ -228,6 +228,9 @@ propuesta queda aprobada.
 
 #### Fase 3.3 — Panel de eventos
 
+**Estado:** implementada en código; verificación navegador → Laravel → MySQL
+queda pendiente.
+
 - Consumir `GET /me/events` con paginación.
 - Mostrar eventos propios, estados `published`/`cancelled`, cupos, comunidad e
   imagen.

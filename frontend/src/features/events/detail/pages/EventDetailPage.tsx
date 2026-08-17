@@ -9,7 +9,7 @@ import {
   formatEventDate,
 } from '@/features/events/model/event-formatters'
 import { ApiError } from '@/shared/errors/api-error'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
@@ -78,7 +78,7 @@ export function EventDetailPage() {
   if (detailQuery.isError) {
     if (
       detailQuery.error instanceof ApiError &&
-      detailQuery.error.status === 404
+      detailQuery.error.kind === 'not_found'
     ) {
       return <EventNotFound />
     }
@@ -87,21 +87,12 @@ export function EventDetailPage() {
       <main className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl space-y-8">
           <BackToCatalog />
-          <Alert variant="destructive">
-            <AlertTitle>No se pudo cargar el evento</AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center gap-3">
-              <span>Inténtalo de nuevo en unos segundos.</span>
-              <Button
-                onClick={() => {
-                  void detailQuery.refetch()
-                }}
-                size="sm"
-                variant="outline"
-              >
-                Reintentar
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <ApiErrorFeedback
+            error={detailQuery.error}
+            isRetrying={detailQuery.isFetching}
+            onRetry={() => void detailQuery.refetch()}
+            title="No se pudo cargar el evento"
+          />
         </div>
       </main>
     )

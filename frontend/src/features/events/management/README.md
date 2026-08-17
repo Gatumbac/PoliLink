@@ -55,7 +55,9 @@ and `FormData` requests. It must not set `Content-Type` manually for
 `FormData`, so the browser can provide the multipart boundary.
 
 Event responses expose `image_url`, which is nullable for existing events
-without a cover image. Cancelled events remain visible in the dashboard but
-cannot be edited, cancelled again, or have their image changed; those writes
-return `409`. Form components, previews, image rendering, and query-cache
-orchestration remain pending for the UI integration phase.
+without a cover image. The read-only dashboard is available at `/mis-eventos`;
+it renders published and cancelled events with pagination, status, community,
+capacity, and image information. Cancelled events remain visible in the
+dashboard but cannot be edited, cancelled again, or have their image changed;
+those writes return `409`. Form components, image mutations, and edit/create
+flows remain pending for the following UI subphases.
