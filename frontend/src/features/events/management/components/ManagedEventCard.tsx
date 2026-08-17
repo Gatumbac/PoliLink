@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Pencil, Users } from 'lucide-react'
+import { CalendarDays, MapPin, Pencil, Users, UsersRound } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
@@ -83,20 +83,31 @@ export function ManagedEventCard({ event }: ManagedEventCardProps) {
               <span>{event.community?.name ?? 'Comunidad no disponible'}</span>
             </div>
           </div>
-          {canEdit && (
-            <div className="flex flex-wrap justify-end gap-2 border-t pt-3">
-              <Button asChild size="sm" variant="outline">
-                <Link
-                  aria-label={`Editar evento ${event.title}`}
-                  to={appRoutes.editEvent(event.id)}
-                >
-                  <Pencil aria-hidden="true" />
-                  Editar evento
-                </Link>
-              </Button>
-              <CancelEventDialog event={event} />
-            </div>
-          )}
+          <div className="flex flex-wrap justify-end gap-2 border-t pt-3">
+            <Button asChild size="sm" variant="outline">
+              <Link
+                aria-label={`Ver inscritos de ${event.title}`}
+                to={appRoutes.eventAttendees(event.id)}
+              >
+                <UsersRound aria-hidden="true" />
+                Ver inscritos
+              </Link>
+            </Button>
+            {canEdit && (
+              <>
+                <Button asChild size="sm" variant="outline">
+                  <Link
+                    aria-label={`Editar evento ${event.title}`}
+                    to={appRoutes.editEvent(event.id)}
+                  >
+                    <Pencil aria-hidden="true" />
+                    Editar evento
+                  </Link>
+                </Button>
+                <CancelEventDialog event={event} />
+              </>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>

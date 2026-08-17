@@ -20,6 +20,8 @@ import { OrganizerEventsPage } from '@/features/events/management/pages/Organize
 import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
 import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
 import { OrganizerPage } from '@/features/organizer/pages/OrganizerPage'
+import { EventAttendeesPage } from '@/features/registrations/attendees/pages/EventAttendeesPage'
+import { MyRegistrationsPage } from '@/features/registrations/student/pages/MyRegistrationsPage'
 
 export const router = createBrowserRouter([
   {
@@ -127,6 +129,28 @@ export const router = createBrowserRouter([
             loadingFallback={<AuthLoadingState />}
           >
             <CreateEventPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.myRegistrations.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <MyRegistrationsPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutePatterns.eventAttendees,
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <EventAttendeesPage />
           </RequireAuth>
         ),
       },
