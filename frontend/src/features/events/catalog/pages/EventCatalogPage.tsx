@@ -1,5 +1,10 @@
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+
+import { appRoutes } from '@/app/routes'
+import { useAuth } from '@/features/auth/auth-context'
+import { hasRole } from '@/features/auth/model/auth-helpers'
 import { CommunityOrganizerCallout } from '@/features/events/catalog/components/CommunityOrganizerCallout'
 import { EventCard } from '@/features/events/catalog/components/EventCard'
 import { EventCatalogFilters } from '@/features/events/catalog/components/EventCatalogFilters'
@@ -21,6 +26,7 @@ import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 
 export function EventCatalogPage() {
+  const { status, user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const filters = parseCatalogFilters(searchParams)
   const [searchInput, setSearchInput] = useState(filters.search)
@@ -76,11 +82,22 @@ export function EventCatalogPage() {
 
   const eventPage = catalogQuery.data
   const activeFilterCount = countActiveCatalogFilters(filters)
+  const calloutVariant =
+    status === 'authenticated' && hasRole(user, 'organizer')
+      ? 'organizer'
+      : 'visitor'
 
   return (
     <main className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="space-y-4">
+          <Link
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            to={appRoutes.home}
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Volver al inicio
+          </Link>
           <div className="max-w-2xl space-y-3">
             <p className="text-sm font-medium text-muted-foreground">
               ESPOL · Comunidades estudiantiles
@@ -93,9 +110,6 @@ export function EventCatalogPage() {
               comunidades de ESPOL.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/">Volver al inicio</Link>
-          </Button>
         </header>
 
         <EventCatalogFilters
@@ -109,7 +123,7 @@ export function EventCatalogPage() {
           searchInput={searchInput}
         />
 
-        <CommunityOrganizerCallout />
+        <CommunityOrganizerCallout variant={calloutVariant} />
 
         {referenceData.isError && (
           <Alert>

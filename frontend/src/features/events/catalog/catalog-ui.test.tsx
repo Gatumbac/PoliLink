@@ -3,13 +3,49 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { appRoutes } from '@/app/routes'
+import { type AuthContextValue, useAuth } from '@/features/auth/auth-context'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { server } from '@/test/server'
 
+vi.mock('@/features/auth/auth-context', () => ({
+  useAuth: vi.fn(),
+}))
+
+const mockedUseAuth = vi.mocked(useAuth)
 const apiUrl = 'http://localhost:8000/api'
+
+const anonymousAuth: AuthContextValue = {
+  user: null,
+  status: 'anonymous',
+  error: null,
+  isLoggingIn: false,
+  isRegistering: false,
+  isLoggingOut: false,
+  login: vi.fn(),
+  register: vi.fn(),
+  logout: vi.fn(),
+  refresh: vi.fn(),
+}
+
+const organizerUser = {
+  id: 7,
+  first_name: 'Ana',
+  last_name: 'Torres',
+  email: 'ana@espol.edu.ec' as `${string}@${string}.${string}`,
+  is_admin: false,
+  community_memberships: [
+    {
+      community: { id: 4, name: 'TAWS', slug: 'taws' },
+      role: { code: 'organizer' as const, name: 'Organizer' },
+      status: { code: 'active' as const, name: 'Active' },
+      requested_at: null,
+      reviewed_at: null,
+    },
+  ],
+}
 
 const event = {
   id: 7,
@@ -84,6 +120,7 @@ function referenceHandlers() {
 
 describe('public event catalog', () => {
   beforeEach(() => {
+    mockedUseAuth.mockReturnValue(anonymousAuth)
     server.use(...referenceHandlers())
   })
 
@@ -132,5 +169,43 @@ describe('public event catalog', () => {
         `${appRoutes.events}?search=laravel`,
       )
     })
+  })
+
+  it('shows management actions instead of onboarding for organizers', async () => {
+    mockedUseAuth.mockReturnValue({
+      ...anonymousAuth,
+      status: 'authenticated',
+      user: organizerUser,
+    })
+
+    server.use(
+      http.get(`${apiUrl}/events`, () =>
+        HttpResponse.json({
+          data: [event],
+          meta: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 12,
+            total: 1,
+          },
+        }),
+      ),
+    )
+
+    renderCatalog()
+
+    expect(
+      await screen.findByRole('heading', { name: 'Gestiona tus actividades' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Crear evento' })).toHaveAttribute(
+      'href',
+      appRoutes.createEvent,
+    )
+    expect(
+      screen.getByRole('link', { name: 'Ver mis eventos' }),
+    ).toHaveAttribute('href', appRoutes.myEvents)
+    expect(
+      screen.queryByRole('link', { name: 'Conoce cómo organizar' }),
+    ).not.toBeInTheDocument()
   })
 })
