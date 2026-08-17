@@ -2,7 +2,13 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
-import { MemoryRouter, Route, Routes, useLocation } from 'react-router'
+import {
+  type InitialEntry,
+  MemoryRouter,
+  Route,
+  Routes,
+  useLocation,
+} from 'react-router'
 import { beforeEach, describe, expect, it } from 'vitest'
 
 import { appRoutes } from '@/app/routes'
@@ -52,7 +58,7 @@ function LocationProbe() {
   )
 }
 
-function renderPage(initialEntry = appRoutes.myEvents) {
+function renderPage(initialEntry: InitialEntry = appRoutes.myEvents) {
   const queryClient = new QueryClient({
     defaultOptions: { queries: { retry: false } },
   })
@@ -169,6 +175,22 @@ describe('organizer events page', () => {
     expect(
       screen.getByRole('link', { name: 'Ver mis comunidades' }),
     ).toHaveAttribute('href', appRoutes.myCommunities)
+  })
+
+  it('shows the publication confirmation after creating an event', async () => {
+    renderPage({
+      pathname: appRoutes.myEvents,
+      state: { createdEventTitle: 'Taller Laravel' },
+    })
+
+    expect(
+      await screen.findByText('Evento publicado correctamente'),
+    ).toBeInTheDocument()
+    expect(
+      screen.getByText(
+        '“Taller Laravel” ya está disponible para los estudiantes.',
+      ),
+    ).toBeInTheDocument()
   })
 
   it('shows a retry action when the event request fails', async () => {

@@ -1,14 +1,11 @@
-import type {
-  FieldPath,
-  FieldValues,
-  UseFormSetError,
-} from 'react-hook-form'
+import type { FieldPath, FieldValues, UseFormSetError } from 'react-hook-form'
 
 import { ApiError } from '@/shared/errors/api-error'
 
 export function applyApiFieldErrors<TFieldValues extends FieldValues>(
   error: unknown,
   setError: UseFormSetError<TFieldValues>,
+  fieldMap: Partial<Record<string, FieldPath<TFieldValues>>> = {},
 ): void {
   if (!(error instanceof ApiError)) return
 
@@ -16,7 +13,7 @@ export function applyApiFieldErrors<TFieldValues extends FieldValues>(
     const message = messages[0]
 
     if (message) {
-      setError(field as FieldPath<TFieldValues>, {
+      setError(fieldMap[field] ?? (field as FieldPath<TFieldValues>), {
         type: 'server',
         message,
       })

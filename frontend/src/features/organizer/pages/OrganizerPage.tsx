@@ -45,12 +45,17 @@ export function OrganizerPage() {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button asChild variant="outline">
-                <Link to={appRoutes.myEvents}>
-                  Ver mis eventos
-                  <ArrowRight aria-hidden="true" />
-                </Link>
-              </Button>
+              <div className="flex flex-wrap gap-2">
+                <Button asChild>
+                  <Link to={appRoutes.createEvent}>
+                    Crear evento
+                    <ArrowRight aria-hidden="true" />
+                  </Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link to={appRoutes.myEvents}>Ver mis eventos</Link>
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </section>

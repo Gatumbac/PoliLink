@@ -9,6 +9,7 @@ export const appRoutes = {
   communityRequests: '/mis-solicitudes',
   myCommunities: '/mis-comunidades',
   myEvents: '/mis-eventos',
+  createEvent: '/crear-evento',
   legacyOrganizer: '/organizador',
   uiPreview: '/vista-previa',
 } as const

@@ -14,6 +14,7 @@ import { CommunityCreationRequestsPage } from '@/features/communities/pages/Comm
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
+import { CreateEventPage } from '@/features/events/management/pages/CreateEventPage'
 import { OrganizerEventsPage } from '@/features/events/management/pages/OrganizerEventsPage'
 import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
 import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
@@ -103,6 +104,17 @@ export const router = createBrowserRouter([
             loadingFallback={<AuthLoadingState />}
           >
             <OrganizerEventsPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.createEvent.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CreateEventPage />
           </RequireAuth>
         ),
       },

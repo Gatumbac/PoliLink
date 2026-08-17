@@ -1,11 +1,13 @@
-import { ArrowLeft } from 'lucide-react'
-import { Link, useSearchParams } from 'react-router'
+import { ArrowLeft, CheckCircle } from 'lucide-react'
+import { useEffect, useState } from 'react'
+import { Link, useLocation, useNavigate, useSearchParams } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { EventPagination } from '@/features/events/catalog/components/EventPagination'
 import { ManagedEventCard } from '@/features/events/management/components/ManagedEventCard'
 import { ManagedEventSkeleton } from '@/features/events/management/components/ManagedEventSkeleton'
 import { useOrganizerEvents } from '@/features/organizer/hooks/use-organizer-queries'
+import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
 import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 
@@ -17,14 +19,36 @@ function parsePage(searchParams: URLSearchParams): number {
   return Number.isInteger(value) && value > 0 ? value : 1
 }
 
+function readCreatedEventTitle(state: unknown): string | null {
+  if (!state || typeof state !== 'object') return null
+
+  const title = (state as { createdEventTitle?: unknown }).createdEventTitle
+
+  return typeof title === 'string' ? title : null
+}
+
 export function OrganizerEventsPage() {
+  const location = useLocation()
+  const navigate = useNavigate()
   const [searchParams, setSearchParams] = useSearchParams()
+  const [createdEventTitle] = useState(() =>
+    readCreatedEventTitle(location.state),
+  )
   const currentPage = parsePage(searchParams)
   const eventsQuery = useOrganizerEvents({
     page: currentPage,
     perPage: organizerEventsPerPage,
   })
   const eventPage = eventsQuery.data
+
+  useEffect(() => {
+    if (createdEventTitle === null || location.state === null) return
+
+    navigate(`${location.pathname}${location.search}`, {
+      replace: true,
+      state: null,
+    })
+  }, [createdEventTitle, location, navigate])
 
   const handlePageChange = (page: number) => {
     const nextSearchParams = new URLSearchParams(searchParams)
@@ -58,7 +82,20 @@ export function OrganizerEventsPage() {
             Revisa las actividades publicadas por las comunidades que
             administras.
           </p>
+          <Button asChild>
+            <Link to={appRoutes.createEvent}>Crear evento</Link>
+          </Button>
         </header>
+
+        {createdEventTitle !== null && (
+          <Alert>
+            <CheckCircle aria-hidden="true" />
+            <AlertTitle>Evento publicado correctamente</AlertTitle>
+            <AlertDescription>
+              “{createdEventTitle}” ya está disponible para los estudiantes.
+            </AlertDescription>
+          </Alert>
+        )}
 
         {eventsQuery.isPending && <ManagedEventSkeleton />}
 
@@ -84,6 +121,9 @@ export function OrganizerEventsPage() {
               comunidad y disponibilidad de cupos.
             </p>
             <Button asChild className="mt-5" variant="outline">
+              <Link to={appRoutes.createEvent}>Crear evento</Link>
+            </Button>
+            <Button asChild className="mt-2 sm:ml-2" variant="outline">
               <Link to={appRoutes.myCommunities}>Ver mis comunidades</Link>
             </Button>
           </section>

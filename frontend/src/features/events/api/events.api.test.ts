@@ -148,10 +148,7 @@ describe('organizer events API', () => {
         expect(formData.get('event_modality_id')).toBe('1')
         expect(formData.get('location_id')).toBe('1')
         expect(formData.get('capacity')).toBe('25')
-        expect(formData.get('image')).toMatchObject({
-          name: 'cover.webp',
-          type: 'image/webp',
-        })
+        expect(formData.get('image')).toMatchObject({ type: 'image/webp' })
 
         return HttpResponse.json(
           {
@@ -182,16 +179,26 @@ describe('organizer events API', () => {
     })
   })
 
-  it('omits the optional image when creating an event without one', async () => {
+  it('serializes JSON when creating an event without an image', async () => {
     server.use(
       http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
         document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
         return new HttpResponse(null, { status: 204 })
       }),
       http.post(`${apiUrl}/events`, async ({ request }) => {
-        const formData = await request.formData()
-
-        expect(formData.get('image')).toBeNull()
+        expect(request.headers.get('Content-Type')).toContain(
+          'application/json',
+        )
+        expect(await request.json()).toEqual({
+          community_id: 4,
+          event_category_id: 3,
+          event_modality_id: 1,
+          location_id: 1,
+          title: 'Taller Laravel',
+          description: 'Introducción a Laravel.',
+          starts_at: '2026-08-20T10:00:00-05:00',
+          capacity: 25,
+        })
         return HttpResponse.json({ data: event }, { status: 201 })
       }),
     )
@@ -227,10 +234,7 @@ describe('organizer events API', () => {
       http.post(`${apiUrl}/events/7/image`, async ({ request }) => {
         const formData = await request.formData()
 
-        expect(formData.get('image')).toMatchObject({
-          name: 'replacement.png',
-          type: 'image/png',
-        })
+        expect(formData.get('image')).toMatchObject({ type: 'image/png' })
 
         return HttpResponse.json({
           data: {

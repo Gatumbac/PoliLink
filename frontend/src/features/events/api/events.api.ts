@@ -134,9 +134,18 @@ export const organizerEventsApi = {
   create: async (payload: CreateEventPayload): Promise<Event> => {
     const { image, ...fields } = payload
     const validFields = eventWriteFieldsSchema.parse(fields)
-    const formData = buildEventFormData(validFields)
 
-    if (image) formData.append('image', image)
+    if (!image) {
+      return eventEnvelopeSchema.parse(
+        await request('/events', {
+          method: 'POST',
+          body: validFields,
+        }),
+      ).data
+    }
+
+    const formData = buildEventFormData(validFields)
+    formData.append('image', image)
 
     return eventEnvelopeSchema.parse(
       await request('/events', {

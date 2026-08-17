@@ -1,9 +1,15 @@
-import { keepPreviousData, useQuery } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 
 import {
   type OrganizerEventListFilters,
   organizerEventsApi,
 } from '@/features/events/api/events.api'
+import { eventQueryKeys } from '@/features/events/catalog/hooks/use-event-queries'
 import { organizerQueryKeys } from '@/features/organizer/model/organizer-query-keys'
 
 export {
@@ -21,5 +27,21 @@ export function useOrganizerEvents(filters: OrganizerEventListFilters = {}) {
     queryKey: organizerQueryKeys.events(page, perPage),
     queryFn: () => organizerEventsApi.list({ page, perPage }),
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useCreateOrganizerEvent() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: organizerEventsApi.create,
+    onSuccess: () => {
+      void Promise.all([
+        queryClient.invalidateQueries({
+          queryKey: organizerQueryKeys.eventsRoot(),
+        }),
+        queryClient.invalidateQueries({ queryKey: eventQueryKeys.all }),
+      ]).catch(() => undefined)
+    },
   })
 }
