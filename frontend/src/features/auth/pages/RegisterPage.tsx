@@ -11,14 +11,14 @@ import {
   registerPayloadSchema,
 } from '@/features/auth/model/auth.schemas'
 import {
-  applyApiFieldErrors,
   getAuthErrorMessage,
 } from '@/features/auth/model/auth-form-errors'
 import {
   buildAuthPath,
   getSafeRedirect,
 } from '@/features/auth/model/auth-helpers'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { applyApiFieldErrors } from '@/shared/errors/form-errors'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
@@ -27,7 +27,7 @@ export function RegisterPage() {
   const { isRegistering, register } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<unknown>(null)
   const redirect = searchParams.get('redirect')
   const form = useForm<RegisterPayload>({
     defaultValues: {
@@ -48,12 +48,7 @@ export function RegisterPage() {
       navigate(getSafeRedirect(redirect), { replace: true })
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
-      setFormError(
-        getAuthErrorMessage(
-          error,
-          'No pudimos crear tu cuenta. Intenta nuevamente.',
-        ),
-      )
+      setFormError(error)
     }
   }
 
@@ -78,11 +73,15 @@ export function RegisterPage() {
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        {formError && (
-          <Alert variant="destructive">
-            <AlertTitle>No pudimos crear tu cuenta</AlertTitle>
-            <AlertDescription>{formError}</AlertDescription>
-          </Alert>
+        {formError !== null && (
+          <ApiErrorFeedback
+            error={formError}
+            message={getAuthErrorMessage(
+              formError,
+              'No pudimos crear tu cuenta. Intenta nuevamente.',
+            )}
+            title="No pudimos crear tu cuenta"
+          />
         )}
 
         <FieldGroup>

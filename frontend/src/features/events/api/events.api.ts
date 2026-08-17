@@ -1,13 +1,4 @@
-import { request } from '@/shared/api/client'
 import {
-  eventCategoryCollectionSchema,
-  eventCommunityCollectionSchema,
-  eventEnvelopeSchema,
-  eventLocationCollectionSchema,
-  eventModalityCollectionSchema,
-  eventPageSchema,
-  eventUpdateFieldsSchema,
-  eventWriteFieldsSchema,
   type Event,
   type EventCategory,
   type EventCommunity,
@@ -16,7 +7,16 @@ import {
   type EventPage,
   type EventUpdateFields,
   type EventWriteFields,
+  eventCategoryCollectionSchema,
+  eventCommunityCollectionSchema,
+  eventEnvelopeSchema,
+  eventLocationCollectionSchema,
+  eventModalityCollectionSchema,
+  eventPageSchema,
+  eventUpdateFieldsSchema,
+  eventWriteFieldsSchema,
 } from '@/features/events/model/event.schemas'
+import { request } from '@/shared/api/client'
 
 export type PublicEventFilters = {
   search?: string
@@ -34,6 +34,11 @@ export type CreateEventPayload = EventWriteFields & {
 
 export type UpdateEventPayload = EventUpdateFields
 
+export type OrganizerEventListFilters = {
+  page?: number
+  perPage?: number
+}
+
 function appendEventFormValue(
   formData: FormData,
   key: keyof EventWriteFields,
@@ -46,16 +51,8 @@ function buildEventFormData(fields: EventWriteFields): FormData {
   const formData = new FormData()
 
   appendEventFormValue(formData, 'community_id', fields.community_id)
-  appendEventFormValue(
-    formData,
-    'event_category_id',
-    fields.event_category_id,
-  )
-  appendEventFormValue(
-    formData,
-    'event_modality_id',
-    fields.event_modality_id,
-  )
+  appendEventFormValue(formData, 'event_category_id', fields.event_category_id)
+  appendEventFormValue(formData, 'event_modality_id', fields.event_modality_id)
   appendEventFormValue(formData, 'location_id', fields.location_id)
   appendEventFormValue(formData, 'title', fields.title)
   appendEventFormValue(formData, 'description', fields.description)
@@ -87,9 +84,7 @@ export const publicEventsApi = {
     appendQueryValue(query, 'page', filters.page)
     appendQueryValue(query, 'per_page', filters.perPage)
 
-    return eventPageSchema.parse(
-      await request(`/events?${query.toString()}`),
-    )
+    return eventPageSchema.parse(await request(`/events?${query.toString()}`))
   },
 
   detail: async (eventId: number): Promise<Event> => {
@@ -124,8 +119,14 @@ export const publicEventsApi = {
 }
 
 export const organizerEventsApi = {
-  list: async (perPage = 12): Promise<EventPage> => {
-    const query = new URLSearchParams({ per_page: String(perPage) })
+  list: async ({
+    page = 1,
+    perPage = 12,
+  }: OrganizerEventListFilters = {}): Promise<EventPage> => {
+    const query = new URLSearchParams({
+      page: String(page),
+      per_page: String(perPage),
+    })
 
     return eventPageSchema.parse(await request(`/me/events?${query}`))
   },
@@ -133,9 +134,18 @@ export const organizerEventsApi = {
   create: async (payload: CreateEventPayload): Promise<Event> => {
     const { image, ...fields } = payload
     const validFields = eventWriteFieldsSchema.parse(fields)
-    const formData = buildEventFormData(validFields)
 
-    if (image) formData.append('image', image)
+    if (!image) {
+      return eventEnvelopeSchema.parse(
+        await request('/events', {
+          method: 'POST',
+          body: validFields,
+        }),
+      ).data
+    }
+
+    const formData = buildEventFormData(validFields)
+    formData.append('image', image)
 
     return eventEnvelopeSchema.parse(
       await request('/events', {
@@ -158,6 +168,11 @@ export const organizerEventsApi = {
       }),
     ).data
   },
+
+  cancel: async (eventId: number): Promise<Event> =>
+    eventEnvelopeSchema.parse(
+      await request(`/events/${eventId}/cancel`, { method: 'PATCH' }),
+    ).data,
 
   uploadImage: async (eventId: number, image: File): Promise<Event> => {
     const formData = new FormData()

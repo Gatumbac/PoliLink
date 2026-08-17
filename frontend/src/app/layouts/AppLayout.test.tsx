@@ -1,4 +1,5 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
+import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -57,6 +58,47 @@ describe('application layout community navigation', () => {
     expect(
       screen.getByRole('link', { name: 'Mis comunidades' }),
     ).toHaveAttribute('href', appRoutes.myCommunities)
+    expect(screen.getByRole('link', { name: 'Mis eventos' })).toHaveAttribute(
+      'href',
+      appRoutes.myEvents,
+    )
+  })
+
+  it('shows organizer links inside the compact mobile menu', async () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 7,
+        first_name: 'Ana',
+        last_name: 'Torres',
+        email: 'ana@espol.edu.ec',
+        is_admin: false,
+        community_memberships: [
+          {
+            community: { id: 1, name: 'TAWS', slug: 'taws' },
+            role: { code: 'organizer', name: 'Organizer' },
+            status: { code: 'active', name: 'Active' },
+            requested_at: null,
+            reviewed_at: null,
+          },
+        ],
+      },
+    })
+
+    const user = userEvent.setup()
+    render(
+      <MemoryRouter>
+        <AppLayout />
+      </MemoryRouter>,
+    )
+
+    await user.click(screen.getByRole('button', { name: 'Abrir menú' }))
+
+    const menu = await screen.findByRole('dialog')
+    expect(
+      within(menu).getByRole('link', { name: 'Mis eventos' }),
+    ).toHaveAttribute('href', appRoutes.myEvents)
   })
 
   it('shows the community onboarding link to students', () => {

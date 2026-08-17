@@ -102,6 +102,34 @@ describe('public events API', () => {
 })
 
 describe('organizer events API', () => {
+  it('maps organizer event pagination to the Laravel query contract', async () => {
+    server.use(
+      http.get(`${apiUrl}/me/events`, ({ request }) => {
+        const query = new URL(request.url).searchParams
+
+        expect(query.get('page')).toBe('2')
+        expect(query.get('per_page')).toBe('12')
+
+        return HttpResponse.json({
+          data: [event],
+          meta: {
+            current_page: 2,
+            last_page: 3,
+            per_page: 12,
+            total: 25,
+          },
+        })
+      }),
+    )
+
+    await expect(
+      organizerEventsApi.list({ page: 2, perPage: 12 }),
+    ).resolves.toMatchObject({
+      data: [event],
+      meta: { current_page: 2, last_page: 3 },
+    })
+  })
+
   it('serializes event creation as multipart with an optional image', async () => {
     server.use(
       http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
@@ -120,10 +148,7 @@ describe('organizer events API', () => {
         expect(formData.get('event_modality_id')).toBe('1')
         expect(formData.get('location_id')).toBe('1')
         expect(formData.get('capacity')).toBe('25')
-        expect(formData.get('image')).toMatchObject({
-          name: 'cover.webp',
-          type: 'image/webp',
-        })
+        expect(formData.get('image')).toMatchObject({ type: 'image/webp' })
 
         return HttpResponse.json(
           {
@@ -154,16 +179,26 @@ describe('organizer events API', () => {
     })
   })
 
-  it('omits the optional image when creating an event without one', async () => {
+  it('serializes JSON when creating an event without an image', async () => {
     server.use(
       http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {
         document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
         return new HttpResponse(null, { status: 204 })
       }),
       http.post(`${apiUrl}/events`, async ({ request }) => {
-        const formData = await request.formData()
-
-        expect(formData.get('image')).toBeNull()
+        expect(request.headers.get('Content-Type')).toContain(
+          'application/json',
+        )
+        expect(await request.json()).toEqual({
+          community_id: 4,
+          event_category_id: 3,
+          event_modality_id: 1,
+          location_id: 1,
+          title: 'Taller Laravel',
+          description: 'Introducción a Laravel.',
+          starts_at: '2026-08-20T10:00:00-05:00',
+          capacity: 25,
+        })
         return HttpResponse.json({ data: event }, { status: 201 })
       }),
     )
@@ -199,10 +234,7 @@ describe('organizer events API', () => {
       http.post(`${apiUrl}/events/7/image`, async ({ request }) => {
         const formData = await request.formData()
 
-        expect(formData.get('image')).toMatchObject({
-          name: 'replacement.png',
-          type: 'image/png',
-        })
+        expect(formData.get('image')).toMatchObject({ type: 'image/png' })
 
         return HttpResponse.json({
           data: {

@@ -1,4 +1,4 @@
-import { CheckCircle2, Clock3, RefreshCw, XCircle } from 'lucide-react'
+import { CheckCircle2, Clock3, XCircle } from 'lucide-react'
 import { useState } from 'react'
 import { Link } from 'react-router'
 
@@ -6,6 +6,7 @@ import { appRoutes } from '@/app/routes'
 import { useMyCommunityCreationRequests } from '@/features/communities/hooks/use-community-queries'
 import type { CommunityCreationRequest } from '@/features/communities/model/community.schemas'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
@@ -160,20 +161,12 @@ export function CommunityCreationRequestsSection({
 
   if (requestsQuery.isError) {
     return (
-      <Alert variant="destructive">
-        <AlertTitle>No pudimos cargar tus solicitudes</AlertTitle>
-        <AlertDescription className="flex flex-wrap items-center gap-3">
-          <span>Intenta nuevamente para consultar su estado.</span>
-          <Button
-            onClick={() => void requestsQuery.refetch()}
-            size="sm"
-            variant="outline"
-          >
-            <RefreshCw aria-hidden="true" />
-            Reintentar
-          </Button>
-        </AlertDescription>
-      </Alert>
+      <ApiErrorFeedback
+        error={requestsQuery.error}
+        isRetrying={requestsQuery.isFetching}
+        onRetry={() => void requestsQuery.refetch()}
+        title="No pudimos cargar tus solicitudes"
+      />
     )
   }
 

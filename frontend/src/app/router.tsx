@@ -14,6 +14,9 @@ import { CommunityCreationRequestsPage } from '@/features/communities/pages/Comm
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
+import { CreateEventPage } from '@/features/events/management/pages/CreateEventPage'
+import { EditEventPage } from '@/features/events/management/pages/EditEventPage'
+import { OrganizerEventsPage } from '@/features/events/management/pages/OrganizerEventsPage'
 import { CommunityOnboardingPage } from '@/features/organizer/pages/CommunityOnboardingPage'
 import { OrganizePage } from '@/features/organizer/pages/OrganizePage'
 import { OrganizerPage } from '@/features/organizer/pages/OrganizerPage'
@@ -49,6 +52,17 @@ export const router = createBrowserRouter([
       {
         path: appRoutePatterns.eventDetail,
         element: <EventDetailPage />,
+      },
+      {
+        path: appRoutePatterns.eventEdit,
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <EditEventPage />
+          </RequireAuth>
+        ),
       },
       {
         path: appRoutes.organize.slice(1),
@@ -91,6 +105,28 @@ export const router = createBrowserRouter([
             loadingFallback={<AuthLoadingState />}
           >
             <OrganizerPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.myEvents.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <OrganizerEventsPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.createEvent.slice(1),
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CreateEventPage />
           </RequireAuth>
         ),
       },

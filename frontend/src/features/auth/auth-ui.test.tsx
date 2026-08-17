@@ -252,7 +252,9 @@ describe('authenticated navigation', () => {
     await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesión' }))
 
     expect(
-      await screen.findByText('El servidor no responde.'),
+      await screen.findByText(
+        'PoliLink no está disponible en este momento. Intenta nuevamente más tarde.',
+      ),
     ).toBeInTheDocument()
   })
 })

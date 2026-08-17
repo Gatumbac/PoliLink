@@ -55,7 +55,15 @@ and `FormData` requests. It must not set `Content-Type` manually for
 `FormData`, so the browser can provide the multipart boundary.
 
 Event responses expose `image_url`, which is nullable for existing events
-without a cover image. Cancelled events remain visible in the dashboard but
-cannot be edited, cancelled again, or have their image changed; those writes
-return `409`. Form components, previews, image rendering, and query-cache
-orchestration remain pending for the UI integration phase.
+without a cover image. The dashboard is available at `/mis-eventos`; it
+renders published and cancelled events with pagination, status, community,
+capacity, and image information. Published events expose an `Editar evento`
+action that opens the shared two-step form at
+`/eventos/{event}/editar`. The form preloads the event, converts its UTC
+timestamp to the ESPOL timezone, sends editable fields as JSON through
+`PATCH /events/{event}`, and returns to `/mis-eventos` with an update
+confirmation. Image management is intentionally read-only in this phase; the
+existing image or its fallback remains visible while replacement and removal
+continue in the following image phase. Cancelled events remain visible in the
+dashboard but cannot be edited, cancelled again, or have their image changed;
+those writes return `409`.

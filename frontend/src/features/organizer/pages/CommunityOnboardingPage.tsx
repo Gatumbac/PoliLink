@@ -5,16 +5,15 @@ import { useForm } from 'react-hook-form'
 import { useNavigate } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
-import { applyApiFieldErrors } from '@/features/auth/model/auth-form-errors'
 import { CommunityFormFields } from '@/features/communities/components/CommunityFormFields'
 import { useSubmitCommunityCreationRequest } from '@/features/communities/hooks/use-community-queries'
 import {
   type CommunityCreatePayload,
   communityCreatePayloadSchema,
 } from '@/features/communities/model/community.schemas'
-import { getCommunityErrorMessage } from '@/features/communities/model/community-form-errors'
 import { ApiError } from '@/shared/errors/api-error'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { applyApiFieldErrors } from '@/shared/errors/form-errors'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 import {
   Card,
@@ -87,7 +86,7 @@ export function CommunityOnboardingPage() {
   const [confirmationError, setConfirmationError] = useState<string | null>(
     null,
   )
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<unknown>(null)
   const [isExitDialogOpen, setIsExitDialogOpen] = useState(false)
   const form = useForm<CommunityCreatePayload>({
     defaultValues: {
@@ -138,14 +137,9 @@ export function CommunityOnboardingPage() {
       })
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
-      setFormError(
-        getCommunityErrorMessage(
-          error,
-          'No pudimos enviar la solicitud. Intenta nuevamente.',
-        ),
-      )
+      setFormError(error)
 
-      if (error instanceof ApiError && error.status === 422) {
+      if (error instanceof ApiError && error.kind === 'validation') {
         setStep(1)
       }
     }
@@ -211,6 +205,13 @@ export function CommunityOnboardingPage() {
 
         <CommunityOnboardingProgress step={step} />
 
+        {formError !== null && (
+          <ApiErrorFeedback
+            error={formError}
+            title="No pudimos enviar la solicitud"
+          />
+        )}
+
         <form noValidate onSubmit={handleSubmit}>
           <Card>
             {step === 1 && (
@@ -225,12 +226,6 @@ export function CommunityOnboardingPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {formError && (
-                    <Alert variant="destructive">
-                      <AlertTitle>No pudimos enviar la solicitud</AlertTitle>
-                      <AlertDescription>{formError}</AlertDescription>
-                    </Alert>
-                  )}
                   <CommunityFormFields
                     errors={form.formState.errors}
                     register={form.register}
@@ -253,13 +248,6 @@ export function CommunityOnboardingPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                  {formError && (
-                    <Alert variant="destructive">
-                      <AlertTitle>No pudimos enviar la solicitud</AlertTitle>
-                      <AlertDescription>{formError}</AlertDescription>
-                    </Alert>
-                  )}
-
                   <div className="rounded-lg border bg-muted/30 p-4">
                     <p className="text-sm text-muted-foreground">
                       Nombre de la comunidad

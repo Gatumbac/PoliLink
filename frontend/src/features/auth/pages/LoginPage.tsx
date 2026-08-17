@@ -11,14 +11,14 @@ import {
   loginPayloadSchema,
 } from '@/features/auth/model/auth.schemas'
 import {
-  applyApiFieldErrors,
   getAuthErrorMessage,
 } from '@/features/auth/model/auth-form-errors'
 import {
   buildAuthPath,
   getSafeRedirect,
 } from '@/features/auth/model/auth-helpers'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { applyApiFieldErrors } from '@/shared/errors/form-errors'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 import { Field, FieldError, FieldGroup, FieldLabel } from '@/shared/ui/field'
 import { Input } from '@/shared/ui/input'
@@ -27,7 +27,7 @@ export function LoginPage() {
   const { isLoggingIn, login } = useAuth()
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
-  const [formError, setFormError] = useState<string | null>(null)
+  const [formError, setFormError] = useState<unknown>(null)
   const redirect = searchParams.get('redirect')
   const form = useForm<LoginPayload>({
     defaultValues: {
@@ -45,12 +45,7 @@ export function LoginPage() {
       navigate(getSafeRedirect(redirect), { replace: true })
     } catch (error: unknown) {
       applyApiFieldErrors(error, form.setError)
-      setFormError(
-        getAuthErrorMessage(
-          error,
-          'No pudimos iniciar sesión. Intenta nuevamente.',
-        ),
-      )
+      setFormError(error)
     }
   }
 
@@ -75,11 +70,15 @@ export function LoginPage() {
         noValidate
         onSubmit={form.handleSubmit(onSubmit)}
       >
-        {formError && (
-          <Alert variant="destructive">
-            <AlertTitle>No pudimos iniciar sesión</AlertTitle>
-            <AlertDescription>{formError}</AlertDescription>
-          </Alert>
+        {formError !== null && (
+          <ApiErrorFeedback
+            error={formError}
+            message={getAuthErrorMessage(
+              formError,
+              'No pudimos iniciar sesión. Intenta nuevamente.',
+            )}
+            title="No pudimos iniciar sesión"
+          />
         )}
 
         <FieldGroup>

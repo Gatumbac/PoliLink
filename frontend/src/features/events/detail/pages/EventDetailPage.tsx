@@ -4,12 +4,13 @@ import { Link, useParams } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
 import { usePublicEventDetail } from '@/features/events/catalog/hooks/use-event-queries'
+import { EventImage } from '@/features/events/components/EventImage'
 import {
   formatEventCapacity,
   formatEventDate,
 } from '@/features/events/model/event-formatters'
 import { ApiError } from '@/shared/errors/api-error'
-import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
@@ -33,6 +34,7 @@ function DetailSkeleton() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <section className="space-y-5">
+        <Skeleton className="aspect-video w-full rounded-xl" />
         <div className="flex gap-2">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-5 w-28" />
@@ -78,7 +80,7 @@ export function EventDetailPage() {
   if (detailQuery.isError) {
     if (
       detailQuery.error instanceof ApiError &&
-      detailQuery.error.status === 404
+      detailQuery.error.kind === 'not_found'
     ) {
       return <EventNotFound />
     }
@@ -87,21 +89,12 @@ export function EventDetailPage() {
       <main className="px-4 py-10 sm:px-6 lg:px-8">
         <div className="mx-auto w-full max-w-6xl space-y-8">
           <BackToCatalog />
-          <Alert variant="destructive">
-            <AlertTitle>No se pudo cargar el evento</AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center gap-3">
-              <span>Inténtalo de nuevo en unos segundos.</span>
-              <Button
-                onClick={() => {
-                  void detailQuery.refetch()
-                }}
-                size="sm"
-                variant="outline"
-              >
-                Reintentar
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <ApiErrorFeedback
+            error={detailQuery.error}
+            isRetrying={detailQuery.isFetching}
+            onRetry={() => void detailQuery.refetch()}
+            title="No se pudo cargar el evento"
+          />
         </div>
       </main>
     )
@@ -117,6 +110,11 @@ export function EventDetailPage() {
         <BackToCatalog />
         <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
           <article className="space-y-6">
+            <EventImage
+              alt={`Portada de ${event.title}`}
+              className="rounded-xl"
+              imageUrl={event.image_url}
+            />
             <div className="flex flex-wrap gap-2">
               {event.category && (
                 <Badge variant="secondary">{event.category.name}</Badge>

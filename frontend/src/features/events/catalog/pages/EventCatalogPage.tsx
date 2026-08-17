@@ -1,5 +1,10 @@
+import { ArrowLeft } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Link, useSearchParams } from 'react-router'
+
+import { appRoutes } from '@/app/routes'
+import { useAuth } from '@/features/auth/auth-context'
+import { hasRole } from '@/features/auth/model/auth-helpers'
 import { CommunityOrganizerCallout } from '@/features/events/catalog/components/CommunityOrganizerCallout'
 import { EventCard } from '@/features/events/catalog/components/EventCard'
 import { EventCatalogFilters } from '@/features/events/catalog/components/EventCatalogFilters'
@@ -16,24 +21,12 @@ import {
   updateCatalogPage,
   updateCatalogSearchParams,
 } from '@/features/events/catalog/model/catalog-filters'
-import { ApiError } from '@/shared/errors/api-error'
 import { Alert, AlertDescription, AlertTitle } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Button } from '@/shared/ui/button'
 
-function getCatalogErrorMessage(error: unknown): string {
-  if (!(error instanceof ApiError)) {
-    return 'No se pudo cargar el catálogo de eventos.'
-  }
-
-  if (error.status === 0) return 'No se pudo conectar con la API de PoliLink.'
-  if (error.status === 422) {
-    return 'Los filtros enviados no son válidos. Revisa la búsqueda e inténtalo de nuevo.'
-  }
-
-  return 'No se pudo cargar el catálogo de eventos. Inténtalo de nuevo.'
-}
-
 export function EventCatalogPage() {
+  const { status, user } = useAuth()
   const [searchParams, setSearchParams] = useSearchParams()
   const filters = parseCatalogFilters(searchParams)
   const [searchInput, setSearchInput] = useState(filters.search)
@@ -89,11 +82,22 @@ export function EventCatalogPage() {
 
   const eventPage = catalogQuery.data
   const activeFilterCount = countActiveCatalogFilters(filters)
+  const calloutVariant =
+    status === 'authenticated' && hasRole(user, 'organizer')
+      ? 'organizer'
+      : 'visitor'
 
   return (
     <main className="px-4 py-10 sm:px-6 lg:px-8">
       <div className="mx-auto w-full max-w-6xl space-y-8">
-        <header className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <header className="space-y-4">
+          <Link
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            to={appRoutes.home}
+          >
+            <ArrowLeft aria-hidden="true" className="size-4" />
+            Volver al inicio
+          </Link>
           <div className="max-w-2xl space-y-3">
             <p className="text-sm font-medium text-muted-foreground">
               ESPOL · Comunidades estudiantiles
@@ -106,9 +110,6 @@ export function EventCatalogPage() {
               comunidades de ESPOL.
             </p>
           </div>
-          <Button asChild variant="outline">
-            <Link to="/">Volver al inicio</Link>
-          </Button>
         </header>
 
         <EventCatalogFilters
@@ -122,7 +123,7 @@ export function EventCatalogPage() {
           searchInput={searchInput}
         />
 
-        <CommunityOrganizerCallout />
+        <CommunityOrganizerCallout variant={calloutVariant} />
 
         {referenceData.isError && (
           <Alert>
@@ -137,21 +138,16 @@ export function EventCatalogPage() {
         {catalogQuery.isPending && <EventCatalogSkeleton />}
 
         {catalogQuery.isError && (
-          <Alert variant="destructive">
-            <AlertTitle>No se pudo cargar los eventos</AlertTitle>
-            <AlertDescription className="flex flex-wrap items-center gap-3">
-              <span>{getCatalogErrorMessage(catalogQuery.error)}</span>
-              <Button
-                onClick={() => {
-                  void catalogQuery.refetch()
-                }}
-                size="sm"
-                variant="outline"
-              >
-                Reintentar
-              </Button>
-            </AlertDescription>
-          </Alert>
+          <ApiErrorFeedback
+            error={catalogQuery.error}
+            isRetrying={catalogQuery.isFetching}
+            messageOverrides={{
+              validation:
+                'Los filtros enviados no son válidos. Revisa la búsqueda e inténtalo de nuevo.',
+            }}
+            onRetry={() => void catalogQuery.refetch()}
+            title="No se pudo cargar los eventos"
+          />
         )}
 
         {catalogQuery.isSuccess && eventPage && eventPage.data.length === 0 && (

@@ -2,12 +2,11 @@ import { ChevronDown, LogOut } from 'lucide-react'
 import { useState } from 'react'
 
 import { useAuth } from '@/features/auth/auth-context'
-import { getAuthErrorMessage } from '@/features/auth/model/auth-form-errors'
 import {
   getRoleLabel,
   getUserDisplayName,
 } from '@/features/auth/model/auth-helpers'
-import { Alert, AlertDescription } from '@/shared/ui/alert'
+import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Badge } from '@/shared/ui/badge'
 import { Button } from '@/shared/ui/button'
 import {
@@ -21,7 +20,7 @@ import {
 
 export function UserMenu() {
   const { isLoggingOut, logout, user } = useAuth()
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError] = useState<unknown>(null)
 
   if (!user) return null
 
@@ -33,12 +32,7 @@ export function UserMenu() {
     try {
       await logout()
     } catch (logoutError: unknown) {
-      setError(
-        getAuthErrorMessage(
-          logoutError,
-          'No pudimos cerrar sesión. Intenta nuevamente.',
-        ),
-      )
+      setError(logoutError)
     }
   }
 
@@ -81,10 +75,12 @@ export function UserMenu() {
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        {error && (
-          <Alert className="mb-1" variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
+        {error !== null && (
+          <ApiErrorFeedback
+            error={error}
+            fallback="No pudimos cerrar sesión. Intenta nuevamente."
+            variant="destructive"
+          />
         )}
         <DropdownMenuItem
           disabled={isLoggingOut}
