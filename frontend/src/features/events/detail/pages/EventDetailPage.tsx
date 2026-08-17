@@ -9,6 +9,7 @@ import {
   formatEventCapacity,
   formatEventDate,
 } from '@/features/events/model/event-formatters'
+import { EventRegistrationAction } from '@/features/registrations/student/components/EventRegistrationAction'
 import { ApiError } from '@/shared/errors/api-error'
 import { ApiErrorFeedback } from '@/shared/ui/api-error-feedback'
 import { Badge } from '@/shared/ui/badge'
@@ -188,9 +189,7 @@ export function EventDetailPage() {
               >
                 {formatEventCapacity(event)}
               </p>
-              <p className="text-sm text-muted-foreground">
-                La inscripción se habilitará en una fase posterior.
-              </p>
+              <EventRegistrationAction event={event} key={event.id} />
             </CardContent>
           </Card>
         </div>

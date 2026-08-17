@@ -56,7 +56,7 @@ export const eventSchema = z.object({
   updated_at: z.string().nullable(),
 })
 
-const paginationMetaSchema = z.object({
+export const paginationMetaSchema = z.object({
   current_page: z.number().int().positive(),
   last_page: z.number().int().positive(),
   per_page: z.number().int().positive(),
@@ -96,3 +96,4 @@ export type EventCommunity = z.infer<typeof eventCommunitySchema>
 export type EventPage = z.infer<typeof eventPageSchema>
 export type EventWriteFields = z.infer<typeof eventWriteFieldsSchema>
 export type EventUpdateFields = z.infer<typeof eventUpdateFieldsSchema>
+export type PaginationMeta = z.infer<typeof paginationMetaSchema>
