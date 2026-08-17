@@ -46,13 +46,17 @@ function getNavigationItems(
       { label: 'Eventos', to: appRoutes.events },
       { label: 'Mis comunidades', to: appRoutes.myCommunities },
       { label: 'Mis eventos', to: appRoutes.myEvents },
+      { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
     ]
   }
 
   const items: NavigationItem[] = [{ label: 'Eventos', to: appRoutes.events }]
 
   if (isAuthenticated) {
-    items.push({ label: 'Organiza una comunidad', to: appRoutes.organize })
+    items.push(
+      { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
+      { label: 'Organiza una comunidad', to: appRoutes.organize },
+    )
   }
 
   return items
