@@ -220,7 +220,8 @@ Las pantallas principales son: catálogo de eventos, detalle de evento, panel de
 En este avance se desarrolló el backend de PoliLink con Laravel, MySQL y una
 API REST. La aplicación cuenta con autenticación local mediante Laravel Sanctum,
 catálogo público de eventos, filtros, gestión de comunidades y operaciones para
-crear, editar y cancelar eventos desde la sesión del organizador. El repositorio
+crear, editar, cancelar eventos y administrar sus imágenes desde la sesión del
+organizador. El repositorio
 del grupo se encuentra en \url{https://github.com/Gatumbac/PoliLink}.
 
 \begin{table}[htbp]
@@ -239,6 +240,8 @@ Gestión de comunidades y consulta de comunidades y eventos propios. & Gabriel T
 \hline
 Creación, edición y cancelación de eventos propios mediante sesión autenticada. & Gabriel Tumbaco & Hecho \\
 \hline
+Carga, reemplazo y eliminación de imágenes de portada de eventos. & Gabriel Tumbaco & Hecho \\
+\hline
 Inscripción o reactivación de inscripción en eventos. & Darwin Díaz & Hecho \\
 \hline
 Cancelación de inscripción y liberación de cupos. & Darwin Díaz & Hecho \\
@@ -246,7 +249,7 @@ Cancelación de inscripción y liberación de cupos. & Darwin Díaz & Hecho \\
 Consulta de inscritos, cupos disponibles y mis inscripciones. & Darwin Díaz & Hecho \\
 \hline
 \end{tabularx}
-\caption{Estado de implementación del backend para el primer avance.}
+\caption{Estado de implementación del backend.}
 \end{table}
 
 Las siguientes capturas corresponden a pruebas reales realizadas con Postman,
@@ -325,6 +328,104 @@ e incluyen tanto los flujos de eventos y comunidades como los de inscripciones.
 \end{figure}
 
 \clearpage
+\subsection{Frontend o Visualización}
+
+El frontend se desarrolló como una aplicación de una sola página con React,
+TypeScript y Vite. La interfaz utiliza componentes reutilizables, validación
+de formularios, manejo centralizado de errores y consultas tipadas hacia la
+API REST. También se incorporaron los componentes de shadcn/ui basados en
+Radix, estilos responsive y soporte para tema claro y oscuro. Las rutas
+visibles para el usuario se mantienen en español, mientras que los nombres de
+componentes, servicios y modelos del código se mantienen en inglés.
+
+En el alcance implementado por Gabriel se integraron la autenticación local,
+el catálogo público de eventos, la búsqueda y los filtros, el detalle de cada
+evento y el recorrido del organizador. Este último permite registrar una
+solicitud de comunidad, consultar comunidades administradas, crear eventos,
+editarlos, administrar su imagen de portada y cancelarlos conservando el
+registro histórico. La edición y la eliminación de imágenes fueron verificadas
+en el navegador con el frontend y la API funcionando.
+
+Las implementaciones de inscripción, cancelación o reactivación de una
+inscripción, consulta de mis inscripciones y consulta de inscritos todavía se
+encuentran pendientes en el frontend de este avance; corresponden al trabajo
+de Darwin y se completarán en la siguiente fase.
+
+\begin{table}[htbp]
+\centering
+\footnotesize
+\renewcommand{\arraystretch}{1.15}
+\begin{tabularx}{\textwidth}{|Y|>{\centering\arraybackslash}p{2.8cm}|>{\centering\arraybackslash}p{1.8cm}|}
+\hline
+\textbf{Implementación} & \textbf{Responsable} & \textbf{Estado} \\
+\hline
+Autenticación local, navegación protegida, sesión y estructura visual compartida. & Gabriel Tumbaco & Hecho \\
+\hline
+Catálogo público, búsqueda, filtros, paginación y detalle de eventos. & Gabriel Tumbaco & Hecho \\
+\hline
+Onboarding de comunidades, consulta de solicitudes y comunidades administradas. & Gabriel Tumbaco & Hecho \\
+\hline
+Panel del organizador, creación, edición y cancelación de eventos propios. & Gabriel Tumbaco & Hecho \\
+\hline
+Carga, reemplazo, eliminación y fallback de la imagen de portada de eventos. & Gabriel Tumbaco & Hecho \\
+\hline
+Inscripción, cancelación y reactivación de inscripciones desde el detalle del evento. & Darwin Díaz & Pendiente \\
+\hline
+Pantalla de mis inscripciones activas y actualización de cupos. & Darwin Díaz & Pendiente \\
+\hline
+Consulta de inscritos y resumen de cupos para el organizador. & Darwin Díaz & Pendiente \\
+\hline
+\end{tabularx}
+\caption{Estado de implementación del frontend para el Avance 2.}
+\end{table}
+
+\subsubsection{Capturas del frontend}
+
+Las siguientes capturas muestran el frontend de Gabriel funcionando en el
+navegador. Las imágenes deben colocarse en la carpeta \texttt{images/} del
+proyecto de Overleaf con los nombres indicados.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-01-catalogo.png}
+\caption{Catálogo público de eventos con búsqueda, filtros y tarjetas de actividades.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-02-detalle.png}
+\caption{Detalle de un evento con información de fecha, modalidad, comunidad, ubicación y cupos.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-03-organizador.png}
+\caption{Panel del organizador con el historial de eventos propios y sus estados.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-04-crear-evento.png}
+\caption{Formulario del organizador para crear un evento con información e imagen opcional.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-05-editar-evento.png}
+\caption{Edición de un evento propio con la información precargada y su imagen actual.}
+\end{figure}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.95\textwidth]{images/frontend-gabriel-06-imagen-cancelacion.png}
+\caption{Administración de la portada y cancelación confirmada de un evento desde el organizador.}
+\end{figure}
+
+Las capturas del frontend correspondientes a las implementaciones de Darwin
+se agregarán cuando se complete la integración de inscripciones y asistentes.
+Por esta razón esas implementaciones aparecen como \texttt{Pendiente} en la tabla y
+no se presentan como funcionalidades terminadas en este documento.
+
 \section{Referencias}
 \begin{thebibliography}{9}
 \bibitem{espolclubes} Escuela Superior Politécnica del Litoral, ``Clubes y agrupaciones estudiantiles.'' [En línea]. Disponible en: \url{https://www.espol.edu.ec/es/clubes-y-agrupaciones-estudiantiles}. [Accedido: 28-jul-2026].

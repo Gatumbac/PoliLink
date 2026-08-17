@@ -165,3 +165,65 @@ El molde está listo para inicializarse como repositorio Git y subirse al remoto
 - Se añadió la prueba automatizada `tests/Feature/HealthTest.php` para `GET /api/health`.
 - La ruta API aparece en el listado de rutas y las pruebas del backend pasan correctamente.
 - Se corrigió un error de namespace detectado durante la primera comprobación de rutas.
+
+## 2026-08-16 — Gestión de imágenes y cancelación en el organizador
+
+### Objetivo
+
+Completar la integración frontend de las acciones que faltaban en la gestión de
+eventos: edición de portada y cancelación con estados seguros.
+
+### Acciones realizadas
+
+- Se añadió un editor de imagen dentro de `/eventos/:eventId/editar` para
+  reemplazar o eliminar la portada sin reenviar el formulario del evento.
+- Se reutilizó el uploader compartido para preview local, imagen actual,
+  fallback, validación JPG/PNG/WebP de hasta 5 MB y estados de carga.
+- Se conectaron las mutaciones de subida y eliminación con la actualización de
+  las cachés de detalle, catálogo e historial del organizador.
+- Se completó la cobertura de cancelación: confirmación, `PATCH` sin cuerpo,
+  bloqueo de doble envío y errores `403`, `409`, `422` y de red.
+- Se actualizaron la guía de fases, los estándares UI y el README del frontend.
+
+### Verificaciones
+
+- `npm run test:run`: 29 archivos y 127 pruebas exitosas.
+- `npm run typecheck`: correcto.
+- Biome sobre los archivos de esta fase: correcto; permanecen advertencias
+  preexistentes de `document.cookie` en pruebas existentes.
+- La verificación navegador → Laravel → MySQL queda pendiente de ejecutar con
+  los servicios locales activos.
+
+### Estado
+
+Las Fases 3.6 y 3.7 están implementadas y cubiertas automáticamente. La
+verificación real y la evidencia final del organizador quedan como requisito
+antes de cerrar toda la integración y comenzar las inscripciones de Darwin.
+
+## 2026-08-16 — Cierre documental de la integración del organizador
+
+### Objetivo
+
+Dejar alineados los documentos Markdown con el estado actual del código y
+separar claramente implementación, pruebas automatizadas y verificación real.
+
+### Acciones realizadas
+
+- Se actualizó el índice documental y el README raíz con el estado de las
+  fases del organizador y la responsabilidad pendiente de Darwin.
+- Se corrigió `docs/backend/FRONTEND_API_PHASES.md` para marcar la integración
+  de comunidades y eventos como implementada en código, manteniendo pendiente
+  únicamente la ejecución navegador → Laravel → MySQL.
+- Se añadió un checklist reproducible para validar creación, edición, portada,
+  cancelación, permisos, conflictos y errores de red.
+- Se documentó en Postman el reemplazo y la eliminación de imágenes de eventos.
+- Se sincronizó la guía del módulo frontend con las mutaciones de imagen y
+  cancelación disponibles.
+- Se aclaró en el plan académico que sus casillas históricas no sustituyen el
+  estado técnico vigente.
+
+### Estado
+
+La documentación del alcance implementado está disponible en archivos Markdown.
+La verificación real no se marca como completada porque requiere que una
+persona inicie los servicios locales y registre evidencia del recorrido.

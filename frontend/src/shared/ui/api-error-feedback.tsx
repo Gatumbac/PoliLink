@@ -11,7 +11,7 @@ type ApiErrorFeedbackProps = {
   message?: string
   fallback?: string
   messageOverrides?: Partial<Record<ApiErrorKind, string>>
-  onRetry?: () => void
+  onRetry?: (() => void) | undefined
   retryLabel?: string
   isRetrying?: boolean
   variant?: 'default' | 'destructive'

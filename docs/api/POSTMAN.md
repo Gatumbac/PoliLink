@@ -31,6 +31,24 @@ Importa el archivo `docs/api/PoliLink.postman_collection.json` desde
 Crear evento guarda automáticamente el ID retornado en eventId; las dos
 solicitudes siguientes usan ese valor.
 
+### Prueba manual de imágenes de eventos
+
+Para completar el flujo de portada con el evento guardado en `eventId`, crea
+una solicitud adicional en Postman si no aparece en la colección importada:
+
+1. `POST {{baseUrl}}/api/events/{{eventId}}/image` con **Body → form-data** y una
+   fila `image` de tipo **File**. Usa JPG, PNG o WebP de máximo 5 MB; espera
+   `200` y guarda el `image_url` retornado.
+2. Repite la misma solicitud con otro archivo para comprobar el reemplazo y
+   que la URL cambie.
+3. `DELETE {{baseUrl}}/api/events/{{eventId}}/image` sin cuerpo; espera `200` y
+   confirma que `image_url` sea `null`.
+
+No fijes manualmente `Content-Type`: Postman debe generar el boundary de
+`multipart/form-data`. Estas acciones requieren el mismo organizador
+responsable que creó el evento y responden `409` si el evento ya está
+cancelado.
+
 ## Recorrido de membresías
 
 1. Usa un usuario autenticado que no tenga una membresía activa en la

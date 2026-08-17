@@ -1,4 +1,4 @@
-import { ImagePlus, RefreshCw, Trash2, Upload } from 'lucide-react'
+import { ImageIcon, ImagePlus, RefreshCw, Trash2, Upload } from 'lucide-react'
 import { useEffect, useRef, useState } from 'react'
 
 import { Button } from '@/shared/ui/button'
@@ -9,9 +9,12 @@ type ImageUploaderProps = {
   ariaLabel: string
   disabled?: boolean
   error?: boolean
-  errorId?: string
+  errorId?: string | undefined
+  existingImageAlt?: string
+  existingImageUrl?: string | null
   inputId: string
   onClear: () => void
+  onRemoveExisting?: () => void
   onSelect: (file: File | undefined) => void
   selectedImage: File | null | undefined
 }
@@ -35,14 +38,20 @@ export function ImageUploader({
   disabled = false,
   error = false,
   errorId,
+  existingImageAlt = 'Imagen actual',
+  existingImageUrl = null,
   inputId,
   onClear,
+  onRemoveExisting,
   onSelect,
   selectedImage,
 }: ImageUploaderProps) {
   const imageInputRef = useRef<HTMLInputElement>(null)
   const [isDragActive, setIsDragActive] = useState(false)
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
+  const [failedExistingImageUrl, setFailedExistingImageUrl] = useState<
+    string | null
+  >(null)
 
   useEffect(() => {
     if (!selectedImage?.type.startsWith('image/')) {
@@ -76,7 +85,11 @@ export function ImageUploader({
   const clearImage = () => {
     if (disabled) return
 
-    onClear()
+    if (!selectedImage && existingImageUrl && onRemoveExisting) {
+      onRemoveExisting()
+    } else {
+      onClear()
+    }
 
     if (imageInputRef.current) imageInputRef.current.value = ''
   }
@@ -98,7 +111,60 @@ export function ImageUploader({
         type="file"
       />
 
-      {!selectedImage ? (
+      {!selectedImage && existingImageUrl ? (
+        <div
+          className={`grid gap-4 rounded-xl border bg-secondary/40 p-4 sm:grid-cols-[9rem_1fr] sm:items-center ${error ? 'border-destructive/60' : 'border-border'}`}
+        >
+          <div className="aspect-square overflow-hidden rounded-lg border bg-background">
+            {failedExistingImageUrl !== existingImageUrl ? (
+              <img
+                alt={existingImageAlt}
+                className="size-full object-cover"
+                onError={() => setFailedExistingImageUrl(existingImageUrl)}
+                src={existingImageUrl}
+              />
+            ) : (
+              <div className="flex size-full items-center justify-center">
+                <ImageIcon
+                  aria-hidden="true"
+                  className="size-9 text-muted-foreground/60"
+                />
+              </div>
+            )}
+          </div>
+          <div className="min-w-0 space-y-3">
+            <div className="space-y-1">
+              <p className="text-sm font-medium">Imagen actual</p>
+              <p className="text-sm text-muted-foreground">
+                Reemplázala o elimínala sin guardar nuevamente los datos del
+                evento.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button
+                disabled={disabled}
+                onClick={openFilePicker}
+                size="sm"
+                type="button"
+                variant="outline"
+              >
+                <RefreshCw aria-hidden="true" />
+                Cambiar imagen
+              </Button>
+              <Button
+                disabled={disabled}
+                onClick={clearImage}
+                size="sm"
+                type="button"
+                variant="ghost"
+              >
+                <Trash2 aria-hidden="true" />
+                Eliminar imagen
+              </Button>
+            </div>
+          </div>
+        </div>
+      ) : !selectedImage ? (
         <button
           aria-describedby={errorDescription}
           aria-label={`Subir ${ariaLabel.toLowerCase()}`}

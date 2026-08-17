@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { HttpResponse, http } from 'msw'
 import {
@@ -16,6 +16,11 @@ import { OrganizerEventsPage } from '@/features/events/management/pages/Organize
 import { server } from '@/test/server'
 
 const apiUrl = 'http://localhost:8000/api'
+
+function setCsrfCookie() {
+  // biome-ignore lint/suspicious/noDocumentCookie: The request client reads this cookie during the integration test.
+  document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+}
 
 const publishedEvent = {
   id: 7,
@@ -122,6 +127,201 @@ describe('organizer events page', () => {
       screen.queryByRole('link', { name: 'Editar evento Encuentro cancelado' }),
     ).not.toBeInTheDocument()
     expect(screen.getByAltText('Portada de Taller Laravel')).toBeInTheDocument()
+  })
+
+  it('requires confirmation and refreshes the history after cancelling an event', async () => {
+    setCsrfCookie()
+    let currentEvent = publishedEvent
+    let requestBody: string | undefined
+
+    server.use(
+      http.get(`${apiUrl}/me/events`, () =>
+        HttpResponse.json({
+          data: [currentEvent],
+          meta: {
+            current_page: 1,
+            last_page: 1,
+            per_page: 12,
+            total: 1,
+          },
+        }),
+      ),
+      http.patch(
+        `${apiUrl}/events/${publishedEvent.id}/cancel`,
+        async ({ request }) => {
+          requestBody = await request.text()
+          currentEvent = {
+            ...publishedEvent,
+            status: { code: 'cancelled', name: 'Cancelado' },
+          }
+
+          return HttpResponse.json({ data: currentEvent })
+        },
+      ),
+    )
+
+    const user = userEvent.setup()
+    renderPage()
+
+    await screen.findByText('Taller Laravel')
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Cancelar evento Taller Laravel',
+      }),
+    )
+
+    const dialog = await screen.findByRole('dialog')
+    expect(
+      within(dialog).getByText(
+        '“Taller Laravel” dejará de aparecer en el catálogo público y ya no podrás editarlo. El evento se conservará en tu historial como cancelado.',
+      ),
+    ).toBeInTheDocument()
+    expect(requestBody).toBeUndefined()
+
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Cancelar evento' }),
+    )
+
+    await waitFor(() => {
+      expect(requestBody).toBe('')
+      expect(screen.getByText('Cancelado')).toBeInTheDocument()
+    })
+    expect(
+      screen.queryByRole('button', {
+        name: 'Cancelar evento Taller Laravel',
+      }),
+    ).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('link', { name: 'Editar evento Taller Laravel' }),
+    ).not.toBeInTheDocument()
+  })
+
+  it('prevents a second cancellation while the first request is pending', async () => {
+    setCsrfCookie()
+    let requestCount = 0
+    let resolveRequest: ((response: Response) => void) | undefined
+
+    server.use(
+      http.patch(`${apiUrl}/events/${publishedEvent.id}/cancel`, () => {
+        requestCount += 1
+
+        return new Promise((resolve) => {
+          resolveRequest = resolve
+        })
+      }),
+    )
+
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Taller Laravel')
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Cancelar evento Taller Laravel',
+      }),
+    )
+
+    const dialog = await screen.findByRole('dialog')
+    const confirmButton = within(dialog).getByRole('button', {
+      name: 'Cancelar evento',
+    })
+    await user.click(confirmButton)
+
+    await waitFor(() => {
+      expect(requestCount).toBe(1)
+      expect(confirmButton).toBeDisabled()
+      expect(within(dialog).getByText('Cancelando…')).toBeInTheDocument()
+    })
+    await user.click(confirmButton)
+    expect(requestCount).toBe(1)
+
+    resolveRequest?.(
+      HttpResponse.json({
+        data: {
+          ...publishedEvent,
+          status: { code: 'cancelled', name: 'Cancelado' },
+        },
+      }),
+    )
+
+    await waitFor(() =>
+      expect(screen.getByText('Cancelado')).toBeInTheDocument(),
+    )
+  })
+
+  it.each([
+    {
+      expected: 'No tienes permisos para cancelar este evento.',
+      status: 403,
+    },
+    {
+      expected:
+        'Este evento ya fue cancelado. Actualiza el historial para ver su estado.',
+      status: 409,
+    },
+    { expected: 'Revisa los datos ingresados.', status: 422 },
+  ])(
+    'shows the centralized cancellation error for status $status',
+    async ({ expected, status }) => {
+      setCsrfCookie()
+      server.use(
+        http.patch(`${apiUrl}/events/${publishedEvent.id}/cancel`, () =>
+          HttpResponse.json({ message: 'Cancellation failed.' }, { status }),
+        ),
+      )
+
+      const user = userEvent.setup()
+      renderPage()
+      await screen.findByText('Taller Laravel')
+      await user.click(
+        screen.getByRole('button', {
+          name: 'Cancelar evento Taller Laravel',
+        }),
+      )
+      const dialog = await screen.findByRole('dialog')
+      await user.click(
+        within(dialog).getByRole('button', { name: 'Cancelar evento' }),
+      )
+
+      expect(await screen.findByText(expected)).toBeInTheDocument()
+      expect(
+        within(screen.getByRole('dialog')).getByRole('button', {
+          name: 'Reintentar',
+        }),
+      ).toBeInTheDocument()
+    },
+  )
+
+  it('shows the network error and keeps cancellation available to retry', async () => {
+    setCsrfCookie()
+    server.use(
+      http.patch(`${apiUrl}/events/${publishedEvent.id}/cancel`, () =>
+        HttpResponse.error(),
+      ),
+    )
+
+    const user = userEvent.setup()
+    renderPage()
+    await screen.findByText('Taller Laravel')
+    await user.click(
+      screen.getByRole('button', {
+        name: 'Cancelar evento Taller Laravel',
+      }),
+    )
+    const dialog = await screen.findByRole('dialog')
+    await user.click(
+      within(dialog).getByRole('button', { name: 'Cancelar evento' }),
+    )
+
+    expect(
+      await screen.findByText(
+        'No pudimos conectarnos con PoliLink. Intenta nuevamente.',
+      ),
+    ).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('dialog')).getByRole('button', {
+        name: 'Reintentar',
+      }),
+    ).toBeInTheDocument()
   })
 
   it('requests and persists the selected page', async () => {
