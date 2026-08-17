@@ -19,19 +19,21 @@ export function CommunityOrganizerCallout({
   if (variant === 'organizer') {
     return (
       <Card className="bg-muted/30">
-        <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-          <CardHeader className="min-w-0 flex-1 p-0">
-            <div className="mb-2 flex size-9 items-center justify-center rounded-full bg-background text-foreground">
+        <div className="flex flex-col gap-4 p-4 sm:flex-row sm:items-center sm:gap-5 sm:p-5">
+          <div className="flex min-w-0 flex-1 items-center gap-4">
+            <div className="flex size-10 shrink-0 items-center justify-center rounded-full bg-background text-foreground">
               <CalendarPlus aria-hidden="true" className="size-4" />
             </div>
-            <CardTitle aria-level={2} role="heading">
-              Gestiona tus actividades
-            </CardTitle>
-            <CardDescription>
-              Publica y revisa los eventos de las comunidades que administras.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="flex shrink-0 flex-wrap gap-2 p-0">
+            <CardHeader className="min-w-0 flex-1 p-0">
+              <CardTitle aria-level={2} role="heading">
+                Gestiona tus actividades
+              </CardTitle>
+              <CardDescription>
+                Publica y revisa los eventos de las comunidades que administras.
+              </CardDescription>
+            </CardHeader>
+          </div>
+          <CardContent className="flex shrink-0 flex-wrap gap-2 p-0 sm:justify-end">
             <Button asChild>
               <Link to={appRoutes.createEvent}>
                 Crear evento
