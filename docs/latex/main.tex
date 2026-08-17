@@ -330,26 +330,9 @@ e incluyen tanto los flujos de eventos y comunidades como los de inscripciones.
 \clearpage
 \subsection{Frontend o Visualización}
 
-El frontend se desarrolló como una aplicación de una sola página con React,
-TypeScript y Vite. La interfaz utiliza componentes reutilizables, validación
-de formularios, manejo centralizado de errores y consultas tipadas hacia la
-API REST. También se incorporaron los componentes de shadcn/ui basados en
-Radix, estilos responsive y soporte para tema claro y oscuro. Las rutas
-visibles para el usuario se mantienen en español, mientras que los nombres de
-componentes, servicios y modelos del código se mantienen en inglés.
-
-En el alcance implementado por Gabriel se integraron la autenticación local,
-el catálogo público de eventos, la búsqueda y los filtros, el detalle de cada
-evento y el recorrido del organizador. Este último permite registrar una
-solicitud de comunidad, consultar comunidades administradas, crear eventos,
-editarlos, administrar su imagen de portada y cancelarlos conservando el
-registro histórico. La edición y la eliminación de imágenes fueron verificadas
-en el navegador con el frontend y la API funcionando.
-
-Las implementaciones de inscripción, cancelación o reactivación de una
-inscripción, consulta de mis inscripciones y consulta de inscritos todavía se
-encuentran pendientes en el frontend de este avance; corresponden al trabajo
-de Darwin y se completarán en la siguiente fase.
+El frontend de PoliLink se desarrolló con React, TypeScript y Vite. La interfaz
+utiliza componentes reutilizables, validación de formularios y un diseño
+responsive para sus diferentes vistas.
 
 \begin{table}[htbp]
 \centering
@@ -359,21 +342,15 @@ de Darwin y se completarán en la siguiente fase.
 \hline
 \textbf{Implementación} & \textbf{Responsable} & \textbf{Estado} \\
 \hline
-Autenticación local, navegación protegida, sesión y estructura visual compartida. & Gabriel Tumbaco & Hecho \\
+Configuración del frontend, herramientas de desarrollo y estructura de la aplicación. & Gabriel Tumbaco & Hecho \\
 \hline
-Catálogo público, búsqueda, filtros, paginación y detalle de eventos. & Gabriel Tumbaco & Hecho \\
+Catálogo público, búsqueda, filtros y detalle de eventos. & Gabriel Tumbaco & Hecho \\
 \hline
-Onboarding de comunidades, consulta de solicitudes y comunidades administradas. & Gabriel Tumbaco & Hecho \\
+Gestión de eventos del organizador: comunidades, creación, edición, imágenes y cancelación. & Gabriel Tumbaco & Hecho \\
 \hline
-Panel del organizador, creación, edición y cancelación de eventos propios. & Gabriel Tumbaco & Hecho \\
+Creación del scaffold inicial del monorepo y la aplicación frontend. & Darwin Díaz & Hecho \\
 \hline
-Carga, reemplazo, eliminación y fallback de la imagen de portada de eventos. & Gabriel Tumbaco & Hecho \\
-\hline
-Inscripción, cancelación y reactivación de inscripciones desde el detalle del evento. & Darwin Díaz & Pendiente \\
-\hline
-Pantalla de mis inscripciones activas y actualización de cupos. & Darwin Díaz & Pendiente \\
-\hline
-Consulta de inscritos y resumen de cupos para el organizador. & Darwin Díaz & Pendiente \\
+Integración de inscripciones, mis inscripciones, asistentes y cupos. & Darwin Díaz & Pendiente \\
 \hline
 \end{tabularx}
 \caption{Estado de implementación del frontend para el Avance 2.}
@@ -420,10 +397,7 @@ de PoliLink durante su ejecución en un navegador web.
 \caption{Administración de la portada y cancelación confirmada de un evento desde el organizador.}
 \end{figure}
 
-Las capturas del frontend correspondientes a las implementaciones de Darwin
-se agregarán cuando se complete la integración de inscripciones y asistentes.
-Por esta razón esas implementaciones aparecen como \texttt{Pendiente} en la tabla y
-no se presentan como funcionalidades terminadas en este documento.
+Las implementaciones pendientes se señalan en la tabla anterior.
 
 \section{Referencias}
 \begin{thebibliography}{9}
