@@ -1,5 +1,16 @@
 # PoliLink — Plan del primer avance
 
+> **Nota de seguimiento (16 de agosto de 2026):** este documento conserva el
+> plan académico original y sus casillas no representan por sí solas el estado
+> actual del repositorio. Para el estado técnico vigente consulta
+> [`docs/backend/FRONTEND_API_PHASES.md`](backend/FRONTEND_API_PHASES.md) y
+> [`docs/BITACORA.md`](BITACORA.md). La integración de Gabriel para catálogo,
+> creación, edición, imágenes y cancelación de eventos está implementada en
+> código y cuenta con pruebas automatizadas; la verificación completa en
+> navegador contra Laravel y MySQL todavía está pendiente. La integración de
+> inscripciones, cancelación/reactivación y asistentes de Darwin permanece
+> separada de este cierre.
+
 ## 1. Propósito
 
 Construir un primer incremento funcional de PoliLink, la plataforma web para publicar, consultar e inscribirse en eventos de comunidades estudiantiles de ESPOL.

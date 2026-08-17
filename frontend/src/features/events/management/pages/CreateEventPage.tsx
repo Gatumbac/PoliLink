@@ -28,7 +28,9 @@ import type { Event } from '@/features/events/model/event.schemas'
 import {
   useCreateOrganizerEvent,
   useManagedCommunities,
+  useRemoveOrganizerEventImage,
   useUpdateOrganizerEvent,
+  useUploadOrganizerEventImage,
 } from '@/features/organizer/hooks/use-organizer-queries'
 import { ApiError } from '@/shared/errors/api-error'
 import { applyApiFieldErrors } from '@/shared/errors/form-errors'
@@ -156,6 +158,8 @@ export function EventFormPage({
   const navigate = useNavigate()
   const createEvent = useCreateOrganizerEvent()
   const updateEvent = useUpdateOrganizerEvent()
+  const uploadEventImage = useUploadOrganizerEventImage()
+  const removeEventImage = useRemoveOrganizerEventImage()
   const managedCommunities = useManagedCommunities()
   const referenceData = useEventWriteReferenceData()
   const eventQuery = usePublicEventDetail(eventId)
@@ -206,9 +210,12 @@ export function EventFormPage({
 
   const formValues = form.watch()
   const selectedImage = formValues.image
-  const isMutationPending = isEditing
+  const isFormMutationPending = isEditing
     ? updateEvent.isPending
     : createEvent.isPending
+  const isImageMutationPending =
+    isEditing && (uploadEventImage.isPending || removeEventImage.isPending)
+  const isMutationPending = isFormMutationPending || isImageMutationPending
   const hasUnsavedDetails =
     isFormInitialized && (form.formState.isDirty || Boolean(selectedImage))
   const exitGuard = useUnsavedChangesGuard(
@@ -329,13 +336,32 @@ export function EventFormPage({
         forbidden:
           'No pudimos consultar la información necesaria para publicar el evento.',
       }
+  const imageEditor =
+    isEditing && eventId !== null
+      ? {
+          imageUrl: event?.image_url,
+          isPending: isImageMutationPending,
+          onRemove: () => removeEventImage.mutateAsync(eventId),
+          onResetRemove: removeEventImage.reset,
+          onResetUpload: uploadEventImage.reset,
+          onUpload: (image: File) =>
+            uploadEventImage.mutateAsync({ eventId, image }),
+          removeError: removeEventImage.error,
+          uploadError: uploadEventImage.error,
+        }
+      : undefined
 
   return (
     <main className="px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
       <div className="mx-auto w-full max-w-3xl space-y-8">
         <header className="max-w-2xl space-y-3">
           <Link
+            aria-disabled={isMutationPending}
             className="inline-flex items-center gap-2 text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+            onClick={(linkEvent) => {
+              if (isMutationPending) linkEvent.preventDefault()
+            }}
+            tabIndex={isMutationPending ? -1 : undefined}
             to={appRoutes.myEvents}
           >
             <ArrowLeft aria-hidden="true" className="size-4" />
@@ -471,6 +497,7 @@ export function EventFormPage({
                             control={form.control}
                             disabled={isMutationPending}
                             errors={form.formState.errors}
+                            imageEditor={imageEditor}
                             locations={referenceData.locations}
                             modalities={referenceData.modalities}
                             register={form.register}
@@ -551,6 +578,7 @@ export function EventFormPage({
                             control={form.control}
                             disabled={isMutationPending}
                             errors={form.formState.errors}
+                            imageEditor={imageEditor}
                             locations={referenceData.locations}
                             modalities={referenceData.modalities}
                             register={form.register}

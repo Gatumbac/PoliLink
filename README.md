@@ -9,7 +9,11 @@ PoliLink será una plataforma web para centralizar la publicación, consulta e i
 El backend ya dispone de autenticación local, catálogo y filtros de eventos,
 gestión de comunidades y creación, edición y cancelación de eventos. El módulo
 de inscripciones, cancelaciones y consulta de inscritos está asignado a Darwin
-Díaz y permanece pendiente.
+Díaz en el frontend y permanece pendiente. La experiencia frontend del
+organizador para consultar, crear, editar, administrar imágenes y cancelar
+eventos está implementada y cubierta por pruebas automatizadas; su verificación
+real contra Laravel, MySQL y Vite aún debe ejecutarse con los servicios locales
+activos.
 
 ## Estructura del proyecto
 

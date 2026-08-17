@@ -34,7 +34,7 @@ function DetailSkeleton() {
   return (
     <div className="grid gap-8 lg:grid-cols-[1fr_20rem]">
       <section className="space-y-5">
-        <Skeleton className="aspect-video w-full rounded-xl" />
+        <Skeleton className="aspect-video w-full rounded-xl lg:aspect-auto lg:h-[20rem]" />
         <div className="flex gap-2">
           <Skeleton className="h-5 w-24" />
           <Skeleton className="h-5 w-28" />
@@ -112,7 +112,7 @@ export function EventDetailPage() {
           <article className="space-y-6">
             <EventImage
               alt={`Portada de ${event.title}`}
-              className="rounded-xl"
+              className="rounded-xl lg:aspect-auto lg:h-[20rem]"
               imageUrl={event.image_url}
             />
             <div className="flex flex-wrap gap-2">

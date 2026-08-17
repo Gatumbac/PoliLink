@@ -24,3 +24,19 @@ son capturas reales de Postman para el avance de backend:
 Las siete primeras evidencian el componente de Gabriel; las cinco siguientes,
 el de Darwin. Cada captura debe mostrar la solicitud y una respuesta exitosa;
 no usar imágenes de relleno.
+
+## Capturas del frontend para el Avance 2
+
+`main.tex` reserva las siguientes capturas del frontend de Gabriel. Súbelas a
+la carpeta `images/` de Overleaf con estos nombres exactos:
+
+- `frontend-gabriel-01-catalogo.png` — catálogo con búsqueda y filtros.
+- `frontend-gabriel-02-detalle.png` — detalle de un evento.
+- `frontend-gabriel-03-organizador.png` — panel de eventos propios.
+- `frontend-gabriel-04-crear-evento.png` — formulario de creación.
+- `frontend-gabriel-05-editar-evento.png` — formulario de edición.
+- `frontend-gabriel-06-imagen-cancelacion.png` — imagen y cancelación del evento.
+
+Las capturas de Darwin se incorporarán cuando sus recorridos frontend de
+inscripción y asistentes estén implementados. No compilar `main.tex` localmente:
+la compilación y la revisión visual se realizan en Overleaf.

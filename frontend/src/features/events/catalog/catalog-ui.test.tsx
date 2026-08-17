@@ -195,7 +195,10 @@ describe('public event catalog', () => {
     renderCatalog()
 
     expect(
-      await screen.findByRole('heading', { name: 'Gestiona tus actividades' }),
+      screen.queryByRole('heading', { name: 'Gestiona tus actividades' }),
+    ).not.toBeInTheDocument()
+    expect(
+      await screen.findByRole('group', { name: 'Acciones de organización' }),
     ).toBeInTheDocument()
     expect(screen.getByRole('link', { name: 'Crear evento' })).toHaveAttribute(
       'href',

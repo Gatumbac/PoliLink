@@ -49,6 +49,7 @@ The typed `organizerEventsApi` surface in
 - `update()` through JSON `PATCH /events/{event}`.
 - `uploadImage()` through multipart `POST /events/{event}/image`.
 - `removeImage()` through `DELETE /events/{event}/image`.
+- `cancel()` through empty-body `PATCH /events/{event}/cancel`.
 
 The shared HTTP client preserves Sanctum cookies and CSRF handling for both JSON
 and `FormData` requests. It must not set `Content-Type` manually for
@@ -62,8 +63,20 @@ action that opens the shared two-step form at
 `/eventos/{event}/editar`. The form preloads the event, converts its UTC
 timestamp to the ESPOL timezone, sends editable fields as JSON through
 `PATCH /events/{event}`, and returns to `/mis-eventos` with an update
-confirmation. Image management is intentionally read-only in this phase; the
-existing image or its fallback remains visible while replacement and removal
-continue in the following image phase. Cancelled events remain visible in the
-dashboard but cannot be edited, cancelled again, or have their image changed;
-those writes return `409`.
+confirmation. The edit form keeps event fields as JSON and manages the image
+independently: it shows the current cover or a Lucide fallback, validates JPG,
+PNG, and WebP files up to 5 MB, uploads replacements immediately, and asks for
+confirmation before removing a cover. Successful image mutations refresh the
+event detail, public catalog, and organizer history queries.
+
+The dashboard exposes `Cancelar evento` only for published events. The action
+requires confirmation, sends an empty-body `PATCH`, disables duplicate
+submissions, preserves the cancelled event in history, and removes its public,
+edit, and repeated-cancellation actions. API failures (`401`, `403`, `409`,
+`422`, and network errors) use the shared Spanish feedback and retry behavior.
+
+Automated coverage lives in the event API, organizer dashboard, and edit-page
+tests. The current frontend suite passes 127 tests and TypeScript typecheck;
+browser-to-Laravel-to-MySQL verification remains pending until humans start
+the local services and execute the acceptance checklist in
+`docs/backend/FRONTEND_API_PHASES.md`.

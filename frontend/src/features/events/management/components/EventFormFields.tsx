@@ -7,6 +7,10 @@ import type {
 import { Controller } from 'react-hook-form'
 
 import { EventImage } from '@/features/events/components/EventImage'
+import {
+  EventImageEditor,
+  type EventImageEditorProps,
+} from '@/features/events/management/components/EventImageEditor'
 import type {
   EventFormReferenceData,
   EventFormValues,
@@ -29,6 +33,7 @@ type EventFormFieldsProps = EventFormReferenceData & {
   control: Control<EventFormValues>
   disabled?: boolean
   errors: FieldErrors<EventFormValues>
+  imageEditor?: EventImageEditorProps | undefined
   existingImageUrl?: string | null | undefined
   imageSelectionEnabled?: boolean
   register: UseFormRegister<EventFormValues>
@@ -101,6 +106,7 @@ export function EventFormFields({
   control,
   disabled = false,
   errors,
+  imageEditor,
   existingImageUrl = null,
   imageSelectionEnabled = true,
   locations,
@@ -291,6 +297,8 @@ export function EventFormFields({
             }
             selectedImage={selectedImage}
           />
+        ) : imageEditor ? (
+          <EventImageEditor {...imageEditor} disabled={disabled} />
         ) : (
           <EventImage
             alt="Portada actual del evento"
