@@ -15,7 +15,7 @@ export function CommunityOrganizerCallout() {
   return (
     <Card className="bg-muted/30">
       <div className="flex flex-col gap-5 p-5 sm:flex-row sm:items-center sm:justify-between sm:p-6">
-        <CardHeader className="p-0">
+        <CardHeader className="min-w-0 flex-1 p-0">
           <div className="mb-2 flex size-9 items-center justify-center rounded-full bg-background text-foreground">
             <UsersRound aria-hidden="true" className="size-4" />
           </div>
@@ -27,7 +27,7 @@ export function CommunityOrganizerCallout() {
             de ESPOL.
           </CardDescription>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent className="shrink-0 p-0">
           <Button asChild variant="outline">
             <Link to={appRoutes.organize}>
               Conoce cómo organizar
