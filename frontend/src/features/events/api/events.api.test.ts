@@ -130,6 +130,28 @@ describe('organizer events API', () => {
     })
   })
 
+  it('cancels an event with an empty PATCH request', async () => {
+    // biome-ignore lint/suspicious/noDocumentCookie: The request client reads this cookie during the integration test.
+    document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+
+    server.use(
+      http.patch(`${apiUrl}/events/7/cancel`, async ({ request }) => {
+        expect(await request.text()).toBe('')
+
+        return HttpResponse.json({
+          data: {
+            ...event,
+            status: { code: 'cancelled', name: 'Cancelado' },
+          },
+        })
+      }),
+    )
+
+    await expect(organizerEventsApi.cancel(event.id)).resolves.toMatchObject({
+      status: { code: 'cancelled', name: 'Cancelado' },
+    })
+  })
+
   it('serializes event creation as multipart with an optional image', async () => {
     server.use(
       http.get(`${backendUrl}/sanctum/csrf-cookie`, () => {

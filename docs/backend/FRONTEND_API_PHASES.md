@@ -261,7 +261,7 @@ queda pendiente.
   ubicación y cupos; convertir `starts_at` desde UTC a la zona horaria de
   ESPOL antes de mostrarlo.
 - Enviar el conjunto editable como JSON, sin incluir `image`; la imagen actual
-  se muestra de forma no editable hasta la Fase 3.6.
+  se gestiona por separado mediante los endpoints de imagen de la Fase 3.6.
 - Exponer `Editar evento` solo para eventos publicados, bloquear visualmente
   eventos cancelados y manejar respuestas `401`, `403`, `404`, `409` y `422`.
 - Invalidar el panel del organizador y el detalle público después de guardar,
@@ -271,23 +271,36 @@ queda pendiente.
 
 #### Fase 3.6 — Gestión de imágenes
 
-- Añadir preview local, estado de subida y errores.
-- Implementar reemplazo y eliminación mediante los endpoints de imagen.
-- Manejar correctamente `image_url` nullable y refrescar las consultas.
+**Estado:** implementada en código y cubierta por pruebas automatizadas;
+verificación navegador → Laravel → MySQL queda pendiente.
+
+- Mostrar la imagen actual o un fallback y permitir reemplazarla desde el mismo
+  formulario de edición.
+- Ejecutar el reemplazo inmediatamente con `POST /events/{event}/image` y
+  solicitar confirmación antes de `DELETE /events/{event}/image`.
+- Validar formato y tamaño antes de enviar, exponer estados de subida o
+  eliminación y centralizar los errores `403`, `409`, `422` y de red.
+- Actualizar el detalle, el catálogo y el historial del organizador sin volver
+  a enviar los campos del evento.
 
 **Salida:** el organizador puede administrar la portada sin afectar el resto
-del formulario.
+del formulario; falta comprobar la persistencia con servicios locales.
 
 #### Fase 3.7 — Cancelación y estabilización
 
-- Añadir confirmación antes de `PATCH /events/{event}/cancel`.
-- Reflejar el estado cancelado sin eliminar el evento.
-- Verificar permisos `403`, conflictos `409`, validaciones `422` y el recorrido
-  navegador → Laravel → MySQL.
-- Registrar evidencia y actualizar README, API y bitácora.
+**Estado:** implementada en código y cubierta por pruebas automatizadas;
+verificación navegador → Laravel → MySQL queda pendiente.
+
+- Confirmar la consecuencia antes de enviar el `PATCH` sin cuerpo.
+- Reflejar el estado cancelado sin eliminar el evento ni mostrar acciones de
+  edición o cancelación.
+- Cubrir estados de carga, doble envío, permisos `403`, conflictos `409`,
+  validaciones `422` y errores de red con reintento.
+- Registrar la evidencia de ejecución real cuando los servicios locales estén
+  activos.
 
 **Salida:** la experiencia del organizador queda verificada y lista para la
-fase de inscripciones del estudiante.
+fase de inscripciones del estudiante después de completar la verificación real.
 
 ### Fase 4 — Experiencia del estudiante
 

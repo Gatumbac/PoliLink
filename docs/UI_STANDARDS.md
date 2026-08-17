@@ -91,11 +91,11 @@ API.
 
 | Subfase | Vista propuesta | Contenido y acción primaria | Salida |
 | --- | --- | --- | --- |
-| 3.3 Panel de eventos | `/mis-eventos` | Historial paginado, estado, cupos, comunidad e imagen. Las acciones de mutación se incorporan en las subfases siguientes. | El organizador revisa su historial sin encontrar botones que todavía no funcionan. |
+| 3.3 Panel de eventos | `/mis-eventos` | Historial paginado, estado, cupos, comunidad e imagen. Incluye acciones para editar o cancelar eventos publicados. | El organizador revisa su historial y encuentra acciones coherentes con el estado del evento. |
 | 3.4 Crear evento | `/crear-evento` | Formulario agrupado: información, fecha/hora, modalidad/ubicación, comunidad, cupos e imagen. `Publicar evento`. | Evento creado y visible en el panel y catálogo público. |
 | 3.5 Editar evento | `/eventos/:eventId/editar` | Reutiliza el formulario, precarga datos y conserva valores cuando falla la validación. `Guardar cambios`. | Evento activo actualizado. |
-| 3.6 Imagen | Dentro de crear/editar | Preview, reemplazo y eliminación; formato, tamaño y estado de carga visibles. | `image_url` se refleja sin romper el resto del formulario. |
-| 3.7 Cancelar y estabilizar | Panel y detalle | `Cancelar evento`, confirmación con consecuencia clara, estados `409`, `403`, `422` y reintentos. | Evento cancelado sin eliminarse; flujo listo para verificación real. |
+| 3.6 Imagen | Dentro de crear/editar | Preview, reemplazo inmediato y eliminación confirmada; formato, tamaño y estado de carga visibles. | `image_url` se refleja sin romper el resto del formulario. |
+| 3.7 Cancelar y estabilizar | Panel y detalle | `Cancelar evento`, confirmación con consecuencia clara, bloqueo durante envío, estados `409`, `403`, `422` y reintentos. | Evento cancelado sin eliminarse; falta la verificación contra servicios locales. |
 
 El panel debe separar eventos publicados y cancelados mediante filtros o
 secciones claras. Un estado vacío debe explicar qué falta y ofrecer `Crear

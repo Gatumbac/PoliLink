@@ -69,9 +69,11 @@ los filtros, la paginación y el detalle de eventos en `/eventos` y
 `/organizar`, la creación en `/crear-comunidad`, el seguimiento en
 `/mis-solicitudes` y el panel en `/mis-comunidades`. El panel de eventos está
 disponible en `/mis-eventos` para consultar el historial paginado del
-organizador. La publicación y edición de eventos activos están implementadas;
-la gestión de imágenes posterior, la cancelación y las inscripciones siguen
-en sus subfases correspondientes.
+organizador. La publicación, edición, gestión inmediata de imágenes y
+cancelación de eventos activos están implementadas en código y cubiertas por
+pruebas automatizadas; aún falta comprobar el recorrido completo contra
+Laravel y MySQL locales. Las inscripciones y la vista de asistentes siguen en
+el alcance de Darwin.
 
 Las rutas visibles del navegador usan español; los nombres de componentes,
 variables, hooks y servicios permanecen en inglés. Los endpoints `/api/...`
