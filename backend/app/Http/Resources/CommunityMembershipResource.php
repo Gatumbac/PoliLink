@@ -27,6 +27,12 @@ class CommunityMembershipResource extends JsonResource
                 'code' => $this->status->value,
                 'name' => $this->status->label(),
             ],
+            'requested_by' => $this->whenLoaded('user', fn () => [
+                'id' => $this->user->id,
+                'first_name' => $this->user->first_name,
+                'last_name' => $this->user->last_name,
+                'email' => $this->user->email,
+            ]),
             'requested_at' => $this->requested_at?->toISOString(),
             'reviewed_at' => $this->reviewed_at?->toISOString(),
         ];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\MembershipStatus;
+use App\Http\Requests\ListCommunityMembershipsRequest;
 use App\Http\Requests\ListMyMembershipsRequest;
 use App\Http\Resources\CommunityMembershipResource;
 use App\Models\Community;
@@ -11,6 +12,7 @@ use App\Models\CommunityRole;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\Response;
 
 class CommunityMembershipController extends Controller
@@ -131,8 +133,87 @@ class CommunityMembershipController extends Controller
         return CommunityMembershipResource::collection($memberships);
     }
 
+    public function index(ListCommunityMembershipsRequest $request, Community $community): JsonResponse
+    {
+        Gate::forUser($request->user())->authorize('manageMemberships', $community);
+
+        $statusCode = $request->validated('status', MembershipStatus::Pending->value);
+
+        $memberships = CommunityMembership::query()
+            ->where('community_id', $community->id)
+            ->where('status', $statusCode)
+            ->with(['user', 'role'])
+            ->orderBy('requested_at')
+            ->paginate($request->validated('per_page', 12))
+            ->withQueryString();
+
+        return CommunityMembershipResource::collection($memberships)->response();
+    }
+
+    public function approve(Request $request, CommunityMembership $communityMembership): JsonResponse
+    {
+        $approvedMembership = DB::transaction(function () use ($request, $communityMembership) {
+            $lockedMembership = CommunityMembership::query()
+                ->whereKey($communityMembership->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            Gate::forUser($request->user())->authorize('manageMemberships', $lockedMembership->community);
+
+            $this->ensurePending($lockedMembership);
+
+            $lockedMembership->update([
+                'status' => MembershipStatus::Active->value,
+                'reviewed_at' => now(),
+                'reviewed_by' => $request->user()->id,
+            ]);
+
+            return $lockedMembership;
+        });
+
+        return (new CommunityMembershipResource($this->loadReviewedMembership($approvedMembership)))->response();
+    }
+
+    public function reject(Request $request, CommunityMembership $communityMembership): JsonResponse
+    {
+        $rejectedMembership = DB::transaction(function () use ($request, $communityMembership) {
+            $lockedMembership = CommunityMembership::query()
+                ->whereKey($communityMembership->id)
+                ->lockForUpdate()
+                ->firstOrFail();
+
+            Gate::forUser($request->user())->authorize('manageMemberships', $lockedMembership->community);
+
+            $this->ensurePending($lockedMembership);
+
+            $lockedMembership->update([
+                'status' => MembershipStatus::Rejected->value,
+                'reviewed_at' => now(),
+                'reviewed_by' => $request->user()->id,
+            ]);
+
+            return $lockedMembership;
+        });
+
+        return (new CommunityMembershipResource($this->loadReviewedMembership($rejectedMembership)))->response();
+    }
+
+    private function ensurePending(CommunityMembership $membership): void
+    {
+        abort_unless(
+            $membership->status === MembershipStatus::Pending,
+            Response::HTTP_CONFLICT,
+            'La solicitud ya fue procesada.',
+        );
+    }
+
     private function loadMembership(CommunityMembership $membership): CommunityMembership
     {
         return $membership->load(['community', 'role']);
+    }
+
+    private function loadReviewedMembership(CommunityMembership $membership): CommunityMembership
+    {
+        return $membership->load(['community', 'role', 'user']);
     }
 }
