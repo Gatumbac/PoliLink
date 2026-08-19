@@ -4,6 +4,8 @@ export const appRoutes = {
   register: '/registrarse',
   events: '/eventos',
   eventDetail: (eventId: number | string) => `/eventos/${eventId}`,
+  communities: '/comunidades',
+  communityDetail: (slug: string) => `/comunidades/${slug}`,
   organize: '/organizar',
   createCommunity: '/crear-comunidad',
   communityRequests: '/mis-solicitudes',
@@ -27,6 +29,7 @@ export const appRoutePatterns = {
   eventEdit: 'eventos/:eventId/editar',
   eventAttendees: 'eventos/:eventId/inscritos',
   communityMembers: 'mis-comunidades/:communityId/miembros',
+  communityDetail: 'comunidades/:communitySlug',
 } as const
 
 export type AuthRoute = typeof appRoutes.login | typeof appRoutes.register

@@ -18,6 +18,8 @@ import {
   RequireAuth,
 } from '@/features/auth/route-guards'
 import { CommunityCreationRequestsPage } from '@/features/communities/pages/CommunityCreationRequestsPage'
+import { CommunityDetailPage } from '@/features/communities/pages/CommunityDetailPage'
+import { CommunityDirectoryPage } from '@/features/communities/pages/CommunityDirectoryPage'
 import { CommunityMembersPage } from '@/features/communities/pages/CommunityMembersPage'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
@@ -62,6 +64,14 @@ export const router = createBrowserRouter([
       {
         path: appRoutePatterns.eventDetail,
         element: <EventDetailPage />,
+      },
+      {
+        path: appRoutes.communities.slice(1),
+        element: <CommunityDirectoryPage />,
+      },
+      {
+        path: appRoutePatterns.communityDetail,
+        element: <CommunityDetailPage />,
       },
       {
         path: appRoutePatterns.eventEdit,

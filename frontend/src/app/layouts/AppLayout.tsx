@@ -45,11 +45,15 @@ function getNavigationItems(
   const items: NavigationItem[] = isOrganizer
     ? [
         { label: 'Eventos', to: appRoutes.events },
+        { label: 'Comunidades', to: appRoutes.communities },
         { label: 'Mis comunidades', to: appRoutes.myCommunities },
         { label: 'Mis eventos', to: appRoutes.myEvents },
         { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
       ]
-    : [{ label: 'Eventos', to: appRoutes.events }]
+    : [
+        { label: 'Eventos', to: appRoutes.events },
+        { label: 'Comunidades', to: appRoutes.communities },
+      ]
 
   if (!isOrganizer && isAuthenticated) {
     items.push(

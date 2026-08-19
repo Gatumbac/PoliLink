@@ -27,6 +27,20 @@ const defaultAuthValue: AuthContextValue = {
 }
 
 describe('application layout community navigation', () => {
+  it('shows the community directory link to anonymous visitors', () => {
+    mockedUseAuth.mockReturnValue(defaultAuthValue)
+
+    render(
+      <MemoryRouter>
+        <AppLayout />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'Comunidades' }),
+    ).toHaveAttribute('href', appRoutes.communities)
+  })
+
   it('shows the managed communities link to organizers', () => {
     mockedUseAuth.mockReturnValue({
       ...defaultAuthValue,
