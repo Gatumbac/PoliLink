@@ -48,6 +48,7 @@ export function parseCatalogFilters(
 
 export function toPublicEventFilters(
   filters: CatalogFilters,
+  perPage = DEFAULT_EVENT_PAGE_SIZE,
 ): PublicEventFilters {
   return {
     search: filters.search,
@@ -58,7 +59,7 @@ export function toPublicEventFilters(
       ? {}
       : { communityId: filters.communityId }),
     page: filters.page,
-    perPage: DEFAULT_EVENT_PAGE_SIZE,
+    perPage,
   }
 }
 

@@ -2,6 +2,7 @@ import { keepPreviousData, useQuery } from '@tanstack/react-query'
 
 import { publicEventsApi } from '@/features/events/api/events.api'
 import {
+  DEFAULT_EVENT_PAGE_SIZE,
   type CatalogFilters,
   toPublicEventFilters,
 } from '@/features/events/catalog/model/catalog-filters'
@@ -10,8 +11,8 @@ const referenceDataStaleTime = 5 * 60 * 1000
 
 export const eventQueryKeys = {
   all: ['events'] as const,
-  catalog: (filters: CatalogFilters) =>
-    [...eventQueryKeys.all, 'catalog', filters] as const,
+  catalog: (filters: CatalogFilters, perPage = DEFAULT_EVENT_PAGE_SIZE) =>
+    [...eventQueryKeys.all, 'catalog', filters, perPage] as const,
   detail: (eventId: number) =>
     [...eventQueryKeys.all, 'detail', eventId] as const,
   categories: () => [...eventQueryKeys.all, 'categories'] as const,
@@ -20,10 +21,15 @@ export const eventQueryKeys = {
   communities: () => [...eventQueryKeys.all, 'communities'] as const,
 }
 
-export function usePublicEventCatalog(filters: CatalogFilters) {
+export function usePublicEventCatalog(
+  filters: CatalogFilters,
+  options: { perPage?: number } = {},
+) {
+  const perPage = options.perPage ?? DEFAULT_EVENT_PAGE_SIZE
+
   return useQuery({
-    queryKey: eventQueryKeys.catalog(filters),
-    queryFn: () => publicEventsApi.list(toPublicEventFilters(filters)),
+    queryKey: eventQueryKeys.catalog(filters, perPage),
+    queryFn: () => publicEventsApi.list(toPublicEventFilters(filters, perPage)),
     placeholderData: keepPreviousData,
   })
 }
