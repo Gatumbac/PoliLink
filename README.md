@@ -8,19 +8,18 @@ PoliLink será una plataforma web para centralizar la publicación, consulta e i
 
 El backend ya dispone de autenticación local, catálogo y filtros de eventos,
 gestión de comunidades, creación, edición y cancelación de eventos,
-inscripciones, y administración de categorías, modalidades y ubicaciones. El
-frontend está implementado y cubierto por pruebas automatizadas en sus
-flujos principales: autenticación, catálogo y detalle de eventos, creación,
-edición, imágenes y cancelación de eventos por parte del organizador,
-onboarding y directorio de comunidades, inscripción, cancelación y consulta
-de inscritos por parte de Darwin Díaz, y un panel de administrador
-(`/admin`) para revisar solicitudes de comunidad y mantener el catálogo de
-categorías, modalidades y ubicaciones. Su verificación real contra Laravel,
-MySQL y Vite aún debe ejecutarse con los servicios locales activos.
-
-Pendiente: el flujo de membresía a una comunidad como miembro (`member`),
-que tiene la solicitud implementada en el frontend mas no un endpoint de
-aprobación/rechazo en el backend ni una pantalla para gestionarla.
+inscripciones, membresías a comunidades (solicitud, aprobación y rechazo), y
+administración de categorías, modalidades y ubicaciones. El frontend está
+implementado y cubierto por pruebas automatizadas en sus flujos principales:
+autenticación, catálogo y detalle de eventos, creación, edición, imágenes y
+cancelación de eventos por parte del organizador, onboarding de comunidades,
+un directorio público de comunidades (`/comunidades`) con búsqueda y
+solicitud de membresía, inscripción, cancelación y consulta de inscritos por
+parte de Darwin Díaz, revisión de solicitudes de membresía por parte del
+organizador de cada comunidad, y un panel de administrador (`/admin`) para
+revisar solicitudes de comunidad y mantener el catálogo de categorías,
+modalidades y ubicaciones. Su verificación real contra Laravel, MySQL y Vite
+aún debe ejecutarse con los servicios locales activos.
 
 ## Estructura del proyecto
 
