@@ -33,6 +33,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/me/community-creation-requests', [CommunityCreationRequestController::class, 'mine']);
     Route::post('/communities/{community}/membership-requests', [CommunityMembershipController::class, 'store']);
     Route::delete('/communities/{community}/membership-requests', [CommunityMembershipController::class, 'destroy']);
+    Route::get('/communities/{community}/membership-requests', [CommunityMembershipController::class, 'index']);
+    Route::patch('/community-memberships/{communityMembership}/approve', [CommunityMembershipController::class, 'approve']);
+    Route::patch('/community-memberships/{communityMembership}/reject', [CommunityMembershipController::class, 'reject']);
     Route::post('/communities/{community}/image', [CommunityImageController::class, 'store']);
     Route::delete('/communities/{community}/image', [CommunityImageController::class, 'remove']);
     Route::get('/me/memberships', [CommunityMembershipController::class, 'mine']);

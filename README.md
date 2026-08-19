@@ -7,13 +7,19 @@ PoliLink será una plataforma web para centralizar la publicación, consulta e i
 ## Estado del repositorio
 
 El backend ya dispone de autenticación local, catálogo y filtros de eventos,
-gestión de comunidades y creación, edición y cancelación de eventos. El módulo
-de inscripciones, cancelaciones y consulta de inscritos está asignado a Darwin
-Díaz en el frontend y permanece pendiente. La experiencia frontend del
-organizador para consultar, crear, editar, administrar imágenes y cancelar
-eventos está implementada y cubierta por pruebas automatizadas; su verificación
-real contra Laravel, MySQL y Vite aún debe ejecutarse con los servicios locales
-activos.
+gestión de comunidades, creación, edición y cancelación de eventos,
+inscripciones, membresías a comunidades (solicitud, aprobación y rechazo), y
+administración de categorías, modalidades y ubicaciones. El frontend está
+implementado y cubierto por pruebas automatizadas en sus flujos principales:
+autenticación, catálogo y detalle de eventos, creación, edición, imágenes y
+cancelación de eventos por parte del organizador, onboarding de comunidades,
+un directorio público de comunidades (`/comunidades`) con búsqueda y
+solicitud de membresía, inscripción, cancelación y consulta de inscritos por
+parte de Darwin Díaz, revisión de solicitudes de membresía por parte del
+organizador de cada comunidad, y un panel de administrador (`/admin`) para
+revisar solicitudes de comunidad y mantener el catálogo de categorías,
+modalidades y ubicaciones. Su verificación real contra Laravel, MySQL y Vite
+aún debe ejecutarse con los servicios locales activos.
 
 ## Estructura del proyecto
 

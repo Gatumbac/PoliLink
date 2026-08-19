@@ -4,13 +4,23 @@ import { AppLayout } from '@/app/layouts/AppLayout'
 import { NotFoundPage } from '@/app/pages/NotFoundPage'
 import { UiPreviewPage } from '@/app/pages/UiPreviewPage'
 import { appRoutePatterns, appRoutes } from '@/app/routes'
+import { AdminCatalogPage } from '@/features/admin/pages/AdminCatalogPage'
+import { AdminCommunityRequestsPage } from '@/features/admin/pages/AdminCommunityRequestsPage'
+import { AdminPage } from '@/features/admin/pages/AdminPage'
 import { AuthLoadingState } from '@/features/auth/components/AuthLoadingState'
 import { AuthRouteError } from '@/features/auth/components/AuthRouteError'
 import { AuthLayout } from '@/features/auth/layouts/AuthLayout'
 import { LoginPage } from '@/features/auth/pages/LoginPage'
 import { RegisterPage } from '@/features/auth/pages/RegisterPage'
-import { RequireAnonymous, RequireAuth } from '@/features/auth/route-guards'
+import {
+  RequireAdmin,
+  RequireAnonymous,
+  RequireAuth,
+} from '@/features/auth/route-guards'
 import { CommunityCreationRequestsPage } from '@/features/communities/pages/CommunityCreationRequestsPage'
+import { CommunityDetailPage } from '@/features/communities/pages/CommunityDetailPage'
+import { CommunityDirectoryPage } from '@/features/communities/pages/CommunityDirectoryPage'
+import { CommunityMembersPage } from '@/features/communities/pages/CommunityMembersPage'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
@@ -54,6 +64,14 @@ export const router = createBrowserRouter([
       {
         path: appRoutePatterns.eventDetail,
         element: <EventDetailPage />,
+      },
+      {
+        path: appRoutes.communities.slice(1),
+        element: <CommunityDirectoryPage />,
+      },
+      {
+        path: appRoutePatterns.communityDetail,
+        element: <CommunityDetailPage />,
       },
       {
         path: appRoutePatterns.eventEdit,
@@ -111,6 +129,17 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: appRoutePatterns.communityMembers,
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityMembersPage />
+          </RequireAuth>
+        ),
+      },
+      {
         path: appRoutes.myEvents.slice(1),
         element: (
           <RequireAuth
@@ -152,6 +181,39 @@ export const router = createBrowserRouter([
           >
             <EventAttendeesPage />
           </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutes.admin.slice(1),
+        element: (
+          <RequireAdmin
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <AdminPage />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: appRoutes.adminCommunityRequests.slice(1),
+        element: (
+          <RequireAdmin
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <AdminCommunityRequestsPage />
+          </RequireAdmin>
+        ),
+      },
+      {
+        path: appRoutes.adminCatalog.slice(1),
+        element: (
+          <RequireAdmin
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <AdminCatalogPage />
+          </RequireAdmin>
         ),
       },
       {

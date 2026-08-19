@@ -243,6 +243,96 @@ class CommunityMembershipApiTest extends TestCase
             ->assertNotFound();
     }
 
+    public function test_only_the_communitys_organizer_can_review_membership_requests(): void
+    {
+        $this->seed();
+        $community = Community::factory()->create(['name' => 'Comunidad revisión']);
+        $organizer = User::factory()->create();
+        $this->createMembership($organizer, $community, 'organizer', 'active');
+        $requester = User::factory()->create();
+        $membership = $this->createMembership($requester, $community, 'member', 'pending');
+
+        $otherCommunity = Community::factory()->create(['name' => 'Otra comunidad organizador']);
+        $otherOrganizer = User::factory()->create();
+        $this->createMembership($otherOrganizer, $otherCommunity, 'organizer', 'active');
+
+        $this->getJson('/api/communities/'.$community->id.'/membership-requests')->assertUnauthorized();
+
+        $this->authenticatedGet($requester, '/api/communities/'.$community->id.'/membership-requests')
+            ->assertForbidden();
+
+        $this->authenticatedGet($otherOrganizer, '/api/communities/'.$community->id.'/membership-requests')
+            ->assertForbidden();
+
+        $this->authenticatedPatch($otherOrganizer, '/api/community-memberships/'.$membership->id.'/approve')
+            ->assertForbidden();
+    }
+
+    public function test_organizer_can_list_approve_and_reject_membership_requests(): void
+    {
+        $this->seed();
+        $community = Community::factory()->create(['name' => 'Comunidad revisión de miembros']);
+        $organizer = User::factory()->create();
+        $this->createMembership($organizer, $community, 'organizer', 'active');
+
+        $approvedCandidate = User::factory()->create(['email' => 'aprobado@espol.edu.ec']);
+        $rejectedCandidateUser = User::factory()->create(['email' => 'rechazado@espol.edu.ec']);
+
+        $this->createMembership($approvedCandidate, $community, 'member', 'pending');
+        $rejectedCandidate = $this->createMembership($rejectedCandidateUser, $community, 'member', 'pending');
+
+        $this->authenticatedGet($organizer, '/api/communities/'.$community->id.'/membership-requests')
+            ->assertOk()
+            ->assertJsonCount(2, 'data')
+            ->assertJsonFragment(['email' => 'aprobado@espol.edu.ec'])
+            ->assertJsonFragment(['email' => 'rechazado@espol.edu.ec']);
+
+        $approvedMembership = CommunityMembership::query()
+            ->where('community_id', $community->id)
+            ->where('user_id', $approvedCandidate->id)
+            ->sole();
+
+        $this->authenticatedPatch($organizer, '/api/community-memberships/'.$approvedMembership->id.'/approve')
+            ->assertOk()
+            ->assertJsonPath('data.status.code', 'active')
+            ->assertJsonPath('data.role.code', 'member');
+
+        $this->assertDatabaseHas('community_memberships', [
+            'id' => $approvedMembership->id,
+            'status' => MembershipStatus::Active->value,
+            'reviewed_by' => $organizer->id,
+        ]);
+
+        $this->authenticatedPatch($organizer, '/api/community-memberships/'.$rejectedCandidate->id.'/reject')
+            ->assertOk()
+            ->assertJsonPath('data.status.code', 'rejected');
+
+        $this->assertDatabaseHas('community_memberships', [
+            'id' => $rejectedCandidate->id,
+            'status' => MembershipStatus::Rejected->value,
+            'reviewed_by' => $organizer->id,
+        ]);
+
+        $this->authenticatedGet($organizer, '/api/communities/'.$community->id.'/membership-requests')
+            ->assertOk()
+            ->assertJsonCount(0, 'data');
+    }
+
+    public function test_a_processed_membership_request_cannot_be_reviewed_twice(): void
+    {
+        $this->seed();
+        $community = Community::factory()->create(['name' => 'Comunidad doble revisión']);
+        $organizer = User::factory()->create();
+        $this->createMembership($organizer, $community, 'organizer', 'active');
+        $membership = $this->createMembership(User::factory()->create(), $community, 'member', 'pending');
+
+        $this->authenticatedPatch($organizer, '/api/community-memberships/'.$membership->id.'/approve')
+            ->assertOk();
+
+        $this->authenticatedPatch($organizer, '/api/community-memberships/'.$membership->id.'/reject')
+            ->assertConflict();
+    }
+
     private function student(): User
     {
         return User::query()->where('email', 'student@espol.edu.ec')->sole();
@@ -288,5 +378,15 @@ class CommunityMembershipApiTest extends TestCase
             ->withSession(['_token' => 'test-csrf-token'])
             ->withHeader('X-CSRF-TOKEN', 'test-csrf-token')
             ->deleteJson($uri);
+    }
+
+    private function authenticatedPatch(User $user, string $uri, array $payload = [])
+    {
+        return $this->actingAs($user, 'web')
+            ->withHeader('Origin', 'http://localhost:5173')
+            ->withHeader('Referer', 'http://localhost:5173/')
+            ->withSession(['_token' => 'test-csrf-token'])
+            ->withHeader('X-CSRF-TOKEN', 'test-csrf-token')
+            ->patchJson($uri, $payload);
     }
 }

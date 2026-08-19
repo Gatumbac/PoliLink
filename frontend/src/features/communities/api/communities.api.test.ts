@@ -7,6 +7,7 @@ import {
   communityImagesApi,
   communityMembershipsApi,
   dashboardCommunitiesApi,
+  organizerMembershipsApi,
   publicCommunitiesApi,
 } from '@/features/communities/api/communities.api'
 import { server } from '@/test/server'
@@ -269,5 +270,45 @@ describe('community API', () => {
         'La comunidad ya tiene un canal institucional.',
       ),
     ).resolves.toEqual(rejectedRequest)
+  })
+
+  it('lists, approves, and rejects membership requests as a community organizer', async () => {
+    document.cookie = 'XSRF-TOKEN=csrf-token; path=/'
+    const approvedMembership = {
+      ...membership,
+      status: { code: 'active', name: 'Activa' },
+    }
+    const rejectedMembership = {
+      ...membership,
+      id: 13,
+      status: { code: 'rejected', name: 'Rechazada' },
+    }
+
+    server.use(
+      http.get(`${apiUrl}/communities/4/membership-requests`, ({ request }) => {
+        const query = new URL(request.url).searchParams
+
+        expect(query.get('status')).toBe('pending')
+        expect(query.get('per_page')).toBe('12')
+
+        return HttpResponse.json(page([membership]))
+      }),
+      http.patch(`${apiUrl}/community-memberships/12/approve`, () =>
+        HttpResponse.json({ data: approvedMembership }),
+      ),
+      http.patch(`${apiUrl}/community-memberships/13/reject`, () =>
+        HttpResponse.json({ data: rejectedMembership }),
+      ),
+    )
+
+    await expect(
+      organizerMembershipsApi.list(4, { perPage: 12, status: 'pending' }),
+    ).resolves.toMatchObject({ data: [membership] })
+    await expect(organizerMembershipsApi.approve(12)).resolves.toEqual(
+      approvedMembership,
+    )
+    await expect(organizerMembershipsApi.reject(13)).resolves.toEqual(
+      rejectedMembership,
+    )
   })
 })

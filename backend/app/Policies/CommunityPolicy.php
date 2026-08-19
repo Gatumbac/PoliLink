@@ -11,4 +11,9 @@ class CommunityPolicy
     {
         return $community->is_active && $user->isActiveOrganizerOf($community->id);
     }
+
+    public function manageMemberships(User $user, Community $community): bool
+    {
+        return $community->is_active && $user->isActiveOrganizerOf($community->id);
+    }
 }

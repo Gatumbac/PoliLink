@@ -40,23 +40,30 @@ function AppNavLink({ children, to }: { children: ReactNode; to: string }) {
 function getNavigationItems(
   isAuthenticated: boolean,
   isOrganizer: boolean,
+  isAdmin: boolean,
 ): NavigationItem[] {
-  if (isOrganizer) {
-    return [
-      { label: 'Eventos', to: appRoutes.events },
-      { label: 'Mis comunidades', to: appRoutes.myCommunities },
-      { label: 'Mis eventos', to: appRoutes.myEvents },
-      { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
-    ]
-  }
+  const items: NavigationItem[] = isOrganizer
+    ? [
+        { label: 'Eventos', to: appRoutes.events },
+        { label: 'Comunidades', to: appRoutes.communities },
+        { label: 'Mis comunidades', to: appRoutes.myCommunities },
+        { label: 'Mis eventos', to: appRoutes.myEvents },
+        { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
+      ]
+    : [
+        { label: 'Eventos', to: appRoutes.events },
+        { label: 'Comunidades', to: appRoutes.communities },
+      ]
 
-  const items: NavigationItem[] = [{ label: 'Eventos', to: appRoutes.events }]
-
-  if (isAuthenticated) {
+  if (!isOrganizer && isAuthenticated) {
     items.push(
       { label: 'Mis inscripciones', to: appRoutes.myRegistrations },
       { label: 'Organiza una comunidad', to: appRoutes.organize },
     )
+  }
+
+  if (isAdmin) {
+    items.push({ label: 'Administración', to: appRoutes.admin })
   }
 
   return items
@@ -64,14 +71,16 @@ function getNavigationItems(
 
 function NavigationItems({
   closeOnNavigate = false,
+  isAdmin,
   isAuthenticated,
   isOrganizer,
 }: {
   closeOnNavigate?: boolean
+  isAdmin: boolean
   isAuthenticated: boolean
   isOrganizer: boolean
 }) {
-  return getNavigationItems(isAuthenticated, isOrganizer).map((item) =>
+  return getNavigationItems(isAuthenticated, isOrganizer, isAdmin).map((item) =>
     closeOnNavigate ? (
       <SheetClose asChild key={item.to}>
         <AppNavLink to={item.to}>{item.label}</AppNavLink>
@@ -85,10 +94,12 @@ function NavigationItems({
 }
 
 function MobileNavigation({
+  isAdmin,
   isAuthenticated,
   isOrganizer,
   status,
 }: {
+  isAdmin: boolean
   isAuthenticated: boolean
   isOrganizer: boolean
   status: AuthStatus
@@ -115,6 +126,7 @@ function MobileNavigation({
         <nav aria-label="Navegación móvil" className="flex flex-col px-4">
           <NavigationItems
             closeOnNavigate
+            isAdmin={isAdmin}
             isAuthenticated={isAuthenticated}
             isOrganizer={isOrganizer}
           />
@@ -142,6 +154,7 @@ export function AppLayout() {
   const { status, user } = useAuth()
   const isAuthenticated = status === 'authenticated'
   const isOrganizer = isAuthenticated && hasRole(user, 'organizer')
+  const isAdmin = isAuthenticated && Boolean(user?.is_admin)
 
   return (
     <div className="min-h-screen bg-background">
@@ -159,6 +172,7 @@ export function AppLayout() {
           >
             <div className="hidden items-center gap-3 sm:flex">
               <NavigationItems
+                isAdmin={isAdmin}
                 isAuthenticated={isAuthenticated}
                 isOrganizer={isOrganizer}
               />
@@ -177,6 +191,7 @@ export function AppLayout() {
             </div>
             <div className="flex items-center gap-1 sm:hidden">
               <MobileNavigation
+                isAdmin={isAdmin}
                 isAuthenticated={isAuthenticated}
                 isOrganizer={isOrganizer}
                 status={status}

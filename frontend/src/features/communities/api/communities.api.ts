@@ -7,6 +7,7 @@ import {
   type CommunityMembership,
   type CommunityMembershipPage,
   type CommunityPage,
+  type MembershipStatusCode,
   communityCreationRequestEnvelopeSchema,
   communityCreationRequestPageSchema,
   communityCreationRequestPayloadSchema,
@@ -38,6 +39,12 @@ export type AdminCommunityCreationRequestFilters =
 
 export type CommunityRejectionPayload = {
   rejection_reason: string
+}
+
+export type CommunityMembershipRequestFilters = {
+  status?: MembershipStatusCode
+  page?: number
+  perPage?: number
 }
 
 function appendQueryValue(
@@ -261,6 +268,45 @@ export const adminCommunityCreationRequestsApi = {
       ),
     ).data
   },
+}
+
+function membershipPathId(membershipId: number): string {
+  return encodeURIComponent(String(membershipId))
+}
+
+export const organizerMembershipsApi = {
+  list: async (
+    communityId: number,
+    filters: CommunityMembershipRequestFilters = {},
+  ): Promise<CommunityMembershipPage> => {
+    const query = new URLSearchParams()
+
+    appendQueryValue(query, 'status', filters.status)
+    appendQueryValue(query, 'page', filters.page)
+    appendQueryValue(query, 'per_page', filters.perPage)
+
+    return communityMembershipPageSchema.parse(
+      await request(
+        `/communities/${communityPathId(communityId)}/membership-requests${querySuffix(query)}`,
+      ),
+    )
+  },
+
+  approve: async (membershipId: number): Promise<CommunityMembership> =>
+    communityMembershipEnvelopeSchema.parse(
+      await request(
+        `/community-memberships/${membershipPathId(membershipId)}/approve`,
+        { method: 'PATCH' },
+      ),
+    ).data,
+
+  reject: async (membershipId: number): Promise<CommunityMembership> =>
+    communityMembershipEnvelopeSchema.parse(
+      await request(
+        `/community-memberships/${membershipPathId(membershipId)}/reject`,
+        { method: 'PATCH' },
+      ),
+    ).data,
 }
 
 /** @deprecated Use communityCreationRequestsApi.create instead. */

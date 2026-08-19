@@ -101,6 +101,7 @@ export const communityMembershipSchema = z.object({
     name: z.string(),
   }),
   status: membershipStatusSchema,
+  requested_by: communityRequesterSchema.optional(),
   requested_at: z.string().nullable(),
   reviewed_at: z.string().nullable(),
 })
@@ -153,6 +154,7 @@ export type CommunityCreationRequestStatusCode = z.infer<
 >
 export type CommunityCreatePayload = CommunityCreationRequestPayload
 export type CommunityMembership = z.infer<typeof communityMembershipSchema>
+export type MembershipStatusCode = z.infer<typeof membershipStatusCodeSchema>
 export type CommunityPage = z.infer<typeof communityPageSchema>
 export type CommunityCreationRequestPage = z.infer<
   typeof communityCreationRequestPageSchema
