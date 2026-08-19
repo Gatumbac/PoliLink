@@ -19,6 +19,7 @@ use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 
 class PoliLinkDemoSeeder extends Seeder
@@ -52,6 +53,8 @@ class PoliLinkDemoSeeder extends Seeder
                 'is_active' => true,
             ],
         );
+
+        $this->seedCommunityImage($community, 'taws.webp');
 
         CommunityCreationRequest::query()->firstOrCreate(
             [
@@ -122,5 +125,22 @@ class PoliLinkDemoSeeder extends Seeder
                 'cancelled_at' => null,
             ],
         );
+    }
+
+    private function seedCommunityImage(Community $community, string $filename): void
+    {
+        if ($community->image_path !== null) {
+            return;
+        }
+
+        $source = __DIR__."/assets/communities/{$filename}";
+
+        if (! is_file($source)) {
+            return;
+        }
+
+        $path = "communities/{$filename}";
+        Storage::disk('public')->put($path, file_get_contents($source));
+        $community->update(['image_path' => $path]);
     }
 }
