@@ -9,6 +9,7 @@ import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/shared/ui/card'
@@ -135,6 +136,14 @@ export function ManagedCommunitiesSection() {
                   {community.description || 'Sin descripción registrada.'}
                 </CardDescription>
               </CardHeader>
+              <CardFooter>
+                <Button asChild size="sm" variant="outline">
+                  <Link to={appRoutes.communityMembers(community.id)}>
+                    <UsersRound aria-hidden="true" />
+                    Solicitudes de membresía
+                  </Link>
+                </Button>
+              </CardFooter>
             </Card>
           </li>
         ))}

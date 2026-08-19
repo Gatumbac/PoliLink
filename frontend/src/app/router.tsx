@@ -18,6 +18,7 @@ import {
   RequireAuth,
 } from '@/features/auth/route-guards'
 import { CommunityCreationRequestsPage } from '@/features/communities/pages/CommunityCreationRequestsPage'
+import { CommunityMembersPage } from '@/features/communities/pages/CommunityMembersPage'
 import { EventCatalogPage } from '@/features/events/catalog/pages/EventCatalogPage'
 import { EventDetailPage } from '@/features/events/detail/pages/EventDetailPage'
 import { LandingPage } from '@/features/events/landing/pages/LandingPage'
@@ -114,6 +115,17 @@ export const router = createBrowserRouter([
             loadingFallback={<AuthLoadingState />}
           >
             <OrganizerPage />
+          </RequireAuth>
+        ),
+      },
+      {
+        path: appRoutePatterns.communityMembers,
+        element: (
+          <RequireAuth
+            errorFallback={<AuthRouteError />}
+            loadingFallback={<AuthLoadingState />}
+          >
+            <CommunityMembersPage />
           </RequireAuth>
         ),
       },

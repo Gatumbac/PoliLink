@@ -11,10 +11,12 @@ import {
   adminCommunityCreationRequestsApi,
   type CommunityCreationRequestListFilters,
   type CommunityDirectoryFilters,
+  type CommunityMembershipRequestFilters,
   communityCreationRequestsApi,
   communityImagesApi,
   communityMembershipsApi,
   dashboardCommunitiesApi,
+  organizerMembershipsApi,
   publicCommunitiesApi,
 } from '@/features/communities/api/communities.api'
 import { communityQueryKeys } from '@/features/communities/model/community-query-keys'
@@ -187,4 +189,42 @@ export function useRejectCommunityCreationRequest() {
 
 export function useCreateCommunity() {
   return useSubmitCommunityCreationRequest()
+}
+
+export function useCommunityMembershipRequests(
+  communityId: number | null,
+  filters: CommunityMembershipRequestFilters = {},
+) {
+  return useQuery({
+    queryKey: communityQueryKeys.membershipRequests(communityId ?? 0, filters),
+    queryFn: () => organizerMembershipsApi.list(communityId ?? 0, filters),
+    enabled: communityId !== null,
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useApproveCommunityMembership(communityId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: organizerMembershipsApi.approve,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: communityQueryKeys.membershipRequestsRoot(communityId),
+      })
+    },
+  })
+}
+
+export function useRejectCommunityMembership(communityId: number) {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: organizerMembershipsApi.reject,
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({
+        queryKey: communityQueryKeys.membershipRequestsRoot(communityId),
+      })
+    },
+  })
 }

@@ -107,6 +107,110 @@ describe('public event detail', () => {
     ).toHaveAttribute('href', expect.stringContaining(appRoutes.login))
   })
 
+  it('prompts anonymous users to sign in before joining the organizing community', async () => {
+    server.use(
+      http.get(`${apiUrl}/events/7`, () =>
+        HttpResponse.json({ data: publishedEvent }),
+      ),
+    )
+
+    renderEventDetail(7)
+
+    expect(
+      await screen.findByRole('link', {
+        name: 'Inicia sesión para unirte a TAWS',
+      }),
+    ).toHaveAttribute('href', expect.stringContaining(appRoutes.login))
+  })
+
+  it('lets an authenticated user request community membership and then cancel it', async () => {
+    let membership: {
+      community: { id: number; name: string; slug: string }
+      role: { code: string; name: string }
+      status: { code: string; name: string }
+      requested_at: string | null
+      reviewed_at: string | null
+    } | null = null
+
+    server.use(
+      http.get(`${apiUrl}/events/7`, () =>
+        HttpResponse.json({ data: publishedEvent }),
+      ),
+      http.get(`${apiUrl}/auth/me`, () =>
+        HttpResponse.json({
+          data: {
+            ...authenticatedUser,
+            community_memberships: membership ? [membership] : [],
+          },
+        }),
+      ),
+      http.get(`${apiUrl}/me/registrations`, () =>
+        HttpResponse.json({
+          data: [],
+          meta: { current_page: 1, last_page: 1, per_page: 50, total: 0 },
+        }),
+      ),
+      http.post(`${apiUrl}/communities/4/membership-requests`, () => {
+        membership = {
+          community: { id: 4, name: 'TAWS', slug: 'taws' },
+          role: { code: 'member', name: 'Miembro' },
+          status: { code: 'pending', name: 'Pendiente' },
+          requested_at: '2026-08-10T10:00:00.000000Z',
+          reviewed_at: null,
+        }
+
+        return HttpResponse.json(
+          {
+            data: {
+              id: 55,
+              community: { id: 4, name: 'TAWS', slug: 'taws', description: null, image_url: null },
+              role: { code: 'member', name: 'Miembro' },
+              status: { code: 'pending', name: 'Pendiente' },
+              requested_at: '2026-08-10T10:00:00.000000Z',
+              reviewed_at: null,
+            },
+          },
+          { status: 201 },
+        )
+      }),
+      http.delete(`${apiUrl}/communities/4/membership-requests`, () => {
+        membership = null
+
+        return HttpResponse.json({
+          data: {
+            id: 55,
+            community: { id: 4, name: 'TAWS', slug: 'taws', description: null, image_url: null },
+            role: { code: 'member', name: 'Miembro' },
+            status: { code: 'left', name: 'Retirada' },
+            requested_at: '2026-08-10T10:00:00.000000Z',
+            reviewed_at: null,
+          },
+        })
+      }),
+    )
+
+    setCsrfCookie()
+    const user = userEvent.setup()
+    renderEventDetail(7)
+
+    const joinButton = await screen.findByRole('button', {
+      name: 'Unirme a TAWS',
+    })
+    await user.click(joinButton)
+
+    expect(await screen.findByText('Solicitud enviada')).toBeInTheDocument()
+
+    await user.click(
+      screen.getByRole('button', { name: 'Cancelar solicitud' }),
+    )
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole('button', { name: 'Unirme a TAWS' }),
+      ).toBeInTheDocument()
+    })
+  })
+
   it('lets an authenticated user register and then cancel', async () => {
     let isRegistered = false
 

@@ -3,6 +3,7 @@ import type { ReactNode } from 'react'
 import { Link, useParams } from 'react-router'
 
 import { appRoutes } from '@/app/routes'
+import { RequestCommunityMembershipAction } from '@/features/communities/components/RequestCommunityMembershipAction'
 import { usePublicEventDetail } from '@/features/events/catalog/hooks/use-event-queries'
 import { EventImage } from '@/features/events/components/EventImage'
 import {
@@ -169,6 +170,13 @@ export function EventDetailPage() {
                   </p>
                 )}
               </div>
+            )}
+
+            {event.community && (
+              <RequestCommunityMembershipAction
+                communityId={event.community.id}
+                communityName={event.community.name}
+              />
             )}
           </article>
 

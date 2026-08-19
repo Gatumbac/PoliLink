@@ -2,6 +2,7 @@ import type {
   AdminCommunityCreationRequestFilters,
   CommunityCreationRequestListFilters,
   CommunityDirectoryFilters,
+  CommunityMembershipRequestFilters,
 } from '@/features/communities/api/communities.api'
 
 export const communityQueryKeys = {
@@ -22,4 +23,16 @@ export const communityQueryKeys = {
     [...communityQueryKeys.all, 'admin-creation-requests'] as const,
   adminCreationRequests: (filters: AdminCommunityCreationRequestFilters) =>
     [...communityQueryKeys.all, 'admin-creation-requests', filters] as const,
+  membershipRequestsRoot: (communityId: number) =>
+    [...communityQueryKeys.all, 'membership-requests', communityId] as const,
+  membershipRequests: (
+    communityId: number,
+    filters: CommunityMembershipRequestFilters,
+  ) =>
+    [
+      ...communityQueryKeys.all,
+      'membership-requests',
+      communityId,
+      filters,
+    ] as const,
 }
