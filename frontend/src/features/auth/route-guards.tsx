@@ -80,3 +80,23 @@ export function RequireRole({
 
   return <>{children}</>
 }
+
+export function RequireAdmin({
+  children,
+  loadingFallback = null,
+  errorFallback = null,
+}: GuardProps) {
+  const { status, user } = useAuth()
+  const location = useLocation()
+
+  if (status === 'loading') return <>{loadingFallback}</>
+  if (status === 'error') return <>{errorFallback}</>
+
+  if (status === 'anonymous') {
+    return <Navigate replace to={buildLoginRedirect(location)} />
+  }
+
+  if (!user?.is_admin) return <Navigate replace to="/" />
+
+  return <>{children}</>
+}

@@ -12,15 +12,15 @@ inscripciones, y administración de categorías, modalidades y ubicaciones. El
 frontend está implementado y cubierto por pruebas automatizadas en sus
 flujos principales: autenticación, catálogo y detalle de eventos, creación,
 edición, imágenes y cancelación de eventos por parte del organizador,
-onboarding y directorio de comunidades, e inscripción, cancelación y consulta
-de inscritos por parte de Darwin Díaz. Su verificación real contra Laravel,
+onboarding y directorio de comunidades, inscripción, cancelación y consulta
+de inscritos por parte de Darwin Díaz, y un panel de administrador
+(`/admin`) para revisar solicitudes de comunidad y mantener el catálogo de
+categorías, modalidades y ubicaciones. Su verificación real contra Laravel,
 MySQL y Vite aún debe ejecutarse con los servicios locales activos.
 
-Pendiente: un panel de administrador en el frontend que consuma los endpoints
-ya existentes de aprobación de solicitudes de comunidad y de administración
-del catálogo (categorías, modalidades, ubicaciones); y el flujo de membresía
-a una comunidad como miembro (`member`), que tiene la solicitud implementada
-mas no un endpoint ni una pantalla para aprobarla o rechazarla.
+Pendiente: el flujo de membresía a una comunidad como miembro (`member`),
+que tiene la solicitud implementada en el frontend mas no un endpoint de
+aprobación/rechazo en el backend ni una pantalla para gestionarla.
 
 ## Estructura del proyecto
 

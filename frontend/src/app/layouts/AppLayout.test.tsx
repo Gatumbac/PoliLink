@@ -125,4 +125,54 @@ describe('application layout community navigation', () => {
       screen.getByRole('link', { name: 'Organiza una comunidad' }),
     ).toHaveAttribute('href', appRoutes.organize)
   })
+
+  it('shows the administration link to admins only', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 9,
+        first_name: 'Luis',
+        last_name: 'Paredes',
+        email: 'luis@espol.edu.ec',
+        is_admin: true,
+        community_memberships: [],
+      },
+    })
+
+    render(
+      <MemoryRouter>
+        <AppLayout />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.getByRole('link', { name: 'Administración' }),
+    ).toHaveAttribute('href', appRoutes.admin)
+  })
+
+  it('hides the administration link from non-admin users', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 7,
+        first_name: 'Ana',
+        last_name: 'Torres',
+        email: 'ana@espol.edu.ec',
+        is_admin: false,
+        community_memberships: [],
+      },
+    })
+
+    render(
+      <MemoryRouter>
+        <AppLayout />
+      </MemoryRouter>,
+    )
+
+    expect(
+      screen.queryByRole('link', { name: 'Administración' }),
+    ).not.toBeInTheDocument()
+  })
 })

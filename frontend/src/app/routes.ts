@@ -15,6 +15,9 @@ export const appRoutes = {
   eventAttendees: (eventId: number | string) => `/eventos/${eventId}/inscritos`,
   legacyOrganizer: '/organizador',
   uiPreview: '/vista-previa',
+  admin: '/admin',
+  adminCommunityRequests: '/admin/solicitudes-comunidades',
+  adminCatalog: '/admin/catalogo',
 } as const
 
 export const appRoutePatterns = {

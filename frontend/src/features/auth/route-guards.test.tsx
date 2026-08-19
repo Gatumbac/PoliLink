@@ -5,6 +5,7 @@ import { appRoutes } from '@/app/routes'
 import { type AuthContextValue, useAuth } from '@/features/auth/auth-context'
 import {
   buildLoginRedirect,
+  RequireAdmin,
   RequireAnonymous,
   RequireAuth,
   RequireRole,
@@ -205,5 +206,70 @@ describe('auth route guards', () => {
     )
 
     expect(screen.getByText('organizer content')).toBeInTheDocument()
+  })
+
+  it('blocks non-admin users from admin routes', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 7,
+        first_name: 'Ana',
+        last_name: 'Torres',
+        email: 'ana@espol.edu.ec',
+        is_admin: false,
+        community_memberships: [],
+      },
+    })
+
+    render(
+      <MemoryRouter initialEntries={[appRoutes.admin]}>
+        <Routes>
+          <Route
+            path={appRoutes.admin}
+            element={
+              <RequireAdmin>
+                <div>admin content</div>
+              </RequireAdmin>
+            }
+          />
+          <Route path="/" element={<div>home content</div>} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('home content')).toBeInTheDocument()
+  })
+
+  it('allows admins to access admin routes', () => {
+    mockedUseAuth.mockReturnValue({
+      ...defaultAuthValue,
+      status: 'authenticated',
+      user: {
+        id: 9,
+        first_name: 'Luis',
+        last_name: 'Paredes',
+        email: 'luis@espol.edu.ec',
+        is_admin: true,
+        community_memberships: [],
+      },
+    })
+
+    render(
+      <MemoryRouter initialEntries={[appRoutes.admin]}>
+        <Routes>
+          <Route
+            path={appRoutes.admin}
+            element={
+              <RequireAdmin>
+                <div>admin content</div>
+              </RequireAdmin>
+            }
+          />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('admin content')).toBeInTheDocument()
   })
 })
