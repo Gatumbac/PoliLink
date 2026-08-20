@@ -1,8 +1,10 @@
 # Guía para las capturas finales del informe
 
-El informe final debe incluir una sola evidencia frontend por integrante. Las
-capturas deben mostrar la aplicación ejecutándose, sin código, DevTools,
-credenciales, terminales ni información personal visible.
+El informe final debe incluir una sola evidencia frontend por integrante. Para
+mostrar mejor el recorrido de la aplicación se agregarán tres vistas generales
+complementarias, con un máximo de cinco imágenes en total. Las capturas deben
+mostrar la aplicación ejecutándose, sin código, DevTools, credenciales,
+terminales ni información personal visible.
 
 ## Preparación
 
@@ -61,14 +63,63 @@ Pasos:
 La evidencia demuestra el panel administrativo y la revisión de solicitudes de
 creación de comunidades implementada por Darwin.
 
+## Capturas generales
+
+Estas tres imágenes son complementarias. No se presentan como una segunda
+evidencia de Gabriel o Darwin.
+
+### Catálogo público
+
+Guardar como:
+
+```text
+docs/latex/images/resultado-general-catalogo.png
+```
+
+Pasos:
+
+1. Abrir `/eventos` sin iniciar sesión.
+2. Mostrar la búsqueda, uno o más filtros y tarjetas de eventos cargadas.
+3. Mantener visibles los nombres, fechas y comunidades de demostración.
+
+### Directorio de comunidades
+
+Guardar como:
+
+```text
+docs/latex/images/resultado-general-comunidades.png
+```
+
+Pasos:
+
+1. Abrir `/comunidades` sin iniciar sesión.
+2. Mostrar la búsqueda y varias comunidades activas.
+3. Confirmar que las tarjetas permitan reconocer el acceso a sus perfiles.
+
+### Detalle de evento
+
+Guardar como:
+
+```text
+docs/latex/images/resultado-general-detalle-evento.png
+```
+
+Pasos:
+
+1. Desde `/eventos`, abrir un evento publicado.
+2. Mostrar título, descripción, fecha, modalidad, ubicación, comunidad y
+   cupos.
+3. Si aparece un botón de inscripción, verificar que sea legible y que no se
+   muestre información personal.
+
 ## Verificación antes de compilar
 
-- [ ] Las dos rutas cargan sin errores.
+- [ ] Las cinco rutas o vistas cargan sin errores.
 - [ ] Las capturas tienen extensión `.png` y los nombres exactos.
 - [ ] No aparecen DevTools, terminales, contraseñas ni datos personales.
 - [ ] La imagen de Gabriel muestra la landing final.
 - [ ] La imagen de Darwin muestra una solicitud administrativa pendiente.
 - [ ] Las capturas se ven nítidas al 100% de zoom.
-- [ ] Se agregaron ambas imágenes dentro de `docs/latex/images/`.
-- [ ] Se compiló `main.tex` y se revisaron visualmente portada, tablas,
-  captions, resultados, conclusiones, recomendaciones y referencias.
+- [ ] Se agregaron las cinco imágenes dentro de `docs/latex/images/`.
+- [ ] Se revisaron visualmente portada, tablas, captions, resultados,
+  conclusiones, recomendaciones y referencias si se realizó una compilación.

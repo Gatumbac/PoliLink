@@ -9,7 +9,7 @@ contrato de la API y las guías de implementación.
 | --- | --- |
 | `CONTEXT/PROJECT_CONTEXT.md` | Alcance aprobado, responsables y restricciones del proyecto. |
 | `latex/` | Fuente vigente del informe final (`main.tex`) e imágenes para Overleaf. |
-| `latex/CAPTURAS_FINALES.md` | Guía para obtener y verificar las dos evidencias frontend del informe final. |
+| `latex/CAPTURAS_FINALES.md` | Guía para obtener y verificar las dos evidencias individuales y tres vistas generales del informe final. |
 | `api/API.md` | Endpoints disponibles y pendientes. |
 | `api/SANCTUM_SESSION_AUTH.md` | Fundamentos de sesiones y CSRF con Sanctum. |
 | `api/POSTMAN.md` | Guía para probar la API manualmente. |
