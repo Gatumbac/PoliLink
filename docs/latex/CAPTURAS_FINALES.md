@@ -1,8 +1,8 @@
 # Guía para las capturas finales del informe
 
 El informe final debe incluir una sola evidencia frontend por integrante. Para
-mostrar mejor el recorrido de la aplicación se agregarán tres vistas generales
-complementarias, con un máximo de cinco imágenes en total. Las capturas deben
+mostrar la landing completa se agregarán cuatro vistas generales, con un máximo
+de seis imágenes en total. Las capturas deben
 mostrar la aplicación ejecutándose, sin código, DevTools, credenciales,
 terminales ni información personal visible.
 
@@ -24,22 +24,18 @@ terminales ni información personal visible.
 Guardar como:
 
 ```text
-docs/latex/images/resultado-gabriel-landing.png
+docs/latex/images/resultado-gabriel-eventos.png
 ```
 
 Pasos:
 
-1. Abrir `/` sin iniciar sesión.
-2. Esperar a que carguen las métricas, eventos y comunidades.
-3. Mostrar el hero, los CTA `Explorar eventos` y `Ver comunidades`, y la
-   sección de contenido público en una vista legible.
-4. Si la página completa no cabe con buena legibilidad, tomar una captura
-   enfocada en el hero, las métricas y el inicio de `Explora lo que está
-   pasando`.
-5. Confirmar que la captura no muestre skeletons, errores ni catálogos vacíos.
+1. Iniciar sesión con una cuenta organizadora.
+2. Abrir `/mis-eventos` y esperar a que cargue una actividad publicada.
+3. Mostrar la tarjeta del evento con las acciones `Editar evento`, `Cancelar`
+   y `Ver inscritos`.
+4. Confirmar que el título, estado, fecha, comunidad y botones sean legibles.
 
-La evidencia demuestra la landing pública, la navegación hacia eventos y
-comunidades y la integración de datos públicos.
+La evidencia demuestra la gestión de eventos propios implementada por Gabriel.
 
 ## Captura de Darwin
 
@@ -63,63 +59,76 @@ Pasos:
 La evidencia demuestra el panel administrativo y la revisión de solicitudes de
 creación de comunidades implementada por Darwin.
 
-## Capturas generales
+## Capturas generales de la landing
 
-Estas tres imágenes son complementarias. No se presentan como una segunda
-evidencia de Gabriel o Darwin.
+Estas cuatro imágenes son complementarias y muestran la landing por secciones.
+No se presentan como una segunda evidencia de Gabriel o Darwin.
 
-### Catálogo público
-
-Guardar como:
-
-```text
-docs/latex/images/resultado-general-catalogo.png
-```
-
-Pasos:
-
-1. Abrir `/eventos` sin iniciar sesión.
-2. Mostrar la búsqueda, uno o más filtros y tarjetas de eventos cargadas.
-3. Mantener visibles los nombres, fechas y comunidades de demostración.
-
-### Directorio de comunidades
+### Landing: hero
 
 Guardar como:
 
 ```text
-docs/latex/images/resultado-general-comunidades.png
+docs/latex/images/resultado-general-landing-01-hero.png
 ```
 
 Pasos:
 
-1. Abrir `/comunidades` sin iniciar sesión.
-2. Mostrar la búsqueda y varias comunidades activas.
-3. Confirmar que las tarjetas permitan reconocer el acceso a sus perfiles.
+1. Abrir `/` sin iniciar sesión y volver al inicio de la página.
+2. Mostrar el hero, el texto principal y los botones `Explorar eventos` y
+   `Ver comunidades`.
 
-### Detalle de evento
+### Landing: métricas y eventos
 
 Guardar como:
 
 ```text
-docs/latex/images/resultado-general-detalle-evento.png
+docs/latex/images/resultado-general-landing-02-metricas-eventos.png
 ```
 
 Pasos:
 
-1. Desde `/eventos`, abrir un evento publicado.
-2. Mostrar título, descripción, fecha, modalidad, ubicación, comunidad y
-   cupos.
-3. Si aparece un botón de inscripción, verificar que sea legible y que no se
-   muestre información personal.
+1. Desplazarse hasta la franja de métricas.
+2. Mostrar las métricas cargadas y el inicio de `Explora lo que está pasando`.
+3. Confirmar que las tarjetas de eventos tengan datos de demostración legibles.
 
-## Verificación antes de compilar
+### Landing: comunidades y funcionamiento
 
-- [ ] Las cinco rutas o vistas cargan sin errores.
+Guardar como:
+
+```text
+docs/latex/images/resultado-general-landing-03-comunidades-funciona.png
+```
+
+Pasos:
+
+1. Desplazarse hasta `Comunidades con las que puedes conectar`.
+2. Mostrar las tarjetas de comunidades y la sección `Así funciona PoliLink`.
+3. Verificar que no aparezcan estados de carga, errores o catálogos vacíos.
+
+### Landing: llamado final
+
+Guardar como:
+
+```text
+docs/latex/images/resultado-general-landing-04-cta-final.png
+```
+
+Pasos:
+
+1. Desplazarse hasta el CTA `¿Organizas una comunidad?`.
+2. Mostrar el enlace `Organizar una comunidad` y el cierre visual de la página.
+3. Mantener la captura limpia y con el texto completamente legible.
+
+## Verificación antes de entregar la fuente
+
+- [ ] Las seis rutas o vistas cargan sin errores.
 - [ ] Las capturas tienen extensión `.png` y los nombres exactos.
 - [ ] No aparecen DevTools, terminales, contraseñas ni datos personales.
-- [ ] La imagen de Gabriel muestra la landing final.
+- [ ] La imagen de Gabriel muestra la gestión de eventos propios.
 - [ ] La imagen de Darwin muestra una solicitud administrativa pendiente.
+- [ ] Las cuatro imágenes generales cubren todas las secciones de la landing.
 - [ ] Las capturas se ven nítidas al 100% de zoom.
-- [ ] Se agregaron las cinco imágenes dentro de `docs/latex/images/`.
+- [ ] Se agregaron las seis imágenes dentro de `docs/latex/images/`.
 - [ ] Se revisaron visualmente portada, tablas, captions, resultados,
   conclusiones, recomendaciones y referencias si se realizó una compilación.
