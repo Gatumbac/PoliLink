@@ -1,6 +1,19 @@
 # Frontend de PoliLink
 
-Interfaz web de PoliLink, desarrollada con React, TypeScript y Vite.
+Interfaz web de PoliLink, desarrollada con React 19.2.8, TypeScript 6.0.2 y
+Vite 8.2.
+
+## Versiones principales
+
+| Herramienta | Versión |
+| --- | --- |
+| Node.js (Docker) | 22 |
+| React | 19.2.8 |
+| React Router | 8.3.0 |
+| TypeScript | 6.0.2 |
+| Vite | 8.2.0 |
+| TanStack Query | 5.101.4 |
+| Vitest | 4.1.10 |
 
 ## Comandos
 
@@ -63,7 +76,7 @@ conflicto específico. Los mensajes crudos del backend no deben mostrarse
 directamente.
 
 La verificación navegador → Laravel todavía debe ejecutarse con los servicios
-locales. La Fase 2 ya tiene integración de código para el catálogo público,
+locales. La integración actual incluye el catálogo público,
 los filtros, la paginación y el detalle de eventos en `/eventos` y
 `/eventos/:eventId`. La experiencia de comunidades incluye el onboarding en
 `/organizar`, la creación en `/crear-comunidad`, el seguimiento en
@@ -72,8 +85,9 @@ disponible en `/mis-eventos` para consultar el historial paginado del
 organizador. La publicación, edición, gestión inmediata de imágenes y
 cancelación de eventos activos están implementadas en código y cubiertas por
 pruebas automatizadas; aún falta comprobar el recorrido completo contra
-Laravel y MySQL locales. Las inscripciones y la vista de asistentes siguen en
-el alcance de Darwin.
+Laravel y MySQL locales. También están integradas las inscripciones, la vista
+de asistentes, el directorio de comunidades, las membresías y el panel
+administrativo en `/admin`.
 
 Las rutas visibles del navegador usan español; los nombres de componentes,
 variables, hooks y servicios permanecen en inglés. Los endpoints `/api/...`

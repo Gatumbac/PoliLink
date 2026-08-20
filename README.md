@@ -2,7 +2,7 @@
 
 Proyecto académico de la asignatura Lenguajes de Programación 2P.
 
-PoliLink será una plataforma web para centralizar la publicación, consulta e inscripción a eventos organizados por comunidades estudiantiles de ESPOL.
+PoliLink es una plataforma web para centralizar la publicación, consulta e inscripción a eventos organizados por comunidades estudiantiles de ESPOL.
 
 ## Estado del repositorio
 
@@ -40,10 +40,26 @@ aún debe ejecutarse con los servicios locales activos.
 
 ## Tecnologías
 
-- Backend: PHP 8.3+, Laravel 13 y Composer.
-- Frontend: React, TypeScript, Vite y Node.js.
-- Base de datos prevista: MySQL, de acuerdo con la propuesta del proyecto.
+- Backend: PHP 8.3+, Laravel 13.24.0, Sanctum 4.3.3 y Composer.
+- Frontend: React 19.2.8, TypeScript 6.0.2, React Router 8.3.0, Vite 8.2.0 y Node.js.
+- Base de datos: MySQL 8.4.
 - Control de versiones: Git y GitHub.
+
+## Versiones principales
+
+Las versiones declaradas en los manifiestos del proyecto son:
+
+| Componente | Versión |
+| --- | --- |
+| PHP | 8.3 o superior |
+| Laravel | 13.24.0 (`^13.8`) |
+| Laravel Sanctum | 4.3.3 (`^4.3`) |
+| PHPUnit | 12.5.33 (`^12.5.12`) |
+| Node.js (Docker) | 22 |
+| React | 19.2.8 |
+| TypeScript | 6.0.2 |
+| Vite | 8.2.0 |
+| MySQL (Docker) | 8.4 |
 
 ## Inicio local recomendado
 
@@ -115,15 +131,33 @@ Instalar previamente:
 
 Las carpetas vendor/ y node_modules/ no se incluyen en el repositorio. Se generan localmente a partir de composer.lock y package-lock.json.
 
+## Preparar el ZIP de entrega
+
+Desde la raíz, después de revisar que no existan credenciales locales, se puede
+generar un archivo con las carpetas del proyecto y la documentación:
+
+```bash
+zip -r PoliLink-final.zip backend frontend docs README.md docker-compose.yml .env.example \
+  -x 'backend/.env' 'backend/vendor/*' 'backend/storage/logs/*' \
+     'backend/storage/framework/*' 'frontend/node_modules/*' 'frontend/dist/*'
+```
+
+El archivo debe incluir `backend/`, `frontend/`, `docs/` y este README, pero no
+debe incluir `.env`, `vendor/`, `node_modules/`, contraseñas ni archivos
+generados innecesarios.
+
 ## Documentación
 
 El índice y las rutas vigentes están en [docs/README.md](docs/README.md).
 
-- Propuesta académica: [docs/latex/main.tex](docs/latex/main.tex).
+- Informe final en LaTeX: [docs/latex/main.tex](docs/latex/main.tex).
+- Guía de capturas finales: [docs/latex/CAPTURAS_FINALES.md](docs/latex/CAPTURAS_FINALES.md).
 - Contexto aprobado: [docs/CONTEXT/PROJECT_CONTEXT.md](docs/CONTEXT/PROJECT_CONTEXT.md).
 - Contrato API: [docs/api/API.md](docs/api/API.md).
 - Pruebas manuales: [docs/api/POSTMAN.md](docs/api/POSTMAN.md).
 
 ## Alcance académico
 
-El proyecto se desarrollará progresivamente. La autenticación institucional, los pagos, el correo, el calendario institucional, los códigos QR y la validación de asistencia están fuera del alcance inicial.
+La autenticación institucional, los pagos, el correo, el calendario
+institucional, los códigos QR y la validación de asistencia están fuera del
+alcance de esta entrega.

@@ -1,6 +1,20 @@
 # Backend de PoliLink
 
-API REST de PoliLink, desarrollada con Laravel 13, PHP y MySQL.
+API REST de PoliLink, desarrollada con Laravel 13.24.0, PHP 8.3+ y MySQL 8.4.
+
+## Versiones y verificaciones
+
+Las versiones bloqueadas principales son Laravel 13.24.0, Laravel Sanctum 4.3.3
+y PHPUnit 12.5.33. Desde `backend/` se pueden ejecutar las verificaciones del
+backend:
+
+```bash
+php artisan test
+vendor/bin/pint --test
+```
+
+`php artisan test` ejecuta las pruebas PHPUnit y `vendor/bin/pint --test`
+comprueba el formato de PHP sin modificar los archivos.
 
 ## Inicio recomendado: PHP en el host y MySQL en Docker
 
