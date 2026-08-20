@@ -131,21 +131,6 @@ Instalar previamente:
 
 Las carpetas vendor/ y node_modules/ no se incluyen en el repositorio. Se generan localmente a partir de composer.lock y package-lock.json.
 
-## Preparar el ZIP de entrega
-
-Desde la raíz, después de revisar que no existan credenciales locales, se puede
-generar un archivo con las carpetas del proyecto y la documentación:
-
-```bash
-zip -r PoliLink-final.zip backend frontend docs README.md docker-compose.yml .env.example \
-  -x 'backend/.env' 'backend/vendor/*' 'backend/storage/logs/*' \
-     'backend/storage/framework/*' 'frontend/node_modules/*' 'frontend/dist/*'
-```
-
-El archivo debe incluir `backend/`, `frontend/`, `docs/` y este README, pero no
-debe incluir `.env`, `vendor/`, `node_modules/`, contraseñas ni archivos
-generados innecesarios.
-
 ## Documentación
 
 El índice y las rutas vigentes están en [docs/README.md](docs/README.md).
