@@ -284,6 +284,20 @@ class CommunityMembershipApiTest extends TestCase
         $this->authenticatedGet($organizer, '/api/communities/'.$community->id.'/membership-requests')
             ->assertOk()
             ->assertJsonCount(2, 'data')
+            ->assertJsonStructure([
+                'data' => [[
+                    'id',
+                    'community' => ['id', 'name', 'slug', 'description', 'image_url'],
+                    'role' => ['code', 'name'],
+                    'status' => ['code', 'name'],
+                    'requested_by' => ['id', 'first_name', 'last_name', 'email'],
+                    'requested_at',
+                    'reviewed_at',
+                ]],
+                'links',
+                'meta',
+            ])
+            ->assertJsonPath('data.0.community.id', $community->id)
             ->assertJsonFragment(['email' => 'aprobado@espol.edu.ec'])
             ->assertJsonFragment(['email' => 'rechazado@espol.edu.ec']);
 
