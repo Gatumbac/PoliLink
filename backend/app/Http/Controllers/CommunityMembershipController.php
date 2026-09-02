@@ -142,7 +142,7 @@ class CommunityMembershipController extends Controller
         $memberships = CommunityMembership::query()
             ->where('community_id', $community->id)
             ->where('status', $statusCode)
-            ->with(['user', 'role'])
+            ->with(['user', 'role', 'community'])
             ->orderBy('requested_at')
             ->paginate($request->validated('per_page', 12))
             ->withQueryString();
